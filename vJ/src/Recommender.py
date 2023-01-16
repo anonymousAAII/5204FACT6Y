@@ -32,7 +32,7 @@ class Recommender(object):
             users_items - A sparse matrix were rows represent user, columns
                           represent items and values represent confidence.
         """
-        self.model.fit(users_items)
+        self.model.fit(users_items, show_progress=False)
         if self.dense_matrix:
             user_item_matrix = self.model.user_factors @ self.model.item_factors.T
             self.user_item_logits = torch.Tensor(user_item_matrix)
@@ -41,11 +41,12 @@ class Recommender(object):
     
     def recommend(self, user_id, size=1):
         """
-        Recommends items to a user using a softmax policy (without replacement).
+        Samples items (without replacement) to a user to recommend using a
+        softmax policy.
         Inputs:
             user_id - Index of the user to recommend an item to.
         Outputs:
-            item - Recommended item.
+            items - Array of recommended items.
         """
         if self.dense_matrix:
             item_probs = self.user_item_probs[user_id].numpy()
