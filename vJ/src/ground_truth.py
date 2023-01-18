@@ -35,7 +35,8 @@ def read_movielens():
     df = df[df['itemID'].isin(top_movies)]
     return df
 
-def grid_search(train_matrix, val_matrix, factors, regularization, confidence_weights):
+def grid_search(train_matrix, val_matrix, factors, regularization,
+                confidence_weights, seed=None):
     """
     Performs grid search over the hyperparameters for a recommender using the
     precision_at_k metric.
@@ -52,7 +53,7 @@ def grid_search(train_matrix, val_matrix, factors, regularization, confidence_we
     results = np.zeros((len(factors), len(regularization), len(confidence_weights)))
     for fi, ri, ci in np.ndindex(results.shape):
         rec = Recommender(factors=factors[fi], regularization=regularization[ri],
-                          alpha=confidence_weights[ci])
+                          alpha=confidence_weights[ci], random_state=seed)
         rec.fit_model(train_matrix)
         results[fi, ri, ci] = precision_at_k(rec.model, train_matrix, val_matrix,
                                              show_progress=False)
@@ -92,18 +93,33 @@ def df_to_csr(df, row_name, column_name, entry_name, IDs_to_indices=False):
     return csr
 
 def get_ground_truths(df):
+    """
+    Generates ground truth preferences given a dataframe.
+    Inputs:
+        df - Dataframe with columns 'userID', 'itemID' and 'confidence'
+    Outputs:
+        ground_truths - Ground truth preferences
+    """
     # Get sparse matrix
     user_item_matrix = df_to_csr(df, "userID", "itemID", "confidence")
     
-    # Make random split
-    train_matrix, test_matrix = train_test_split(user_item_matrix, 0.8, 42)
-    train_matrix, val_matrix = train_test_split(user_item_matrix, 0.875, 42)
-    
-    # Find best hyperparameters
     factors = [16, 32, 64, 128]
     reg = [0.01, 0.1, 1., 10.]
     conf_weights = [0.1, 1., 10., 100.]
-    hyperparams = grid_search(train_matrix, val_matrix, factors, reg, conf_weights)
+    hyperparams = np.zeros((len(factors), len(reg), len(conf_weights)))
+    seeds = [0, 42, 123]
+    
+    for seed in seeds:
+        # Make random split
+        train_matrix, test_matrix = train_test_split(user_item_matrix, 0.8,
+                                                     seed)
+        train_matrix, val_matrix = train_test_split(user_item_matrix, 0.875,
+                                                    seed)
+        # Test hyperparameters
+        hyperparams = grid_search(train_matrix, val_matrix, factors, reg,
+                                  conf_weights, seed)
+    
+    # Take best hyperparameters
     max_indices = np.unravel_index(hyperparams.argmax(), hyperparams.shape)
     factors = factors[max_indices[0]]
     reg = reg[max_indices[1]]
@@ -113,7 +129,7 @@ def get_ground_truths(df):
     rec = Recommender(factors=factors, regularization=reg, alpha=conf_weights,
                       compute_dense_matrix=True)
     rec.fit_model(user_item_matrix)
-    ground_truths = rec.user_item_logits
+    ground_truths = rec.preferences
     return ground_truths
 
 def get_lastfm_ground_truths():

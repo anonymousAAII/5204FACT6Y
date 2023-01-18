@@ -5,7 +5,8 @@ from implicit.als import AlternatingLeastSquares
 
 class Recommender(object):
     def __init__(self, factors=100, regularization=0.01, alpha=1.0,
-                 iterations=15, temperature=1, compute_dense_matrix=False):
+                 iterations=15, temperature=1, compute_dense_matrix=False,
+                 random_state=None):
         """
         Implements an alternating least squares model as a recommender system.
         Inputs:
@@ -21,7 +22,8 @@ class Recommender(object):
         self.model = AlternatingLeastSquares(factors=factors,
                                              regularization=regularization,
                                              alpha=alpha,
-                                             iterations=iterations)
+                                             iterations=iterations,
+                                             random_state=random_state)
         self.temperature = temperature
         self.dense_matrix = compute_dense_matrix
     
@@ -34,27 +36,27 @@ class Recommender(object):
         """
         self.model.fit(users_items, show_progress=False)
         if self.dense_matrix:
-            user_item_matrix = self.model.user_factors @ self.model.item_factors.T
-            self.user_item_logits = torch.Tensor(user_item_matrix)
-            self.user_item_probs = F.softmax(self.user_item_logits / self.temperature,
-                                             dim=1)
+            self.preferences = self.model.user_factors @ self.model.item_factors.T
+            self.policies = F.softmax(
+                torch.Tensor(self.preferences) / self.temperature,
+                dim=1).numpy()
+            # Normalize so sum is close enough to 1
+            self.policies /= np.sum(self.policies, axis=1, keepdims=True)
     
-    def recommend(self, user_id, size=1):
+    def recommend(self, user_id):
         """
-        Samples items (without replacement) to a user to recommend using a
-        softmax policy.
+        Samples an item to recommend to a user using a softmax policy.
         Inputs:
             user_id - Index of the user to recommend an item to.
         Outputs:
-            items - Array of recommended items.
+            item - Recommended item
         """
         if self.dense_matrix:
-            item_probs = self.user_item_probs[user_id].numpy()
+            policy = self.policies[user_id]
         else:
-            item_logits = self.model.user_factors[user_id] @ self.model.item_factors.T
-            item_logits = torch.Tensor(item_logits)
-            item_probs = F.softmax(item_logits / self.temperature, dim=0).numpy()
-        item_probs /= np.sum(item_probs) # normalize so sum is close enough to 1
-        items = np.random.choice(self.model.item_factors.shape[0], size=size,
-                                p=item_probs)
-        return items
+            preferences = self.model.user_factors[user_id] @ self.model.item_factors.T
+            policy = F.softmax(torch.Tensor(preferences) / self.temperature,
+                               dim=0).numpy()
+            policy /= np.sum(policy) # normalize so sum is close enough to 1
+        item = np.random.choice(self.model.item_factors.shape[0], p=policy)
+        return item
