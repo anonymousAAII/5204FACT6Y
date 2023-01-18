@@ -1,7 +1,11 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
+from sklearn.model_selection import train_test_split
 from scipy import sparse
 import implicit
+from implicit.als import AlternatingLeastSquares
+from implicit.evaluation import precision_at_k
 
 def merge_duplicates(df, col_duplicate, col_merge_value, mode="sum"):
     """
@@ -20,22 +24,32 @@ def merge_duplicates(df, col_duplicate, col_merge_value, mode="sum"):
     else:
         return df.groupby(col_duplicate, as_index = False)[col_merge_value].sum()
 
+def generate_user_item_matrix(user_items_dict, users, items):
+    # User-item observation matrix (Johnson 2014)    
+    R = np.zeros((len(users), len(items)))
+
+    for row, user in enumerate(users):
+        for col, item in enumerate(items):
+            # When no existing user-item interaction
+            if not (item in user_items_dict[user]):
+                continue
+            
+            # print(user_items_dict[user][item])
+            R[row][col] = user_items_dict[user][item]
+
+    return R
+
 if __name__ == "__main__":
-    # Source folder of dataset
+    TOP_2500_STREAMED = "items" # Or user-items
+
+    # Source folder of datasets
     DATA_SRC = "../data/hetrec2011-lastfm-2k/"
-    # Mapping from data variable name to its filename
+    # Mapping from data <variable name> to its <filename>
     data_map = {"artists": "artists.dat", 
                 "tags": "tags.dat", 
-                "user_artists": "user_artists.dat",
-                "user_taggedartists": "user_taggedartists.dat",
-                "user_taggedartists-timestamps": "user_taggedartists-timestamps.dat",
-                "user_friends": "user_friends.dat"}
+                "user_artists": "user_artists.dat"}
 
-    # Data structs for datasets for computation (dictionaries have fast access O(1))
-    artists_ds = {} # {<id>: {"name": <name>, "url": <url>}}
-    tags_ds = {} # {<tagID>: <tagValue>}
-    user_artists_ds = {} # {<userID>: {<artistID>: <weight>}}
-
+    # Variable names of datasets to be used
     var_names = list(data_map.keys())
     
     # Global accesible variables
@@ -43,132 +57,138 @@ if __name__ == "__main__":
     
     # Read in data files
     for var_name, file_name in data_map.items():
-        # Read data in Pandas Dataframe (pure for manual exploration and visualization)    
+        # Read data in Pandas Dataframe (mainly for manual exploration and visualization)    
         myVars[var_name] = pd.read_csv(DATA_SRC + file_name, sep="\t",  encoding="latin-1")
 
-        # Open file, read data and save in appropriate format for fast computation
-        with open(DATA_SRC + file_name, mode="r", encoding="latin-1") as f:
-            # Column names
-            first_line = f.readline()
-            column_names = first_line.strip().split("\t")
-            # print(column_names)
+    # Get the top 2500 streamed items (i.e cumulative user-item counts) 
+    if TOP_2500_STREAMED == "items":
+        # Get cumulative streams per artist
+        artist_streams = merge_duplicates(user_artists, "artistID", "weight")
+        rank_artist_streams = artist_streams.sort_values(by=["weight"], ascending=False)
+        # Get top 2500 items most listend to
+        items = np.array(rank_artist_streams["artistID"])[0:2500]
+
+    # Filter users that interacted with the top 2500 items 
+    user_item_100 = user_artists[user_artists["artistID"].isin(items)] # '100%' dataset
+
+    # Log transform of raw count input data (Johnson 2014)
+    def log_transform(r, alpha = 1):
+        return alpha * np.log(r) # ln or log10?
+
+    # Pre-process the raw counts with log-transformation
+    user_item_100["weight"] = user_item_100["weight"].map(log_transform)
+
+    # Get users
+    users = np.array(user_item_100["userID"].unique())
+    # Get items
+    items = np.array(user_item_100["artistID"].unique())
+
+    # Create dict struct for fast lookup O(1) of values
+    artists_dict = {} # {<id>: {"name": <name>}}
+    tags_dict = {} # {<tagID>: <tagValue>}
+    user_artists_dict = {} # {<userID>: {<artistID>: <weight>}}
+
+    for user in users:
+        subset = user_item_100[user_item_100["userID"] == user]
+        user_artists_dict[user] = dict(zip(np.array(subset["artistID"]), np.array(subset["weight"])))
+
+    def generate_hyperparameter_configuration():
+        # Hyper parameters
+        latent_factors = [16, 32, 64, 128]
+        regularization = [0.01, 0.1, 1.0, 10.0]
+        weighting_parameter = [0.1, 1.0, 10.0, 100.0]
+
+        configurations = {}
+        
+        # Initialize with all possible hyperparameter combinations
+        i = 0
+        for latent_factor in latent_factors:
+            for reg in regularization:
+                for alpha in weighting_parameter:
+                    configurations[i] = {"latent_factor": latent_factor, "reg": reg, "alpha": alpha}
+                    i+=1
+                    
+        return configurations
+
+    # Create user-item observation matrix R (Johnson 2014)
+
+
+    # Create 70%/10%/20% train/validation/test data split of the user-item listening counts three times using three different seeds
+    num_random_seeds = 3 # TO DO SET TO 3
+
+    # To safe TRUE (i.e. test) performance of model per seed (i.e. data set split)
+    performance_per_seed = {}
     
-            for line in f:
-                # print(line)
-                
-                # artists.dat
-                # id \t name \t url \t pictureURL
-                # 707	Metallica	http://www.last.fm/music/Metallica	http://userserve-ak.last.fm/serve/252/7560709.jpg
-                if var_name == var_names[0]:
-                    entry = line.strip().split("\t")
-                    # {<id>: <name>}
-                    artists_ds[int(entry[0])] = entry[1]
+    # Model's hyper parameters to be tuned using grid search
+    configurations = generate_hyperparameter_configuration()
 
-                # tags.dat
-                # tagID \t tagValue
-                # 1	metal
-                elif var_name == var_names[1]:
-                    entry = line.strip().split("\t")
-                    # {<tagID>: <tagValue>}
-                    tags_ds[int(entry[0])] = entry[1]
+    for seed in range(num_random_seeds):
+  
+        # When random_state set to an None, train_test_split will return different results for each
+        # Equivalent to setting a different random seed each time  
+        train, validation_test = train_test_split(user_item_100, test_size=0.3)
+        validation, test = train_test_split(validation_test, test_size=2/3)
+        
+        # Train data
+        R_train = generate_user_item_matrix(user_artists_dict, np.array(train["userID"].unique()), np.array(train["artistID"].unique()))
+        R_train_csr = sparse.csr_matrix(R_train) 
+        
+        # Validation data
+        R_validation = generate_user_item_matrix(user_artists_dict, np.array(validation["userID"].unique()), np.array(validation["artistID"].unique()))
+        R_validation_csr = sparse.csr_matrix(R_validation) 
 
-                # user_artists.dat
-                # userID \t artistID \t weight
-                # 2	51	13883                    
-                elif var_name == var_names[2]:
-                    entry = np.array(line.strip().split("\t"), dtype=int)
-                    # {<userID>: {<artistID>: <weight>}}
-                    # User exists
-                    if int(entry[0]) in user_artists_ds:
-                        # Artist doesn't exist
-                        if not (int(entry[1]) in user_artists_ds[int(entry[0])]):
-                            user_artists_ds[int(entry[0])][int(entry[1])] = int(entry[2])
-                    # Create first user entry
-                    else:
-                        user_artists_ds[int(entry[0])] = {int(entry[1]): int(entry[2])}
-                
-                # user_taggedartists.dat
-                # userID \t artistID \t tagID \t day \t month \t year
-                # 2	52	13	1	4	2009  
-                elif var_name == var_names[3]:
-                    break
-                    # OPTIONAL 
-                    entry = np.array(line.strip().split("\t"), dtype=int)
-                                    
-                # user_taggedartists-timestamps.dat
-                # userID \t artistID \t tagID \t timestamp
-                # 2	52	13	1238536800000    
-                elif var_name == var_names[4]:
-                    break
-                    # OPTIONAL 
-                    entry = np.array(line.strip().split("\t"), dtype=int)
-                
-                # user_friends.dat
-                # userID \t friendID
-                # 2	275    
-                elif var_name == var_names[5]:
-                    break
-                    # OPTIONAL 
-                    entry = np.array(line.strip().split("\t"), dtype=int)
-                else:
-                    raise Exception("Something goes wrong reading the file")                    
+        # Test data
+        R_test = generate_user_item_matrix(user_artists_dict, np.array(test["userID"].unique()), np.array(test["artistID"].unique()))
+        R_test_csr = sparse.csr_matrix(R_test) 
 
-            f.close()
+        # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
+        performance_per_configuration = {}
 
-    # print(user_artists_ds)
-    # print(user_artists_ds[2][51])
-    # print(user_artists)
+        # Hyperparameter tuning through grid search
+        for i, hyperparameters in configurations.items():
+            # Initialize model
+            model = AlternatingLeastSquares(factors=hyperparameters["latent_factor"], 
+                                            regularization=hyperparameters["reg"],
+                                            alpha=hyperparameters["alpha"])
+            
+            # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
+            model.fit(R_train_csr)        
 
-    # Get user and artists ids
-    users = np.array(user_artists["userID"].unique())
-    artists = np.array(user_artists["artistID"].unique())
+            # Benchmark model performance using validation set
+            p = precision_at_k(model, R_train_csr, R_validation_csr, K=1000, num_threads=4)  
+            print("Seed:", seed, ", iteration:", i)
+            print("Hyperparameters:", hyperparameters)
+            print("Precision=", p, "\n")
 
-    print("artists =", artists)
-    print("users =", users)
+            performance_per_configuration[p] = i
 
-    # Mapping from user_id to index in users and sparse-matrix (R) and vice versa
+        p_val_max = np.amax(np.array(list(performance_per_configuration.keys())))
+        print("Best validation performance =", p_val_max)
+        optimal_param_config = configurations[performance_per_configuration[p_val_max]]
+        print("Optimal hyperparameters for model of current seed =", optimal_param_config)
+
+        # Evaluate TRUE performance of best model on test set for model selection later on
+        model = AlternatingLeastSquares(factors=optimal_param_config["latent_factor"], 
+                                        regularization=optimal_param_config["reg"],
+                                        alpha=optimal_param_config["alpha"])
+        
+        model.fit(R_train_csr)
+        p_test = precision_at_k(model, R_train_csr, R_test_csr, K=1000, num_threads=4)  
+
+        performance_per_seed[seed] = {"model": model, "p_test": p_test, "hyperparameters": optimal_param_config}
+
+    print("Test performance per seed with corresponding hyperparameter configuration:")
+    print(performance_per_seed)
+
+    # # Use test set for model selection (which configuration generalizes the best)
+    # for seed, eval_data in performance_per_seed.items():
+    #     param = eval_data["hyperparameters"] 
+
+    exit()   
+    # Mapping from <user_id> to user index in sparse-matrix (R) (Johnson 2014) and vice versa
     users_index = dict(zip(users, np.arange(len(users))))
     index_users = dict(zip(np.arange(len(users)), users))
-    # Mapping from artists_id to index in artists and sparse-matrix (R) and vice versa
-    artists_index = dict(zip(artists, np.arange(len(artists))))
-    index_artists = dict(zip(np.arange(len(artists)), artists))
+    # Mapping from <item_id> to item index in sparse-matrix (R) (Johnson 2014) and vice versa
+    itemss_index = dict(zip(items, np.arange(len(items))))
+    index_items = dict(zip(np.arange(len(items)), items))
 
-    # User-item observation matrix (Johnson 2014)    
-    R = np.zeros((len(users), len(artists)))
-
-    # interaction = user_artists[((user_artists["userID"] == 2) & (user_artists["artistID"] == 51))]
-    # print(interaction)
-
-    # Initialize user-item observation matrix    
-    for index, user in enumerate(users):
-        for column, artist in enumerate(artists):
-
-            # When user_artist does not exist
-            if not (artist in user_artists_ds[user]):
-                continue
-            
-            # Save user-item (user_artist) interaction
-            R[index][column] = user_artists_ds[user][artist]
-
-    print("User-item observation matrix", "\n", R)
-    user_item_matrix = sparse.csr_matrix(R) 
-
-    # initialize a model
-    model = implicit.als.AlternatingLeastSquares(factors=50)
-
-    # train the model on a sparse matrix of user/item/confidence weights
-    model.fit(user_item_matrix)
-
-    # recommend items for a user
-    recommendations = model.recommend(users_index[2], user_item_matrix[users_index[2]])    
-
-    print(recommendations)
-
-    for item_index in recommendations[0]:
-        print(index_artists[item_index])
-
-    # artist_streams = merge_duplicates(user_artists, "artistID", "weight")
-    # rank_artist_streams = artist_streams.sort_values(by=["weight"])
-    # print(rank_artist_streams)
-    
-    
