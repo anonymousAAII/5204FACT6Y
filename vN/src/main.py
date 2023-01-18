@@ -5,7 +5,8 @@ from sklearn.model_selection import train_test_split
 from scipy import sparse
 import implicit
 from implicit.als import AlternatingLeastSquares
-from implicit.evaluation import precision_at_k
+from implicit.evaluation import precision_at_k, AUC_at_k 
+import pickle
 
 def merge_duplicates(df, col_duplicate, col_merge_value, mode="sum"):
     """
@@ -111,35 +112,45 @@ if __name__ == "__main__":
         return configurations
 
     # Create user-item observation matrix R (Johnson 2014)
+    R = generate_user_item_matrix(user_artists_dict, users, items)
+    R_csr = sparse.csr_matrix(R)
 
-
-    # Create 70%/10%/20% train/validation/test data split of the user-item listening counts three times using three different seeds
+    # Train, validate and test model of 3 different data splits
     num_random_seeds = 3 # TO DO SET TO 3
 
-    # To safe TRUE (i.e. test) performance of model per seed (i.e. data set split)
+    # To save TRUE (i.e. test) performance of model per seed (i.e. data set split)
     performance_per_seed = {}
     
     # Model's hyper parameters to be tuned using grid search
     configurations = generate_hyperparameter_configuration()
 
-    for seed in range(num_random_seeds):
-  
-        # When random_state set to an None, train_test_split will return different results for each
-        # Equivalent to setting a different random seed each time  
-        train, validation_test = train_test_split(user_item_100, test_size=0.3)
-        validation, test = train_test_split(validation_test, test_size=2/3)
-        
-        # Train data
-        R_train = generate_user_item_matrix(user_artists_dict, np.array(train["userID"].unique()), np.array(train["artistID"].unique()))
-        R_train_csr = sparse.csr_matrix(R_train) 
-        
-        # Validation data
-        R_validation = generate_user_item_matrix(user_artists_dict, np.array(validation["userID"].unique()), np.array(validation["artistID"].unique()))
-        R_validation_csr = sparse.csr_matrix(R_validation) 
+    split_mode = "R"
 
-        # Test data
-        R_test = generate_user_item_matrix(user_artists_dict, np.array(test["userID"].unique()), np.array(test["artistID"].unique()))
-        R_test_csr = sparse.csr_matrix(R_test) 
+    # Cross-validation
+    for seed in range(num_random_seeds):
+
+        # Create 70%/10%/20% train/validation/test data split of either the user-item observation matrix R 
+        # or the user-item listening counts list
+        if split_mode == "R":
+            R_train_csr, validation_test = train_test_split(R_csr, train_size=0.7)
+            R_validation_csr, R_test_csr = train_test_split(validation_test, test_size=2/3)
+        else:
+            # When random_state set to an None, train_test_split will return different results for each
+            # Equivalent to setting a different random seed each time  
+            train, validation_test = train_test_split(user_item_100, test_size=0.3)
+            validation, test = train_test_split(validation_test, test_size=2/3)
+            
+            # Train data
+            R_train = generate_user_item_matrix(user_artists_dict, np.array(train["userID"].unique()), np.array(train["artistID"].unique()))
+            R_train_csr = sparse.csr_matrix(R_train) 
+            
+            # Validation data
+            R_validation = generate_user_item_matrix(user_artists_dict, np.array(validation["userID"].unique()), np.array(validation["artistID"].unique()))
+            R_validation_csr = sparse.csr_matrix(R_validation) 
+
+            # Test data
+            R_test = generate_user_item_matrix(user_artists_dict, np.array(test["userID"].unique()), np.array(test["artistID"].unique()))
+            R_test_csr = sparse.csr_matrix(R_test) 
 
         # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
         performance_per_configuration = {}
@@ -152,10 +163,12 @@ if __name__ == "__main__":
                                             alpha=hyperparameters["alpha"])
             
             # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
-            model.fit(R_train_csr)        
+            model.fit(R_train_csr, show_progress=False)        
 
             # Benchmark model performance using validation set
-            p = precision_at_k(model, R_train_csr, R_validation_csr, K=1000, num_threads=4)  
+            # p = precision_at_k(model, R_train_csr, R_validation_csr, K=1000, show_progress=False, num_threads=4) 
+            p = AUC_at_k(model, R_train_csr, R_validation_csr, K=1000, show_progress=False, num_threads=4)
+
             print("Seed:", seed, ", iteration:", i)
             print("Hyperparameters:", hyperparameters)
             print("Precision=", p, "\n")
@@ -173,16 +186,13 @@ if __name__ == "__main__":
                                         alpha=optimal_param_config["alpha"])
         
         model.fit(R_train_csr)
-        p_test = precision_at_k(model, R_train_csr, R_test_csr, K=1000, num_threads=4)  
+        # p_test = precision_at_k(model, R_train_csr, R_test_csr, K=1000, num_threads=4)  
+        p_test = AUC_at_k(model, R_train_csr, R_test_csr, K=1000, show_progress=False, num_threads=4)  
 
         performance_per_seed[seed] = {"model": model, "p_test": p_test, "hyperparameters": optimal_param_config}
 
     print("Test performance per seed with corresponding hyperparameter configuration:")
     print(performance_per_seed)
-
-    # # Use test set for model selection (which configuration generalizes the best)
-    # for seed, eval_data in performance_per_seed.items():
-    #     param = eval_data["hyperparameters"] 
 
     exit()   
     # Mapping from <user_id> to user index in sparse-matrix (R) (Johnson 2014) and vice versa
