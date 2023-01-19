@@ -20,5 +20,13 @@ def load(filename):
             glob[k] = v
 
 if __name__ == "__main__":
+    # Folder location of variables that can be (re)loaded (in another script)
+    VARIABLE_FILES_LOCATION = "variables/"
+
+    # Generate ground truth of artist preferences
     filename = 'artist_recommendation.py'
     exec(compile(open(filename, "rb").read(), filename, 'exec'))
+
+    # Load ground truth
+    load(VARIABLE_FILES_LOCATION + "ground_truth_fm")
+    print("Ground_truth_fm:\n", ground_truth_fm)
