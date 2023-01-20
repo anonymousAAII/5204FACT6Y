@@ -11,7 +11,7 @@ from os import path
 import pickle
 from tqdm import tqdm
 
-""" CODE TO: save variables so that they can be loaded in another script"""
+# CODE TO: save variables so that they can be (re)loaded (in another script)
 def save(filename, *args):
     # Get global dictionary
     glob = globals()
@@ -52,18 +52,48 @@ def generate_user_item_matrix(user_items_dict, users, items):
     # User-item observation matrix (Johnson 2014)    
     R = np.zeros((len(users), len(items)))
 
+    index_coordinates = {}
+    i = 0
+
     for row, user in enumerate(users):
         for col, item in enumerate(items):
             # When no existing user-item interaction
             if not (item in user_items_dict[user]):
                 continue
-            
+
             # print(user_items_dict[user][item])
             R[row][col] = user_items_dict[user][item]
+            index_coordinates[i] = {"r": row, "c": col}
+            i+=1
 
-    return R
+    return R, index_coordinates
+
+def generate_masked_matrix(R, index_coordinates_R, indices_mask, mask):
+    # Copy filled array and set mask to zero
+    if mask == "zero":
+        R_masked = np.copy(R)
+    # Create zero array and set mask to value
+    else:
+        R_masked = np.zeros(R.shape)
+
+    # Loop through indices of mask
+    for i in indices_mask:
+        # Get mask's coordinates in R
+        coordinates = index_coordinates_R[i]
+
+        # According to <mask> mode set r_ui to zero       
+        if mask == "zero":
+            R_masked[coordinates["r"]][coordinates["c"]] = 0
+            continue
+
+        # Set r_ui to value
+        R_masked[coordinates["r"]][coordinates["c"]] = R[coordinates["r"]][coordinates["c"]]
+
+    return R_masked
 
 if __name__ == "__main__":
+    # Folder location to store variables so that they can be (re)loaded (in another script)
+    VARIABLE_FILES_LOCATION = "variables/"
     TOP_2500_STREAMED = "items" # Or user-items
 
     # Source folder of datasets
@@ -96,8 +126,8 @@ if __name__ == "__main__":
     user_item_100 = user_artists[user_artists["artistID"].isin(items)] # '100%' dataset
 
     # Log transform of raw count input data (Johnson 2014)
-    def log_transform(r, alpha = 1):
-        return alpha * np.log(r) # ln or log10?
+    def log_transform(r):
+        return np.log(r) 
 
     # Pre-process the raw counts with log-transformation
     user_item_100["weight"] = user_item_100["weight"].map(log_transform)
@@ -107,7 +137,7 @@ if __name__ == "__main__":
     # Get items
     items = np.array(user_item_100["artistID"].unique())
 
-    # Create dict struct for fast lookup O(1) of values
+    # Create dict struct containing data for fast lookup O(1) of values
     artists_dict = {} # {<id>: {"name": <name>}}
     tags_dict = {} # {<tagID>: <tagValue>}
     user_artists_dict = {} # {<userID>: {<artistID>: <weight>}}
@@ -116,8 +146,15 @@ if __name__ == "__main__":
         subset = user_item_100[user_item_100["userID"] == user]
         user_artists_dict[user] = dict(zip(np.array(subset["artistID"]), np.array(subset["weight"])))
 
+    # Mapping from <user_id> to user index in sparse-matrix (R) (Johnson 2014) and vice versa
+    users_index = dict(zip(users, np.arange(len(users))))
+    index_users = dict(zip(np.arange(len(users)), users))
+    # Mapping from <item_id> to item index in sparse-matrix (R) (Johnson 2014) and vice versa
+    items_index = dict(zip(items, np.arange(len(items))))
+    index_items = dict(zip(np.arange(len(items)), items))
+
     def generate_hyperparameter_configuration():
-        # Hyper parameters
+        # Hyperparameters
         latent_factors = [16, 32, 64, 128]
         regularization = [0.01, 0.1, 1.0, 10.0]
         weighting_parameter = [0.1, 1.0, 10.0, 100.0]
@@ -135,51 +172,42 @@ if __name__ == "__main__":
         return configurations
 
     # Create user-item observation matrix R (Johnson 2014)
-    R = generate_user_item_matrix(user_artists_dict, users, items)
+    R, index_coordinates_R = generate_user_item_matrix(user_artists_dict, users, items)
     R_csr = sparse.csr_matrix(R)
 
     # Train, validate and test model of 3 different data splits
-    num_random_seeds = 3 # TO DO SET TO 3
+    num_random_seeds = 3
 
     # To save TRUE (i.e. test) performance of optimal model per seed (i.e. data set split)
     performance_per_seed = {}
     
-    # Model's hyper parameters to be tuned using grid search
+    # Model's hyperparameters to be tuned using grid search
     configurations = generate_hyperparameter_configuration()
 
-    split_mode = "R"
-
     # TEMP LOCATION OF CODE
-    model_filename = "ground_truth_user_artist_model"
-
+    model_filename = VARIABLE_FILES_LOCATION + "ground_truth_user_artist_model"
+    
     # For computation efficiency only generate best model initially (i.e. when not yet exists)
     if not path.exists(model_filename):
 
         # Cross-validation
         for seed in tqdm(range(num_random_seeds)):
 
-            # Create 70%/10%/20% train/validation/test data split of either the user-item observation matrix R 
-            # or the user-item listening counts list
-            if split_mode == "R":
-                R_train_csr, validation_test = train_test_split(R_csr, train_size=0.7)
-                R_validation_csr, R_test_csr = train_test_split(validation_test, test_size=2/3)
-            else:
-                # When random_state set to an None, train_test_split will return different results for each
-                # Equivalent to setting a different random seed each time  
-                train, validation_test = train_test_split(user_item_100, test_size=0.3)
-                validation, test = train_test_split(validation_test, test_size=2/3)
-                
-                # Train data
-                R_train = generate_user_item_matrix(user_artists_dict, np.array(train["userID"].unique()), np.array(train["artistID"].unique()))
-                R_train_csr = sparse.csr_matrix(R_train) 
-                
-                # Validation data
-                R_validation = generate_user_item_matrix(user_artists_dict, np.array(validation["userID"].unique()), np.array(validation["artistID"].unique()))
-                R_validation_csr = sparse.csr_matrix(R_validation) 
+            # Create 70%/10%/20% train/validation/test data split of the user-item top 2500 listening counts
+            train, validation_test = train_test_split(np.array(list(index_coordinates_R.keys())), train_size=0.7)
+            validation, test = train_test_split(validation_test, test_size=2/3)
+            
+            R_train = generate_masked_matrix(R, index_coordinates_R, validation_test, mask="zero")
+            R_train_csr = sparse.csr_matrix(R_train)
+            # print(R_train)
 
-                # Test data
-                R_test = generate_user_item_matrix(user_artists_dict, np.array(test["userID"].unique()), np.array(test["artistID"].unique()))
-                R_test_csr = sparse.csr_matrix(R_test) 
+            R_validation = generate_masked_matrix(R, index_coordinates_R, validation, mask="value")
+            R_validation_csr = sparse.csr_matrix(R_validation)
+            # print(R_validation)
+            
+            R_test = generate_masked_matrix(R, index_coordinates_R, test, mask="value")
+            R_test_csr = sparse.csr_matrix(R_test)
+            # print(R_test)
 
             # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
             performance_per_configuration = {}
@@ -232,14 +260,41 @@ if __name__ == "__main__":
 
     # Load best model
     load(model_filename)
-    print(best_model)
+    print("Best model:\n", best_model)
+    model = best_model["model"]
 
-    # Estimate relevance scores for the whole user-item matrix
+    # Only find ground truth when not yet estimated
+    ground_truth_filename = VARIABLE_FILES_LOCATION + "ground_truth_fm"
+    
+    if not path.exists(ground_truth_filename):
+        # # Calculate the top recommendations for a single user
+        # item_ids, scores = model.recommend(0, R_csr[0])
+        # print(item_ids)
+        # print(scores)
+        # print(len(item_ids))
 
-    exit()   
-    # Mapping from <user_id> to user index in sparse-matrix (R) (Johnson 2014) and vice versa
-    users_index = dict(zip(users, np.arange(len(users))))
-    index_users = dict(zip(np.arange(len(users)), users))
-    # Mapping from <item_id> to item index in sparse-matrix (R) (Johnson 2014) and vice versa
-    itemss_index = dict(zip(items, np.arange(len(items))))
-    index_items = dict(zip(np.arange(len(items)), items))
+        # Estimate relevance scores for the whole user-item matrix
+        estimated_relevance_scores = np.zeros(R.shape)
+        # Mapping from <id> to coordinates in ground truth matrix which can be used for data splitting
+        index_coordinates_ground_truth_fm = {}
+
+        i = 0
+        for r in tqdm(range(len(users))): 
+            # Calculate the relevance score for each item for current user
+            item_ids, scores = model.recommend(r, R_csr[r], N=len(items))
+            
+            for c, item_id in enumerate(item_ids):
+                # print(item_id)
+                estimated_relevance_scores[r][item_id] = scores[c]
+                index_coordinates_ground_truth_fm[i] = {"r": r, "c": c}
+                i+=1
+
+            # print("Just processed user:", r, "\n")
+
+        # print("Estimated relevance scores:\n", nestimated_relevance_scores) 
+
+        ground_truth_fm = estimated_relevance_scores
+
+        # Save ground truth preferences
+        save(ground_truth_filename, "ground_truth_fm")    
+        # save(VARIABLE_FILES_LOCATION + "index_coordinates_ground_truth_fm", "index_coordinates_ground_truth_fm")
