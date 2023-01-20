@@ -219,5 +219,5 @@ if __name__ == "__main__":
         ground_truth_fm = relevance_scores
 
         # Save ground truth preferences
-        io.save(ground_truth_file, "ground_truth_fm")    
-        io.save("ground_truth_fm_coordinates", "ground_truth_fm_coordinates")
+        io.save(ground_truth_file, (ground_truth_file, ground_truth_fm))    
+        io.save("ground_truth_fm_coordinates", ("ground_truth_fm_coordinates", ground_truth_fm_coordinates))

@@ -80,3 +80,5 @@ if __name__ == "__main__":
     exec(compile(open(filename, "rb").read(), filename, "exec"))
 
     # Load ground truth
+    io.load("ground_truth_fm", globals())
+    print(ground_truth_fm)
