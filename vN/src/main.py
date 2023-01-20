@@ -112,17 +112,4 @@ if __name__ == "__main__":
 
     # Load ground truth
     load(VARIABLE_FILES_LOCATION + "ground_truth_fm")
-    # print("Ground_truth_fm:\n", ground_truth_fm)
-
-    # Load index to coordinates mapping for data splitting
-    load(VARIABLE_FILES_LOCATION + "index_coordinates_ground_truth_fm")
-
-    # Generate hyperparameter configurations
-    latent_factors = [16, 32, 64, 128]
-    regularization = [0.001, 0.01, 0.1, 1.0]
-    confidence_weighting = [0.1, 1., 10., 100.]
-    hyperparameter_configurations = generate_hyperparameter_configurations(latent_factors, regularization, confidence_weighting)
-
-    # Generate a model which can simulate a recommender system’s estimation of preferences using low-rank matrix completion (Bell and Se-jnowski 1995) 
-    # on the "ground truth"
-    # recommender_system_fm = create_recommendation_system(ground_truth_fm, hyperparameter_configurations, index_coordinates_ground_truth_fm)
+    print("Ground_truth_fm:\n", ground_truth_fm)
