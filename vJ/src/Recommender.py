@@ -1,7 +1,9 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+
 from implicit.als import AlternatingLeastSquares
+from implicit.evaluation import precision_at_k
 
 class Recommender(object):
     def __init__(self, factors=100, regularization=0.01, alpha=1.0,
@@ -60,3 +62,36 @@ class Recommender(object):
             policy /= np.sum(policy) # normalize so sum is close enough to 1
         item = np.random.choice(self.model.item_factors.shape[0], p=policy)
         return item
+
+def grid_search(train_matrix, val_matrix, factors, regularization,
+                confidence_weights, seed=None):
+    """
+    Performs grid search over the hyperparameters for a recommender using the
+    precision_at_k metric.
+    Inputs:
+        train_matrix - Sparse user-item matrix of training data
+        val_matrix - Sparse user-item matrix of validation data
+        factors - List of number of latent factors to test
+        regularization - List regularization factors to test
+        confidence_weights - List of confidence weight values to test
+    Outputs:
+        results - Matrix where entry (i,j,k) gives the performance for number
+                  of factors i, regularization factor j and confidence weight k
+        best_rec - Recommender model with hyperparameter setting that performed
+                   best on the validation data
+    """
+    results = np.zeros((len(factors), len(regularization), len(confidence_weights)))
+    best_rec = None
+    best_performance = 0
+    for fi, ri, ci in np.ndindex(results.shape):
+        rec = Recommender(factors=factors[fi], regularization=regularization[ri],
+                          alpha=confidence_weights[ci],
+                          compute_dense_matrix=True, random_state=seed)
+        rec.fit_model(train_matrix)
+        performance = precision_at_k(rec.model, train_matrix, val_matrix,
+                                     show_progress=False)
+        if performance > best_performance:
+            best_performance = performance
+            best_rec = rec
+        results[fi, ri, ci] = performance
+    return results, best_rec
