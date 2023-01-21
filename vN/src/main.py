@@ -8,6 +8,7 @@ import os
 import pandas as pd
 import numpy as np
 from os import path
+import random
 
 # 1st party imports
 from lib import io
@@ -115,7 +116,40 @@ def create_rewards(ground_truth):
     apply_bernoulli = np.vectorize(draw_from_bernoulli)   
     rewards = apply_bernoulli(rewards)
     return rewards
+
+def determine_envy():
+    return
+
+def beta(n, m):
+    return
+
+def OCEF(policies, rewards, m, K, conf_delta, conserv_explore_alpha, envy_epsilon):
+    """
+    OCEF (Online Certification of Envy-Freeness) algorithm
+
+    :policies:              recommendation policies
+    :rewards:               binary rewards
+    :m:                     index of current user m
+    :K:                     number of other users to select (subset of all existing users except m)
+    :conf_delta:            confidence parameter δ
+    :conserv_explore_alpha: conservative exploration parameter α
+    :envy_epsilon:          envy parameter epsilon
+    """
+    num_users, num_items = policies.shape
+    users = np.delete(np.arange(num_users), [m])
+    # Take random subset of size K of all users except user m
+    S_0 = np.random.choice(users, size=K, replace=False)
+    print(S_0)
+
+    for t in range(1, 2):
+        # Randomly draw index of other user
+        l = random.choice(S_0)
+        print(l)
+        if beta(0, t-1):
+            break
     
+    return
+
 if __name__ == "__main__":
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
     my_globals = globals()
@@ -167,5 +201,16 @@ if __name__ == "__main__":
     for latent_factor, preference_estimates in preference_estimates_fm.items():
         policies_fm[latent_factor] = create_recommendation_policies(preference_estimates)
 
+    rewards_fm_file = "rewards_fm"
+
     # We generate binary rewards using a Bernoulli distribution with expectation given by our ground truth
-    rewards = create_rewards(ground_truth_fm)
+    if not path.exists(constant.VARIABLES_FOLDER + rewards_fm_file):
+        rewards_fm = create_rewards(ground_truth_fm)
+        io.save(rewards_fm_file, (rewards_fm_file, rewards_fm))
+
+    print("Loading rewards fm...")
+    io.load(rewards_fm_file, my_globals)
+
+    # Try algorithm for one model
+    latent_factor = list(policies_fm.keys())[0]
+    OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)
