@@ -10,29 +10,6 @@ import os
 from lib import io
 import constant
 
-def generate_masked_matrix(R, index2coordinates_R, indices_mask, mask):
-    # Copy filled array and set mask to zero
-    if mask == "zero":
-        R_masked = np.copy(R)
-    # Create zero array and set mask to value
-    else:
-        R_masked = np.zeros(R.shape)
-
-    # Loop through indices of mask
-    for i in indices_mask:
-        # Get mask's coordinates in R
-        coordinates = index2coordinates_R[i]
-
-        # According to <mask> mode set r_ui to zero       
-        if mask == "zero":
-            R_masked[coordinates["r"]][coordinates["c"]] = 0
-            continue
-
-        # Set r_ui to value
-        R_masked[coordinates["r"]][coordinates["c"]] = R[coordinates["r"]][coordinates["c"]]
-
-    return R_masked
-
 # Create recommendation system using the given "ground truth"
 def create_recommendation_system(ground_truth, hyperparameter_configurations, ground_truth_coordinates, split={"train": 0.7, "validation": 0.1}):
     R = sparse.csc_matrix(ground_truth)
@@ -82,3 +59,5 @@ if __name__ == "__main__":
     # Load ground truth
     io.load("ground_truth_fm", globals())
     print(ground_truth_fm)
+
+    

@@ -15,12 +15,14 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from sklearn.model_selection import train_test_split
+import scipy
 from scipy import sparse
 import implicit
 from implicit.als import AlternatingLeastSquares
 from implicit.evaluation import precision_at_k, AUC_at_k 
 from os import path
 from tqdm import tqdm
+from pandas.api.types import CategoricalDtype
 
 # 1st party imports
 from lib import helper
@@ -28,33 +30,28 @@ from lib import io
 import constant
 
 if __name__ == "__main__":
-    TOP_2500_STREAMED = "items" # Or user-items
-
     # Source folder of datasets
     DATA_SRC = "../data/hetrec2011-lastfm-2k/"
     # Mapping from data <variable name> to its <filename>
     data_map = {"artists": "artists.dat", 
-                "tags": "tags.dat", 
                 "user_artists": "user_artists.dat"}
 
     # Variable names of datasets to be used
     var_names = list(data_map.keys())
     
     # Global accesible variables
-    myVars = vars()
+    myGlobals = globals()
     
     # Read in data files
     for var_name, file_name in data_map.items():
         # Read data in Pandas Dataframe (mainly for manual exploration and visualization)    
-        myVars[var_name] = pd.read_csv(DATA_SRC + file_name, sep="\t",  encoding="latin-1")
+        myGlobals[var_name] = pd.read_csv(DATA_SRC + file_name, sep="\t",  encoding="latin-1")
 
+    # Get cumulative streams per artist
+    artist_streams = helper.merge_duplicates(user_artists, "artistID", "weight")
+    artist_streams_ranked = artist_streams.sort_values(by=["weight"], ascending=False)
     # Get the top 2500 streamed items (i.e cumulative user-item counts) 
-    if TOP_2500_STREAMED == "items":
-        # Get cumulative streams per artist
-        artist_streams = helper.merge_duplicates(user_artists, "artistID", "weight")
-        artist_streams_ranked = artist_streams.sort_values(by=["weight"], ascending=False)
-        # Get top 2500 items most listend to
-        items = np.array(artist_streams_ranked["artistID"])[0:2500]
+    items = np.array(artist_streams_ranked["artistID"])[0:2500]
 
     # Filter users that interacted with the top 2500 items 
     user_item = user_artists[user_artists["artistID"].isin(items)] # '100%' dataset
@@ -65,31 +62,22 @@ if __name__ == "__main__":
 
     # Pre-process the raw counts with log-transformation
     user_item["weight"] = user_item["weight"].map(log_transform)
-
-    # Get users
-    users = np.array(user_item["userID"].unique())
-    # Get items
-    items = np.array(user_item["artistID"].unique())
-
-    # Create dict struct containing data for fast lookup O(1) of values
-    # artists_dict = {} # {<id>: {"name": <name>}}
-    # tags_dict = {} # {<tagID>: <tagValue>}
-    user_artists_dict = {} # {<userID>: {<artistID>: <weight>}}
-
-    for user in users:
-        subset = user_item[user_item["userID"] == user]
-        user_artists_dict[user] = dict(zip(np.array(subset["artistID"]), np.array(subset["weight"])))
-
-    # Mapping from original <user_id> to user index in sparse-matrix (R) (Johnson 2014) and vice versa
-    users_index = dict(zip(users, np.arange(len(users))))
-    index_users = dict(zip(np.arange(len(users)), users))
-    # Mapping from original <item_id> to item index in sparse-matrix (R) (Johnson 2014) and vice versa
-    items_index = dict(zip(items, np.arange(len(items))))
-    index_items = dict(zip(np.arange(len(items)), items))
     
-    # Create user-item observation matrix R (Johnson 2014)
-    R, R_coordinates = helper.generate_user_item_matrix(user_artists_dict, users, items)
-    R_csr = sparse.csr_matrix(R)
+    # Get users
+    users = user_item["userID"].unique()
+    # Get items
+    items = user_item["artistID"].unique()
+    shape = (len(users), len(items))
+
+    # Create indices for users and items
+    user_cat = CategoricalDtype(categories=sorted(users), ordered=True)
+    item_cat = CategoricalDtype(categories=sorted(items), ordered=True)
+    user_index = user_item["userID"].astype(user_cat).cat.codes
+    item_index = user_item["artistID"].astype(item_cat).cat.codes
+
+    # Conversion via COO matrix
+    R_coo = sparse.coo_matrix((user_item["weight"], (user_index, item_index)), shape=shape)
+    R = R_coo.tocsr()
 
     # For computation efficiency only generate a model initially (i.e. when not yet exists)
     model_file = "ground_truth_model_fm"
@@ -114,20 +102,11 @@ if __name__ == "__main__":
         for seed in tqdm(range(num_random_seeds)):
 
             # Create 70%/10%/20% train/validation/test data split of the user-item top 2500 listening counts
-            train, validation_test = train_test_split(np.array(list(R_coordinates.keys())), train_size=0.7)
-            validation, test = train_test_split(validation_test, test_size=2/3)
-            
-            R_train = helper.generate_masked_matrix(R, R_coordinates, validation_test, mask_mode="zero")
-            R_train_csr = sparse.csr_matrix(R_train)
-            # print(R_train)
+            # train, validation_test = train_test_split(R, train_size=0.7)
+            # validation, test = train_test_split(validation_test, test_size=2/3)
 
-            R_validation = helper.generate_masked_matrix(R, R_coordinates, validation, mask_mode="value")
-            R_validation_csr = sparse.csr_matrix(R_validation)
-            # print(R_validation)
-            
-            R_test = helper.generate_masked_matrix(R, R_coordinates, test, mask_mode="value")
-            R_test_csr = sparse.csr_matrix(R_test)
-            # print(R_test)
+            train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7)
+            validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3)
 
             # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
             performance_per_configuration = {}
@@ -143,11 +122,10 @@ if __name__ == "__main__":
                                                 alpha=hyperparameters["alpha"])
                 
                 # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
-                model.fit(R_train_csr, show_progress=False)        
+                model.fit(train, show_progress=False)        
 
                 # Benchmark model performance using validation set
-                # p = precision_at_k(model, R_train_csr, R_validation_csr, K=1000, show_progress=False, num_threads=4) 
-                p = AUC_at_k(model, R_train_csr, R_validation_csr, K=1000, show_progress=False, num_threads=4)
+                p = AUC_at_k(model, train, validation, K=1000, show_progress=False, num_threads=4)
 
                 # When current model outperforms previous one
                 if p > p_base:
@@ -163,12 +141,11 @@ if __name__ == "__main__":
             p_val_max = np.amax(np.array(list(performance_per_configuration.keys())))
             print("Best validation performance =", p_val_max)
             hyperparams_optimal = configurations[performance_per_configuration[p_val_max]]
-            print("Optimal hyperparameters for model of current seed =", hyperparams_optimal, "\n")
+            print("Optimal hyperparameters for model of current seed", seed," =", hyperparams_optimal)
 
             # Evaluate TRUE performance of best model on test set for model selection later on
-            # p_test = precision_at_k(model_best, R_train_csr, R_test_csr, K=1000, num_threads=4)  
-            p_test = AUC_at_k(model_best, R_train_csr, R_test_csr, K=1000, show_progress=False, num_threads=4)  
-
+            p_test = AUC_at_k(model_best, train, test, K=1000, show_progress=False, num_threads=4)  
+            print("Performance on test set =", p_test, "\n")
             performance_per_seed[p_test] = {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}
 
         print("Test performance per seed with corresponding hyperparameter configuration:")
@@ -180,44 +157,17 @@ if __name__ == "__main__":
         ground_truth_model_fm = performance_per_seed[key_best_end_model]
         # Save model that can generate the ground truth
         io.save(model_file, (model_file, ground_truth_model_fm))
-    
-    # Load model that can generate the ground truth
-    io.load(model_file, globals())
-    print("Ground truth model:\n", ground_truth_model_fm)
-    model = ground_truth_model_fm["model"]
 
     # Only find ground truth when not yet generated
     ground_truth_file = "ground_truth_fm"
-    
-    if not path.exists(constant.VARIABLES_FOLDER + ground_truth_file):
-        # # Calculate the top recommendations for a single user
-        # item_ids, scores = model.recommend(0, R_csr[0])
-        # print(item_ids)
-        # print(scores)
-        # print(len(item_ids))
 
-        # Estimate relevance scores for the whole user-item matrix which will serve as the ground truth
-        relevance_scores = np.zeros(R.shape)
-        # Coordinates of the ground truth matrix which can be used for data splitting
-        ground_truth_fm_coordinates = {}
-
-        i = 0
-        for r in tqdm(range(len(users))): 
-            # Calculate the relevance score for each existing item for current user
-            item_ids, scores = model.recommend(r, R_csr[r], N=len(items))
-            
-            for c, item_id in enumerate(item_ids):
-                # print(item_id)
-                relevance_scores[r][item_id] = scores[c]
-                ground_truth_fm_coordinates[i] = {"r": r, "c": c}
-                i+=1
-
-            # print("Just processed user:", r, "\n")
-
-        # print("Ground truth fm relevance scores:\n", relevance_scores) 
-
-        ground_truth_fm = relevance_scores
+    if True:#not path.exists(constant.VARIABLES_FOLDER + ground_truth_file):    
+        # Load model settings that can generate the ground truth
+        io.load(model_file, globals())
+        model = ground_truth_model_fm["model"]
+        
+        ground_truth_fm = model.user_factors @ model.item_factors.T
 
         # Save ground truth preferences
-        io.save(ground_truth_file, (ground_truth_file, ground_truth_fm))    
-        io.save("ground_truth_fm_coordinates", ("ground_truth_fm_coordinates", ground_truth_fm_coordinates))
+        io.save(ground_truth_file, (ground_truth_file, ground_truth_fm))   
+
