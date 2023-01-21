@@ -85,7 +85,7 @@ def select_best_recommendation_est_system(recommendation_system_est_model, selec
     return best_recommendation_est_system
 
 def recommendation_estimation(recommendation_est_system_model):
-    print("Estimate preferences...")
+    print("Estimating preferences...")
     # Calculate estimated preference scores
     return recommendation_est_system_model.user_factors @ recommendation_est_system_model.item_factors.T
 
@@ -103,6 +103,19 @@ def create_recommendation_policies(preference_estimates, temperature=1):
     policies = scipy.special.softmax(preference_estimates, axis=1)
     return policies
 
+def create_rewards(ground_truth):
+    print("Generating binary rewards...")
+    rewards = np.zeros(ground_truth.shape)
+
+    # Based on the approximated interest, the rewards are drawn from the binomial distribution. 
+    # The higher the interest the more likely it is to order the service and vice-versa.
+    def draw_from_bernoulli(x):
+        return np.random.binomial(1, 0.5)
+    
+    apply_bernoulli = np.vectorize(draw_from_bernoulli)   
+    rewards = apply_bernoulli(rewards)
+    return rewards
+    
 if __name__ == "__main__":
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
     my_globals = globals()
@@ -153,3 +166,6 @@ if __name__ == "__main__":
     # Use the estimated preferences to generate policies
     for latent_factor, preference_estimates in preference_estimates_fm.items():
         policies_fm[latent_factor] = create_recommendation_policies(preference_estimates)
+
+    # We generate binary rewards using a Bernoulli distribution with expectation given by our ground truth
+    rewards = create_rewards(ground_truth_fm)
