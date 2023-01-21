@@ -1,8 +1,11 @@
+import argparse
 import numpy as np
 import pandas as pd
 from pandas.api.types import CategoricalDtype
+import pickle
 from scipy import sparse
-from Recommender import Recommender
+
+from Recommender import Recommender, grid_search
 from implicit.evaluation import train_test_split, precision_at_k
 
 def read_lastfm():
@@ -34,30 +37,6 @@ def read_movielens():
     df = df[df['userID'].isin(top_users)]
     df = df[df['itemID'].isin(top_movies)]
     return df
-
-def grid_search(train_matrix, val_matrix, factors, regularization,
-                confidence_weights, seed=None):
-    """
-    Performs grid search over the hyperparameters for a recommender using the
-    precision_at_k metric.
-    Inputs:
-        train_matrix - Sparse user-item matrix of training data
-        val_matrix - Sparse user-item matrix of validation data
-        factors - List of number of latent factors to test
-        regularization - List regularization factors to test
-        confidence_weights - List of confidence weight values to test
-    Outputs:
-        Results - Matrix where entry (i,j,k) is the found precision for number
-                  of factors i, regularization factor j and confidence weight k
-    """
-    results = np.zeros((len(factors), len(regularization), len(confidence_weights)))
-    for fi, ri, ci in np.ndindex(results.shape):
-        rec = Recommender(factors=factors[fi], regularization=regularization[ri],
-                          alpha=confidence_weights[ci], random_state=seed)
-        rec.fit_model(train_matrix)
-        results[fi, ri, ci] = precision_at_k(rec.model, train_matrix, val_matrix,
-                                             show_progress=False)
-    return results
 
 def df_to_csr(df, row_name, column_name, entry_name, IDs_to_indices=False):
     """
@@ -106,9 +85,9 @@ def get_ground_truths(df):
     factors = [16, 32, 64, 128]
     reg = [0.01, 0.1, 1., 10.]
     conf_weights = [0.1, 1., 10., 100.]
-    hyperparams = np.zeros((len(factors), len(reg), len(conf_weights)))
     seeds = [0, 42, 123]
-    
+    best_model = None
+    best_score = 0
     for seed in seeds:
         # Make random split
         train_matrix, test_matrix = train_test_split(user_item_matrix, 0.8,
@@ -116,20 +95,24 @@ def get_ground_truths(df):
         train_matrix, val_matrix = train_test_split(user_item_matrix, 0.875,
                                                     seed)
         # Test hyperparameters
-        hyperparams = grid_search(train_matrix, val_matrix, factors, reg,
-                                  conf_weights, seed)
+        _, rec = grid_search(train_matrix, val_matrix, factors, reg,
+                             conf_weights, seed)
+        test_score = precision_at_k(rec.model, train_matrix, val_matrix,
+                                     show_progress=False)
+        if test_score > best_score:
+            best_model = rec
     
     # Take best hyperparameters
-    max_indices = np.unravel_index(hyperparams.argmax(), hyperparams.shape)
-    factors = factors[max_indices[0]]
-    reg = reg[max_indices[1]]
-    conf_weights = conf_weights[max_indices[2]]
+    # max_indices = np.unravel_index(hyperparams.argmax(), hyperparams.shape)
+    # factors = factors[max_indices[0]]
+    # reg = reg[max_indices[1]]
+    # conf_weights = conf_weights[max_indices[2]]
     
     # Create ground truth preferences
-    rec = Recommender(factors=factors, regularization=reg, alpha=conf_weights,
-                      compute_dense_matrix=True)
-    rec.fit_model(user_item_matrix)
-    ground_truths = rec.preferences
+    # rec = Recommender(factors=factors, regularization=reg, alpha=conf_weights,
+    #                   compute_dense_matrix=True)
+    # rec.fit_model(user_item_matrix)
+    ground_truths = best_model.preferences
     return ground_truths
 
 def get_lastfm_ground_truths():
@@ -159,3 +142,21 @@ def get_movielens_ground_truths():
     # Get ground truths
     ground_truths = get_ground_truths(df)
     return ground_truths
+
+if __name__ == '__main__':
+    """
+    Creates ground truths for the Lastfm-2k and MovieLens-1M datasets and saves
+    them in the files lastfm_ground_truths and movielens_ground_truths.
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', default='both', type=str,
+                        help='Datasets to read. Options: \'lastfm\, \'movielens\' or \'both\' (default)')
+    args = parser.parse_args()
+    if args.dataset != 'movielens':
+        lastfm_gt = get_lastfm_ground_truths()
+        with open('../results/lastfm_ground_truths', 'wb') as f:
+            pickle.dump(lastfm_gt, f)
+    if args.dataset != 'lastfm':
+        movielens_gt = get_movielens_ground_truths()
+        with open('../results/movielens_ground_truths', 'wb') as f:
+            pickle.dump(movielens_gt, f)
