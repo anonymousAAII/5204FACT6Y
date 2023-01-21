@@ -104,7 +104,19 @@ def create_recommendation_policies(preference_estimates, temperature=1):
     preference_estimates = apply_temperature(preference_estimates)
     
     # Compute the softmax transformation along the second axis (i.e., the rows)
-    policies = scipy.special.softmax(preference_estimates, axis=1)
+    policy_probabilities = scipy.special.softmax(preference_estimates, axis=1)
+
+    # According to a given probability distribution 
+    # select a policy by drawing from this distribution 
+    def select_policy(distribution, indices):
+        i_drawn_policy = np.random.choice(indices, 1, p=distribution)
+        policies = np.zeros(len(indices))
+        policies[i_drawn_policy] = 1
+        return policies
+    
+    # Since stationary policies, a policy for a user is only picked once
+    indices = np.arange(len(policy_probabilities[0]))
+    policies = np.apply_along_axis(select_policy, 1, policy_probabilities, indices)
     return policies
 
 def create_rewards(ground_truth):
