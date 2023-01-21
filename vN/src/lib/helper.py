@@ -46,7 +46,7 @@ def generate_hyperparameter_configurations(regularization, confidence_weighting,
     else:
         for reg in regularization:
             for alpha in confidence_weighting:
-                configurations[i] = {"latent_factor": latent_factor, "reg": reg, "alpha": alpha}
+                configurations[i] = {"reg": reg, "alpha": alpha}
                 i+=1
                            
     return configurations

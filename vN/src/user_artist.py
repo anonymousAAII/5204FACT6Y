@@ -40,12 +40,12 @@ if __name__ == "__main__":
     var_names = list(data_map.keys())
     
     # Global accesible variables
-    myGlobals = globals()
+    my_globals = globals()
     
     # Read in data files
     for var_name, file_name in data_map.items():
         # Read data in Pandas Dataframe (mainly for manual exploration and visualization)    
-        myGlobals[var_name] = pd.read_csv(DATA_SRC + file_name, sep="\t",  encoding="latin-1")
+        my_globals[var_name] = pd.read_csv(DATA_SRC + file_name, sep="\t",  encoding="latin-1")
 
     # Get cumulative streams per artist
     artist_streams = helper.merge_duplicates(user_artists, "artistID", "weight")
@@ -102,9 +102,6 @@ if __name__ == "__main__":
         for seed in tqdm(range(num_random_seeds)):
 
             # Create 70%/10%/20% train/validation/test data split of the user-item top 2500 listening counts
-            # train, validation_test = train_test_split(R, train_size=0.7)
-            # validation, test = train_test_split(validation_test, test_size=2/3)
-
             train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7)
             validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3)
 
@@ -161,11 +158,14 @@ if __name__ == "__main__":
     # Only find ground truth when not yet generated
     ground_truth_file = "ground_truth_fm"
 
-    if True:#not path.exists(constant.VARIABLES_FOLDER + ground_truth_file):    
+    if not path.exists(constant.VARIABLES_FOLDER + ground_truth_file):   
+        print("Loading ground_truth_fm model...")
+
         # Load model settings that can generate the ground truth
-        io.load(model_file, globals())
+        io.load(model_file, my_globals)
         model = ground_truth_model_fm["model"]
         
+        print("Generating 'ground truth' fm...")
         ground_truth_fm = model.user_factors @ model.item_factors.T
 
         # Save ground truth preferences
