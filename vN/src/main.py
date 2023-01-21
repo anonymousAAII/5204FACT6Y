@@ -97,9 +97,12 @@ def create_recommendation_policies(preference_estimates, temperature=1):
     These policies recommend a single item, drawn from the softmax distribution.
     """
     # Temperature controls the softness of the probability distributions
-    inverse_temperature = lambda x: x/temperature
-    inverse_temperature(preference_estimates)
-
+    def inverse_temperature(x):
+        return x/temperature
+    
+    apply_temperature = np.vectorize(inverse_temperature)   
+    preference_estimates = apply_temperature(preference_estimates)
+    
     # Compute the softmax transformation along the second axis (i.e., the rows)
     policies = scipy.special.softmax(preference_estimates, axis=1)
     return policies
@@ -163,7 +166,7 @@ if __name__ == "__main__":
     io.load("ground_truth_fm", my_globals)
     # print(ground_truth_fm)
 
-    # Hyperparameters
+    # Hyperparameter spaces
     latent_factors = [1, 2, 4, 8, 16, 32, 64, 128, 256]
     regularization = [0.001, 0.01, 0.1, 1.0]
     confidence_weighting = [0.1, 1.0, 10.0, 100.0]
@@ -177,7 +180,7 @@ if __name__ == "__main__":
     if not path.exists(constant.VARIABLES_FOLDER + recommendation_system_est_models_fm_file):
         recommendation_system_est_models_fm = create_recommendation_est_system(ground_truth_fm, configurations, split={"train": 0.7, "validation": 0.1})
 
-        # Save models that can estimate preferences
+        # Save models that can estimate preferences as a recommender system would
         io.save(recommendation_system_est_models_fm_file, (recommendation_system_est_models_fm_file, recommendation_system_est_models_fm))
     
     # Load from file
