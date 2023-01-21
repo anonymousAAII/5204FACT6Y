@@ -60,7 +60,36 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
 
     return models
 
-def create_recommendation_policies(recommendation_system_est, temperature=1):
+def select_best_recommendation_est_system(recommendation_system_est_model, select_mode="latent"):
+    best_recommendation_est_systems = {}
+    # Selects the best model within each possible <latent_factor> -> one select/pick per unique <latent_factor>
+    for latent_factor in recommendation_system_est_model.keys():
+        # Find best model for <latent_factor>
+        key_max = np.amax(np.array(list(recommendation_system_est_model[latent_factor].keys())))
+        best_recommendation_est_systems[latent_factor] = recommendation_system_est_model[latent_factor][key_max]
+
+    # When <select_mode> is "latent" return dictionary with best model per <latent_factor> 
+    if select_mode == "latent":
+        return best_recommendation_est_systems
+
+    # Find overall best model
+    p_base = 0
+    best_recommendation_est_system = {}
+    for latent_factor, data in best_recommendation_est_systems.items():
+        p = data["p_val"]
+        if p > p_base:
+            p_base = p
+            best_recommendation_est_system = {latent_factor: data}
+
+    # Only return one single best model over all hyperparameter combinations (no picking by <latent_factor>)
+    return best_recommendation_est_system
+
+def recommendation_estimation(recommendation_est_system_model):
+    print("Estimate preferences...")
+    # Calculate estimated preference scores
+    return recommendation_est_system_model.user_factors @ recommendation_est_system_model.item_factors.T
+
+def create_recommendation_policies(preference_estimates, temperature=1):
     """
     Generates the recommendation policies given the estimated preference scores. 
     The recommendation policies we consider are softmax distributions over the predicted scores with fixed inverse temperature. 
@@ -68,11 +97,11 @@ def create_recommendation_policies(recommendation_system_est, temperature=1):
     """
     # Temperature controls the softness of the probability distributions
     inverse_temperature = lambda x: x/temperature
-    inverse_temperature(recommendation_system_est)
+    inverse_temperature(preference_estimates)
 
     # Compute the softmax transformation along the second axis (i.e., the rows)
-    policies = scipy.special.softmax(recommendation_system_est, axis=1)
-    return
+    policies = scipy.special.softmax(preference_estimates, axis=1)
+    return policies
 
 if __name__ == "__main__":
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -108,3 +137,19 @@ if __name__ == "__main__":
     print("Loading recommender preference estimation models...")
     io.load(recommendation_system_est_models_fm_file, my_globals)
     # print(recommendation_system_est_models_fm)
+
+    # Get the recommender preference estimation models with best performances
+    best_recommendation_est_system_fm = select_best_recommendation_est_system(recommendation_system_est_models_fm, select_mode="all")
+    # print(best_recommendation_est_system_fm)
+
+    preference_estimates_fm = {}
+
+    # Use the model to simulate a recommender system’s estimation of preferences
+    for latent_factor, data in best_recommendation_est_system_fm.items():
+        preference_estimates_fm[latent_factor] = recommendation_estimation(data["model"])
+
+    policies_fm = {}
+
+    # Use the estimated preferences to generate policies
+    for latent_factor, preference_estimates in preference_estimates_fm.items():
+        policies_fm[latent_factor] = create_recommendation_policies(preference_estimates)
