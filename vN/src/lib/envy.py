@@ -1,29 +1,59 @@
 import numpy as np
 import random
+from tqdm import tqdm
 
 def utility(m, n, policies, probability_policies, rewards, expec_rewards):
-    _, items = policies.shape
-
-    u = 0
-    # Sum through possible items 
-    for item_a in range(items):    
-        u += probability_policies[n][item_a] * expec_rewards[m][item_a]
-    return u
+    return np.sum(probability_policies[n] * expec_rewards[m])
 
 # Basic definition of envy-freeness in a system (see 3.1 paper)
-def envy_free_basic(policies, probability_policies, rewards, expec_rewards):
+def envy_free_basic(policies, probability_policies, rewards, expec_rewards, epsilon=0):
     users, items = policies.shape
+
+    # Envy per user
+    envy_users = np.zeros(users)
+    # One-hot encoding of envious users
+    envious_users = np.zeros(users)
+
+    # The users
+    users = np.arange(users)    
+
+    # Determine envy-freeness in whole system by checking for user-sided utility inequality
+    for user in tqdm(range(len(users))):
     
-    # Only try for one user
-    for user in range(1):
-        u = utility(user, user, policies, probability_policies, rewards, expec_rewards)
-        print(u)
-    return
+        # Determine utility of own policy for current user
+        u_mm = utility(user, user, policies, probability_policies, rewards, expec_rewards)
+        
+        # Max utility difference experienced by user
+        u_delta_max = 0
+
+        other_users = users[users != user]
+
+        # Determine utilities of other users' policies for current user
+        for other_user in other_users:
+            u_mn = utility(user, other_user, policies, probability_policies, rewards, expec_rewards)
+            
+            # Update to track the maximum envy experiences by the current user
+            u_delta = u_mn - u_mm
+            if u_delta > u_delta_max:
+                u_delta_max = u_delta
+
+            if u_mm <= epsilon + u_mm:
+                continue
+            else:
+                envious_users[user] = True
+
+        # Save envy of user
+        envy_users[user] = max(u_delta_max, 0) 
+
+    print(np.count_nonzero(envy_users > epsilon))
+    exit()
+    return True
 
 def determine_envy_freeness(policies, probability_policies, rewards, expec_rewards, mode_envy="basis"):
     # Basic definition of envy-freeness
     if mode_envy == "basic":
-        envy_free_basic(policies, probability_policies, rewards, expec_rewards)
+        envy_free = envy_free_basic(policies, probability_policies, rewards, expec_rewards)
+        print(envy_free)
     # Algorithm 1: OCEF (Online Certification of Envy-Freeness) algorithm
     elif mode_envy == "OCEF":
         exit()
