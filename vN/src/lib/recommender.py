@@ -87,7 +87,9 @@ def create_recommendation_policies(preference_estimates, temperature=1):
     Generates the recommendation policies given the estimated preference scores. 
     The recommendation policies we consider are softmax distributions over the predicted scores with fixed inverse temperature. 
     These policies recommend a single item, drawn from the softmax distribution.
+    :returns: the picked policy (i.e. recommended item), the probability of recommending an item to a user
     """
+    # print(preference_estimates)
     # Temperature controls the softness of the probability distributions
     def inverse_temperature(x):
         return x/temperature
@@ -96,7 +98,7 @@ def create_recommendation_policies(preference_estimates, temperature=1):
     preference_estimates = apply_temperature(preference_estimates)
     
     # Compute the softmax transformation along the second axis (i.e., the rows)
-    policy_probabilities = scipy.special.softmax(preference_estimates, axis=1)
+    probability_policies = scipy.special.softmax(preference_estimates, axis=1)
 
     # According to a given probability distribution 
     # select a policy by drawing from this distribution 
@@ -106,10 +108,10 @@ def create_recommendation_policies(preference_estimates, temperature=1):
         policies[i_drawn_policy] = 1
         return policies
     
-    # Since stationary policies, a policy for a user is only picked once
-    indices = np.arange(len(policy_probabilities[0]))
-    policies = np.apply_along_axis(select_policy, 1, policy_probabilities, indices)
-    return policies
+    # Since stationary policies pick a policy for an user only once
+    indices = np.arange(len(probability_policies[0]))
+    policies = np.apply_along_axis(select_policy, 1, probability_policies, indices)
+    return policies, probability_policies
 
 def create_rewards(ground_truth, normalize=True):
     print("Generating binary rewards...")
