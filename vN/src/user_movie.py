@@ -1,6 +1,8 @@
 ####
 # vN/src/user_movie.py
 #
+# Processes MovieLens data set to generate the ground truth which forms the base of further code
+#
 # Data set thanks to:
 #
 # F. Maxwell Harper and Joseph A. Konstan. 2015. 

@@ -1,3 +1,8 @@
+####
+# vN/src/lib/envy.py
+# 
+# This file contains all the functionality to audit for envy(-freeness) in a recommender system 
+####
 import numpy as np
 import random
 from tqdm import tqdm

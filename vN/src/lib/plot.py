@@ -1,3 +1,8 @@
+####
+# vN/src/lib/plot.py
+# 
+# This file contains all the functionality to plot and save data of experiments
+####
 import matplotlib.pyplot as plt
 
 # 1st party imports

@@ -1,6 +1,8 @@
 ####
 # vN/src/user_artist.py
 #
+# Processes Last.fm data set to generate the ground truth which forms the base of further code
+#
 # Data set thanks to:
 # - Last.fm website, http://www.lastfm.com
 #
