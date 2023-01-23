@@ -1,3 +1,8 @@
+####
+# vN/src/lib/recommender.py
+#
+# This file simulates the recommender system containing create, select and exec/compute etc. functionality for each required recommender system component
+####
 import numpy as np
 import pandas as pd
 import implicit
@@ -15,7 +20,16 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
     :ground_truth:                  matrix containing estimated relevance scores serving as the ground truth preference
     :hyperparameter_configurions:   dictionary containing the hyperparameter spaces i.e. all possible hyperparameter combinations for grid search
     :split:                         specifies the ratio in which the train/validation/test split should be applied
-    :returns:                       all models found during grid search with corresponding validation performance in terms of precision
+    :returns:                       all models found during grid search indexed by <latent_factor> with corresponding validation performance in terms of precision
+                                    {<latent_factor>: 
+                                        {<precision>: 
+                                            {"i_params": <index hyperparams config>, 
+                                            "params": <hyperparams config>, 
+                                            "p_val": <validation precision>, 
+                                            "model": <model>}
+                                        }
+                                    }
+                                    for each model
     """
     R_coo = sparse.coo_matrix(ground_truth)
     # print(R)
@@ -54,6 +68,14 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
     return models
 
 def select_best_recommendation_est_system(recommendation_system_est_model, select_mode="latent"):
+    """
+    Given a dictionary of models finds the best models either the overal best model or the best model per <latent_factor>.
+    Default is selecting the best model for each <latent_factor>
+
+    :recommendation_system_est_model:   dictionary containing the models on which a best performance selection should be performed
+    :select_mode:                       modus of selecting the models either "all" or "latent"
+    :returns:                           dictionary containing the best models to simulate a recommendation system's preference estimations
+    """
     best_recommendation_est_systems = {}
     # Selects the best model within each possible <latent_factor> -> one select/pick per unique <latent_factor>
     for latent_factor in recommendation_system_est_model.keys():
@@ -78,6 +100,10 @@ def select_best_recommendation_est_system(recommendation_system_est_model, selec
     return best_recommendation_est_system
 
 def recommendation_estimation(recommendation_est_system_model):
+    """
+    :recommendation_est_system_model:   model object that simulates a recommender system's preference estimations
+    :returns:                           estimated preference scores
+    """
     print("Estimating preferences...")
     # Calculate estimated preference scores
     return recommendation_est_system_model.user_factors @ recommendation_est_system_model.item_factors.T
@@ -87,10 +113,13 @@ def create_recommendation_policies(preference_estimates, temperature=5):
     Generates the recommendation policies given the estimated preference scores. 
     The recommendation policies we consider are softmax distributions over the predicted scores with fixed inverse temperature. 
     These policies recommend a single item, drawn from the softmax distribution.
-    :returns: the picked policy (i.e. recommended item), the probability of recommending an item to a user
+
+    :preference_estimates:  estimated preference scores
+    :temperature:           controls the softness of the probability distributions
+    :returns:               the picked policy (i.e. recommended item) -> recommendation, the probability of recommending an item to a user -> user policies
     """
-    # print(preference_estimates)
-    # Temperature controls the softness of the probability distributions
+    print("Generating recommendation policies...")
+
     def inverse_temperature(x):
         return x/temperature
     
@@ -98,22 +127,29 @@ def create_recommendation_policies(preference_estimates, temperature=5):
     preference_estimates = apply_temperature(preference_estimates)
     
     # Compute the softmax transformation along the second axis (i.e., the rows)
-    probability_policies = scipy.special.softmax(preference_estimates, axis=1)
+    policies = scipy.special.softmax(preference_estimates, axis=1)
 
     # According to a given probability distribution 
-    # select a policy by drawing from this distribution 
+    # select a policy by drawing from this distribution -> is the recommendation
     def select_policy(distribution, indices):
         i_drawn_policy = np.random.choice(indices, 1, p=distribution)
-        policies = np.zeros(len(indices))
-        policies[i_drawn_policy] = 1
-        return policies
+        recommendation = np.zeros(len(indices))
+        recommendation[i_drawn_policy] = 1
+        return recommendation
     
     # Since stationary policies pick a policy for an user only once
-    indices = np.arange(len(probability_policies[0]))
-    policies = np.apply_along_axis(select_policy, 1, probability_policies, indices)
-    return policies, probability_policies
+    indices = np.arange(len(policies[0]))
+    recommendation = np.apply_along_axis(select_policy, 1, policies, indices)
+    return recommendation, policies
 
 def create_rewards(ground_truth, normalize=True):
+    """
+    Generates the rewards by a Bernoulli distribution per item and the expectation of the Bernoulli distribution
+
+    :ground_truth:  ground truth 
+    :normalize:     whether to normalize the <ground_truth>
+    :returns:       binary rewards, expecation of the binary rewards
+    """
     print("Generating binary rewards...")
     
     def x_norm(x, x_min, x_max):
