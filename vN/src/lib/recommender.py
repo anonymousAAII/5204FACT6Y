@@ -82,7 +82,7 @@ def recommendation_estimation(recommendation_est_system_model):
     # Calculate estimated preference scores
     return recommendation_est_system_model.user_factors @ recommendation_est_system_model.item_factors.T
 
-def create_recommendation_policies(preference_estimates, temperature=1):
+def create_recommendation_policies(preference_estimates, temperature=5):
     """
     Generates the recommendation policies given the estimated preference scores. 
     The recommendation policies we consider are softmax distributions over the predicted scores with fixed inverse temperature. 
