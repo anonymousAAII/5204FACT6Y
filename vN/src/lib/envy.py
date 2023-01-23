@@ -6,7 +6,7 @@ def utility(m, n, probability_policies, expec_rewards):
     return np.sum(probability_policies[n] * expec_rewards[m])
 
 # Basic definition of envy-freeness in a system (see 3.1 paper)
-def envy_free_basic(policies, probability_policies, rewards, expec_rewards, epsilon=0.05, gamma=0.5, lamb=0.5):
+def envy_free_basic(policies, probability_policies, expec_rewards, epsilon=0.05, gamma=0.5, lamb=0.5):
     """
     Audits whether a system is envy-free according to the basic definition.
 
@@ -91,7 +91,7 @@ def envy_free_basic(policies, probability_policies, rewards, expec_rewards, epsi
 
 def determine_envy_freeness(policies, probability_policies, rewards, expec_rewards, mode_envy="basis"):
     """
-    Determines envy-freeness in a system according to different methods
+    Determines/audits for envy-freeness in a system according to different methods
 
     :policies:              recommender system's policies
     :probality_policies:    probability distribution over the policies
@@ -102,46 +102,48 @@ def determine_envy_freeness(policies, probability_policies, rewards, expec_rewar
     """
     # Basic definition of envy-freeness
     if mode_envy == "basic":
-        envy_results = envy_free_basic(policies, probability_policies, rewards, expec_rewards)
+        envy_results = envy_free_basic(policies, probability_policies, expec_rewards)
     # Algorithm 1: OCEF (Online Certification of Envy-Freeness) algorithm
     elif mode_envy == "OCEF":
+        # TO DO
         exit()
     # Algorithm 2: AUDIT algorithm
     elif mode_envy == "AUDIT":
+        # TO DO
         exit()
     # Default is basic envy-freeness
     else:
-        envy_results = envy_free_basic(policies, probability_policies, rewards, expec_rewards)
+        envy_results = envy_free_basic(policies, probability_policies, expec_rewards)
     
     print(envy_results)
     return envy_results
 
-def beta(n, m):
-    return
+# def beta(n, m):
+#     return
 
-def OCEF(policies, rewards, m, K, conf_delta, conserv_explore_alpha, envy_epsilon):
-    """
-    OCEF (Online Certification of Envy-Freeness) algorithm
+# def OCEF(policies, rewards, m, K, conf_delta, conserv_explore_alpha, envy_epsilon):
+#     """
+#     OCEF (Online Certification of Envy-Freeness) algorithm
 
-    :policies:              recommendation policies
-    :rewards:               binary rewards
-    :m:                     index of current user m
-    :K:                     number of other users to select (subset of all existing users except m)
-    :conf_delta:            confidence parameter δ
-    :conserv_explore_alpha: conservative exploration parameter α
-    :envy_epsilon:          envy parameter epsilon
-    """
-    num_users, num_items = policies.shape
-    users = np.delete(np.arange(num_users), [m])
-    # Take random subset of size K of all users except user m
-    S_0 = np.random.choice(users, size=K, replace=False)
-    print(S_0)
+#     :policies:              recommendation policies
+#     :rewards:               binary rewards
+#     :m:                     index of current user m
+#     :K:                     number of other users to select (subset of all existing users except m)
+#     :conf_delta:            confidence parameter δ
+#     :conserv_explore_alpha: conservative exploration parameter α
+#     :envy_epsilon:          envy parameter epsilon
+#     """
+#     num_users, num_items = policies.shape
+#     users = np.delete(np.arange(num_users), [m])
+#     # Take random subset of size K of all users except user m
+#     S_0 = np.random.choice(users, size=K, replace=False)
+#     print(S_0)
 
-    for t in range(1, 2):
-        # Randomly draw index of other user
-        l = random.choice(S_0)
-        print(l)
-        if beta(0, t-1):
-            break
+#     for t in range(1, 2):
+#         # Randomly draw index of other user
+#         l = random.choice(S_0)
+#         print(l)
+#         if beta(0, t-1):
+#             break
     
-    return
+#     return

@@ -18,16 +18,21 @@ if __name__ == "__main__":
 
     data_sets = {0: {"name": "fm",
                     "filename": "user_artist.py",
-                    "experiment": "5.1/",
                     "vars": {
                         "ground_truth": None,
                         "recommendation_system_est_models": None,
                         "preference_estimates": None,
-                        "policies": None
-                    }}}
+                        "policies": None,
+                        "rewards": None,
+                        "expec_rewards": None
+                    },
+                    "experiments_results": None
+                    }
+                }
 
     # For all datas sets simulate recommendation system and run experiments
     for i, data_set in data_sets.items(): 
+        # Define 'GLOBALS'
         if data_set["name"] == "fm":
             # Infix of folder to perform I/O-operations on for specifically this data set (reading, writing etc.)
             IO_INFIX = constant.VAR_SUB_FOLDER["fm"]
@@ -55,7 +60,8 @@ if __name__ == "__main__":
             print("Loading ground truth MOVIE...")
             ground_truth = ground_truth_movie
 
-        
+        data_set["vars"]["ground_truth"] = ground_truth
+
         ##########################
         #   RECOMMENDER SYSTEM: from here on we generate 144 preference estimation models one for each hyperparameter combination
         ##########################
@@ -89,6 +95,8 @@ if __name__ == "__main__":
             print("Loading recommender preference estimation models MOVIE...")
             recommendation_system_est_models = recommendation_system_est_models_movie
 
+        data_set["vars"]["recommendation_system_est_models"] = recommendation_system_est_models
+
         ##########################
         #   RECOMMENDER SYSTEM: from here on we continue with the best models we select which are either the overall best model
         #                       or the best model per latent_factor. Thus we have a list in the form:
@@ -104,12 +112,16 @@ if __name__ == "__main__":
         for latent_factor, data in best_recommendation_est_system.items():
             preference_estimates[latent_factor] = recommender.recommendation_estimation(data["model"])
 
+        data_set["vars"]["preference_estimates"] = preference_estimates
+
         policies = {}
 
         # Use the estimated preferences to generate policies
         for latent_factor, data in preference_estimates.items():
             policies_, probability_policies = recommender.create_recommendation_policies(data)
             policies[latent_factor] = {"policies": policies_, "probability_policies": probability_policies}
+
+        data_set["vars"]["policies"] = policies
 
         ##########################
         #   REWARDS: the rewards are independent of the recommender system model, thus we only generate it once
@@ -129,55 +141,71 @@ if __name__ == "__main__":
             io.save(IO_INFIX + rewards_file, (rewards_var_name, rewards))
             io.save(IO_INFIX + expec_rewards_file, (expec_rewards_var_name, expec_rewards))
 
-        # LOAD
-        print("Loading rewards...")
+        # LOAD: Load binary rewards and expectation of rewards
         io.load(IO_INFIX + rewards_file, my_globals)
-
-        print("Loading expectations rewards...")
         io.load(IO_INFIX + expec_rewards_file, my_globals)
 
+        if data_set["name"] == "fm":
+            print("Loading rewards FM...")
+            print("Loading expectations rewards...")
+            rewards = rewards_fm
+            expec_rewards = expec_rewards_fm
+        else:
+            print("Loading rewards MOVIE...")
+            print("Loading expectations rewards...")
+            rewards = rewards_movie
+            expec_rewards = expec_rewards_movie
+
+        data_set["vars"]["rewards"] = rewards
+        data_set["vars"]["expec_rewards"] = expec_rewards
+
         # Experiment 5.1: sources of envy
-        experiment = data_set["experiment"]
+        experiment_dir = "5.1/"
+        experiment_dir_path = IO_PATH + experiment_dir
+
         envy_free_file = "envy_free"
         avg_envy_user_file = "avg_envy_user"
         prop_envious_users_file = "prop_envious_users"
-
-        print(data_set["experiment"])
-
-    #     experiment_file_path = constant.VARIABLES_FOLDER + constant.EXPERIMENTS_FOLDER + experiment + avg_envy_user_file
-
-    #     # Only run experiment when no results yet
-    #     if not path.exists(experiment_file_path):
-    #         # Experiment results
-    #         keys = policies.keys()
-    #         envy_free = {key: {} for key in keys}
-    #         avg_envy_user = {key: {} for key in keys}
-    #         prop_envious_users = {key: {} for key in keys}
+        
+        # Run experiment 5.1
+        if not path.exists(experiment_dir_path):
+            print("Creating directory for experiment...", experiment_dir)
+            os.mkdir(experiment_dir_path)
+        
+        # Only perform experiment when not yet executed
+        if len(os.listdir(experiment_dir_path)) == 0:    
+            print("Running experiment...", experiment_dir)    
+        
+            keys = policies.keys()
+            envy_free = {key: {} for key in keys}
+            avg_envy_user = {key: {} for key in keys}
+            prop_envious_users = {key: {} for key in keys}
             
-    #         # For latent factor's model perform experiment
-    #         for latent_factor in keys:
-    #             print("latent_factor", latent_factor)
-    #             model = best_recommendation_est_system[latent_factor]
-    #             policies = policies[latent_factor]["policies"]
-    #             probability_policies = policies[latent_factor]["probability_policies"]
+            # For latent factor's model perform experiment
+            for latent_factor in keys:
+                print("<latent_factor>", latent_factor)
+                model = best_recommendation_est_system[latent_factor]
+                
+                policies_ = policies[latent_factor]["policies"]
+                probability_policies = policies[latent_factor]["probability_policies"]
                     
-    #             envy_results = envy.determine_envy_freeness(policies, probability_policies, rewards, expec_rewards)
-    #             envy_free[latent_factor] = envy_results["envy_free"]
-    #             avg_envy_user[latent_factor] = envy_results["avg_envy_user"]
-    #             prop_envious_users[latent_factor] = envy_results["prop_envious_users"]
+                envy_results = envy.determine_envy_freeness(policies_, probability_policies, rewards, expec_rewards)
+                envy_free[latent_factor] = envy_results["envy_free"]
+                avg_envy_user[latent_factor] = envy_results["avg_envy_user"]
+                prop_envious_users[latent_factor] = envy_results["prop_envious_users"]
 
-    #         io.save(constant.EXPERIMENTS_FOLDER + experiment + envy_free_file, (envy_free_file, envy_free))
-    #         io.save(constant.EXPERIMENTS_FOLDER + experiment + avg_envy_user_file, (avg_envy_user_file, avg_envy_user))
-    #         io.save(constant.EXPERIMENTS_FOLDER + experiment + prop_envious_users_file, (prop_envious_users_file, prop_envious_users))
+            # Save results of experiment
+            io.save(IO_INFIX + experiment_dir + envy_free_file, (envy_free_file, envy_free))
+            io.save(IO_INFIX + experiment_dir + avg_envy_user_file, (avg_envy_user_file, avg_envy_user))
+            io.save(IO_INFIX + experiment_dir + prop_envious_users_file, (prop_envious_users_file, prop_envious_users))
 
-    #     # Load results experiment
-    #     print("Loading results of experiment", experiment,"...")
-    #     io.load(constant.EXPERIMENTS_FOLDER + experiment + envy_free_file, my_globals)
-    #     io.load(constant.EXPERIMENTS_FOLDER + experiment + avg_envy_user_file, my_globals)
-    #     io.load(constant.EXPERIMENTS_FOLDER + experiment + prop_envious_users_file, my_globals)
+        # Load results experiment
+        print("Loading results of experiment...", experiment_dir)
+        io.load(IO_INFIX + experiment_dir + envy_free_file, my_globals)
+        io.load(IO_INFIX + experiment_dir + avg_envy_user_file, my_globals)
+        io.load(IO_INFIX + experiment_dir + prop_envious_users_file, my_globals)
 
-
-    # plot.plot([avg_envy_user])
+        plot.plot([avg_envy_user])
     
     # # Try algorithm for one model
     # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)
