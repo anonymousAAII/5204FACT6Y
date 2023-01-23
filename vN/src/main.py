@@ -16,6 +16,7 @@ if __name__ == "__main__":
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
     my_globals = globals()
 
+    # Data sets to perform experiments on
     data_sets = {   0: {"name": "movie",
                         "filename": "user_movie.py",
                         "vars": {
@@ -26,7 +27,7 @@ if __name__ == "__main__":
                             "rewards": None,
                             "expec_rewards": None
                         },
-                        "experiments_results": None
+                        "experiments_results": {}
                         },
                     1: {"name": "fm",
                         "filename": "user_artist.py",
@@ -38,12 +39,14 @@ if __name__ == "__main__":
                             "rewards": None,
                             "expec_rewards": None
                         },
-                        "experiments_results": None
+                        "experiments_results": {}
                     }
                 }
 
     # For all datas sets simulate recommendation system and run experiments
     for i, data_set in data_sets.items(): 
+        print("Starting for data set", data_set["name"], "...")
+
         # Define 'GLOBALS'
         if data_set["name"] == "fm":
             # Infix of folder to perform I/O-operations on for specifically this data set (reading, writing etc.)
@@ -62,8 +65,6 @@ if __name__ == "__main__":
         # Generate ground truth of user-item preferences
         exec(compile(open(filename, "rb").read(), filename, "exec"))
 
-        exit()
-
         ## LOAD: Load ground truth
         io.load(IO_INFIX + "ground_truth", my_globals)
 
@@ -72,7 +73,7 @@ if __name__ == "__main__":
             ground_truth = ground_truth_fm
         else:
             print("Loading ground truth MOVIE...")
-            ground_truth = ground_truth_movie
+            ground_truth = ground_truth_mv
 
         data_set["vars"]["ground_truth"] = ground_truth
 
@@ -107,7 +108,7 @@ if __name__ == "__main__":
             recommendation_system_est_models = recommendation_system_est_models_fm
         else:
             print("Loading recommender preference estimation models MOVIE...")
-            recommendation_system_est_models = recommendation_system_est_models_movie
+            recommendation_system_est_models = recommendation_system_est_models_mv
 
         data_set["vars"]["recommendation_system_est_models"] = recommendation_system_est_models
 
@@ -167,8 +168,8 @@ if __name__ == "__main__":
         else:
             print("Loading rewards MOVIE...")
             print("Loading expectations rewards...")
-            rewards = rewards_movie
-            expec_rewards = expec_rewards_movie
+            rewards = rewards_mv
+            expec_rewards = expec_rewards_mv
 
         data_set["vars"]["rewards"] = rewards
         data_set["vars"]["expec_rewards"] = expec_rewards
@@ -219,7 +220,13 @@ if __name__ == "__main__":
         io.load(IO_INFIX + experiment_dir + avg_envy_user_file, my_globals)
         io.load(IO_INFIX + experiment_dir + prop_envious_users_file, my_globals)
 
-        plot.plot_experiment_5_1A([avg_envy_user])
+        data_set["experiments_results"]["5.1"] = {
+                                                    envy_free_file: envy_free,
+                                                    avg_envy_user_file: avg_envy_user,
+                                                    prop_envious_users_file: prop_envious_users
+                                                }        
     
+    plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"], data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]])
+
     # # Try algorithm for one model
     # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)
