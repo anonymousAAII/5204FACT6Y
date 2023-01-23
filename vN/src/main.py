@@ -226,7 +226,13 @@ if __name__ == "__main__":
                                                     prop_envious_users_file: prop_envious_users
                                                 }        
     
-    plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"], data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]])
+    plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"], data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
+                            "average envy", "number of factors", "Last.fm", "MovieLens", "average_envy", 1)
+
+    # print(data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"])
+
+    plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["prop_envious_users"], data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"]],
+                            "prop of envious users (epsilon = 0.05)", "number of factors", "Last.fm", "MovieLens", "prop_envious_users", 2)
 
     # # Try algorithm for one model
     # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)

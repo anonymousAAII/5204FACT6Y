@@ -3,17 +3,17 @@ import matplotlib.pyplot as plt
 # 1st party imports
 import constant
 
-def plot_experiment_5_1A(data):
-    fm = data[0]
-    mv = data[1]
+def plot_experiment_5_1A(data, y_label, x_label, label_1, label_2, data_name, window):
+    line_1 = data[0]
+    line_2 = data[1]
 
-    fig, ax = plt.subplots()
-    plt.plot(fm.keys(), fm.values(), label="Last fm", linestyle='-.')
-    plt.plot(mv.keys(), mv.values(), label="MovieLens", linestyle='dotted', color="orange")
+    plt.figure(window)
+    plt.plot(line_1.keys(), line_1.values(), label=label_1, linestyle='-.')
+    plt.plot(line_2.keys(), line_2.values(), label=label_2, linestyle='dotted', color="orange")
 
     plt.legend()
-    plt.ylabel("average envy")
-    plt.xlabel("number of factors")    
+    plt.ylabel(y_label)
+    plt.xlabel(x_label)    
     plt.grid()
-    plt.savefig(constant.RESULTS_FOLDER + 'experiment_5_1A.png')
+    plt.savefig(constant.RESULTS_FOLDER + "experiment_5_1A_" + data_name + ".png")
     plt.show()
