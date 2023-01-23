@@ -2,17 +2,29 @@ import numpy as np
 import random
 from tqdm import tqdm
 
-def utility(m, n, policies, probability_policies, rewards, expec_rewards):
+def utility(m, n, probability_policies, expec_rewards):
     return np.sum(probability_policies[n] * expec_rewards[m])
 
 # Basic definition of envy-freeness in a system (see 3.1 paper)
 def envy_free_basic(policies, probability_policies, rewards, expec_rewards, epsilon=0.05, gamma=0.5, lamb=0.5):
+    """
+    Audits whether a system is envy-free according to the basic definition.
+
+    :policies:              recommender system's policies
+    :probality_policies:    probability distribution over the policies
+    :rewards:               binary rewards
+    :expec_rewards:         the expectation of the rewards
+    :epsilon:               determines how much deviation the utility u_mm and u_mn are allowed to have to be still considered equal
+    :gamma:                 determines the envious threshold for a USER. The larger gamma the more policies of other users should give 
+                            the user envy before he is considered envious
+    :lamb:                  determines the envy threshold for the SYSTEM. A system is considered envy-free if at leas (1 - lambda) users are not envious
+    :returns:               data = {"envy_free": <envy_free>, "avg_envy_user": <average_envy_per_user>, "prop_envious_users": <proportion_envious_users>}
+    """
     print("Auditing envy through basic definition...")
-    users, items = policies.shape
+    users, _ = policies.shape
 
     # RELAXATION CONDITIONS: such that we do not have to try ALL users and ALL policies
     # Threshold of when an user is considered envious
-    # The larger gamma the more policies of other users should give the user envy before he become envious
     envious_user_threshold = int(gamma * users)
     # Threshold of users that should not be envious
     envy_free_users_threshold = users * (1 - lamb)
@@ -30,14 +42,13 @@ def envy_free_basic(policies, probability_policies, rewards, expec_rewards, epsi
     for user in tqdm(range(len(users))):
     
         # Determine utility of own policy for current user
-        u_mm = utility(user, user, policies, probability_policies, rewards, expec_rewards)
+        u_mm = utility(user, user, probability_policies, expec_rewards)
         
         # Max utility difference experienced by user
         u_delta_max = 0
-
         envious_count = 0
-
         other_users = users[users != user]
+
         # Randomly shuffle since users should come from a discrete uniform distribution
         np.random.shuffle(other_users)
 
@@ -45,7 +56,7 @@ def envy_free_basic(policies, probability_policies, rewards, expec_rewards, epsi
 
         # Determine utilities of other users' policies for current user
         for other_user in other_users:
-            u_mn = utility(user, other_user, policies, probability_policies, rewards, expec_rewards)
+            u_mn = utility(user, other_user, probability_policies, expec_rewards)
             
             # Update to track the maximum envy experienced by the current user
             u_delta = u_mn - u_mm
@@ -79,6 +90,16 @@ def envy_free_basic(policies, probability_policies, rewards, expec_rewards, epsi
     return {"envy_free": envy_free, "avg_envy_user": average_envy_per_user, "prop_envious_users": proportion_envious_users}
 
 def determine_envy_freeness(policies, probability_policies, rewards, expec_rewards, mode_envy="basis"):
+    """
+    Determines envy-freeness in a system according to different methods
+
+    :policies:              recommender system's policies
+    :probality_policies:    probability distribution over the policies
+    :rewards:               binary rewards
+    :expec_rewards:         the expectation of the rewards
+    :mode_envy:             modus that specifies which method should be applied to audit envy-freeness in the system
+    :returns:               audit results 
+    """
     # Basic definition of envy-freeness
     if mode_envy == "basic":
         envy_results = envy_free_basic(policies, probability_policies, rewards, expec_rewards)

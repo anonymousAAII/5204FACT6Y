@@ -15,3 +15,4 @@ def plot(data):
         ax.add_artist(first_legend)
     
     plt.show()
+

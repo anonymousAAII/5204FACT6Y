@@ -1,8 +1,6 @@
 ####
 # vN/src/user_artist.py
 #
-#
-#
 # Data set thanks to:
 # - Last.fm website, http://www.lastfm.com
 #
@@ -23,6 +21,7 @@ from implicit.evaluation import precision_at_k, AUC_at_k
 from os import path
 from tqdm import tqdm
 from pandas.api.types import CategoricalDtype
+import sys
 
 # 1st party imports
 from lib import helper
@@ -38,6 +37,14 @@ if __name__ == "__main__":
 
     # Variable names of datasets to be used
     var_names = list(data_map.keys())
+
+    # Infix of folder to perform I/O-operations on for specifically this data set (reading, writing etc.)
+    IO_INFIX = constant.VAR_SUB_FOLDER["fm"]
+    # Full path where variables of I/O operations are stored
+    IO_PATH = constant.VARIABLES_FOLDER + IO_INFIX
+ 
+    # Variable name extension
+    VAR_EXT = constant.VAR_EXT["fm"]
     
     # Global accesible variables
     my_globals = globals()
@@ -81,10 +88,13 @@ if __name__ == "__main__":
     R = R_coo.tocsr()
 
     # For computation efficiency only generate a model initially (i.e. when not yet exists)
-    model_file = "ground_truth_model_fm"
+    model_file = "ground_truth_model"
+    model_file_path = IO_PATH + model_file
+    model_var_name = model_file + VAR_EXT
 
-    if not path.exists(constant.VARIABLES_FOLDER + model_file):
-        print("Start generating ground_truth_fm model...")
+    if not path.exists(model_file_path):
+        print("Start generating ground_truth model FM...")
+
         # Train, validate and test model of 3 different data splits
         num_random_seeds = 3
 
@@ -138,12 +148,14 @@ if __name__ == "__main__":
 
             p_val_max = np.amax(np.array(list(performance_per_configuration.keys())))
             print("Best validation performance =", p_val_max)
+
             hyperparams_optimal = configurations[performance_per_configuration[p_val_max]]
             print("Optimal hyperparameters for model of current seed", seed," =", hyperparams_optimal)
 
             # Evaluate TRUE performance of best model on test set for model selection later on
             p_test = AUC_at_k(model_best, train, test, K=1000, show_progress=False, num_threads=4)  
             print("Performance on test set =", p_test, "\n")
+
             performance_per_seed[p_test] = {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}
 
         print("Test performance per seed with corresponding hyperparameter configuration:")
@@ -151,24 +163,26 @@ if __name__ == "__main__":
 
         # Model selection by test set performance    
         key_best_end_model = np.amax(np.array(list(performance_per_seed.keys())))
-        global ground_truth_model_fm 
-        ground_truth_model_fm = performance_per_seed[key_best_end_model]
-        # Save model that can generate the ground truth
-        io.save(model_file, (model_file, ground_truth_model_fm))
+        global ground_truth_model
+        ground_truth_model = performance_per_seed[key_best_end_model]
 
-    # Only find ground truth when not yet generated
-    ground_truth_file = "ground_truth_fm"
+        ## SAVE: Save model that can generate the ground truth
+        io.save(IO_INFIX + model_file, (model_var_name, ground_truth_model))
 
-    if not path.exists(constant.VARIABLES_FOLDER + ground_truth_file):   
-        print("Loading ground_truth_fm model...")
+    # Only generate ground truth when not yet generated
+    ground_truth_file = "ground_truth"
+    ground_truth_file_path = IO_PATH + ground_truth_file
+    ground_truth_var_name = ground_truth_file + VAR_EXT
 
-        # Load model settings that can generate the ground truth
-        io.load(model_file, my_globals)
+    if not path.exists(ground_truth_file_path):   
+        print("Loading ground truth model FM...")
+
+        ## LOAD: Load model settings that can generate the ground truth
+        io.load(IO_INFIX + model_file, my_globals)
         model = ground_truth_model_fm["model"]
         
-        print("Generating 'ground truth' fm...")
+        print("Generating 'ground truth' FM...")
         ground_truth_fm = model.user_factors @ model.item_factors.T
 
-        # Save ground truth preferences
-        io.save(ground_truth_file, (ground_truth_file, ground_truth_fm))   
-
+        # SAVE: Save ground truth preferences
+        io.save(IO_INFIX + ground_truth_file, (ground_truth_var_name, ground_truth_fm))   
