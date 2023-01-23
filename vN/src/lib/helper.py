@@ -6,17 +6,17 @@
 import pandas as pd
 import numpy as np
 
-def merge_duplicates(df, col_duplicate, col_merge_value, mode="sum"):
+def merge_duplicates(df, col_duplicate, col_merge_value, mode_operation="sum"):
     """
     Checks for duplicate entries and according to the given mode performs an operation on the specified column's value.
 
     :df:                dataframe used
     :col_duplicate:     name of column to be checked for duplicates
     :col_merge_value:   name of column which value to perform an operation on when it concerns a duplicate
-    :mode:              name which determines which operation is performed, default is 'sum' which takes the cummulative value
+    :mode_operation:    name which determines which operation is performed, default is 'sum' which takes the cummulative value
     :return:            dataframe which contains the unique entries and the operation's resulting column value
     """ 
-    if mode == "sum":
+    if mode_operation == "sum":
         return df.groupby(col_duplicate, as_index = False)[col_merge_value].sum()
     # Default sum the <col_merge_value> values of the duplicates
     else:

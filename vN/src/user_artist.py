@@ -54,7 +54,8 @@ if __name__ == "__main__":
     items = np.array(artist_streams_ranked["artistID"])[0:2500]
 
     # Filter users that interacted with the top 2500 items 
-    user_item = user_artists[user_artists["artistID"].isin(items)] # '100%' dataset
+    # '100%' data set, i.e. contains all relevant users and items
+    user_item = user_artists[user_artists["artistID"].isin(items)] 
 
     # Log transform of raw count input data (Johnson 2014)
     def log_transform(r):
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     user_index = user_item["userID"].astype(user_cat).cat.codes
     item_index = user_item["artistID"].astype(item_cat).cat.codes
 
-    # Conversion via COO matrix
+    # Conversion via COO matrix to the whole user-item observation/interaction matrix R
     R_coo = sparse.coo_matrix((user_item["weight"], (user_index, item_index)), shape=shape)
     R = R_coo.tocsr()
 
@@ -90,12 +91,12 @@ if __name__ == "__main__":
         # To save TRUE (i.e. test) performance of optimal model per seed (i.e. data set split)
         performance_per_seed = {}
         
-        # Hyperparameters
+        # Hyperparameters' (search) space
         latent_factors = [16, 32, 64, 128]
         regularization = [0.01, 0.1, 1.0, 10.0]
         confidence_weighting = [0.1, 1.0, 10.0, 100.0]
         
-        # Model's hyperparameters to be tuned using grid search
+        # Get model's hyperparameters to be tuned 
         configurations = helper.generate_hyperparameter_configurations(regularization, confidence_weighting, latent_factors)
 
         # Cross-validation
@@ -124,7 +125,7 @@ if __name__ == "__main__":
                 # Benchmark model performance using validation set
                 p = AUC_at_k(model, train, validation, K=1000, show_progress=False, num_threads=4)
 
-                # When current model outperforms previous one
+                # When current model outperforms previous one update tracking states
                 if p > p_base:
                     p_base = p
                     model_best = model
