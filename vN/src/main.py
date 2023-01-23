@@ -16,17 +16,29 @@ if __name__ == "__main__":
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
     my_globals = globals()
 
-    data_sets = {0: {"name": "fm",
-                    "filename": "user_artist.py",
-                    "vars": {
-                        "ground_truth": None,
-                        "recommendation_system_est_models": None,
-                        "preference_estimates": None,
-                        "policies": None,
-                        "rewards": None,
-                        "expec_rewards": None
-                    },
-                    "experiments_results": None
+    data_sets = {   0: {"name": "movie",
+                        "filename": "user_movie.py",
+                        "vars": {
+                            "ground_truth": None,
+                            "recommendation_system_est_models": None,
+                            "preference_estimates": None,
+                            "policies": None,
+                            "rewards": None,
+                            "expec_rewards": None
+                        },
+                        "experiments_results": None
+                        },
+                    1: {"name": "fm",
+                        "filename": "user_artist.py",
+                        "vars": {
+                            "ground_truth": None,
+                            "recommendation_system_est_models": None,
+                            "preference_estimates": None,
+                            "policies": None,
+                            "rewards": None,
+                            "expec_rewards": None
+                        },
+                        "experiments_results": None
                     }
                 }
 
@@ -39,7 +51,7 @@ if __name__ == "__main__":
             # Variable name extension
             VAR_EXT = constant.VAR_EXT["fm"]
         else:
-            IO_INFIX = constant.VAR_SUB_FOLDER["mv"]
+            IO_INFIX = constant.VAR_SUB_FOLDER["movie"]
             VAR_EXT = constant.VAR_EXT["movie"]
 
         # Full path where variables of I/O operations are stored
@@ -49,6 +61,8 @@ if __name__ == "__main__":
 
         # Generate ground truth of user-item preferences
         exec(compile(open(filename, "rb").read(), filename, "exec"))
+
+        exit()
 
         ## LOAD: Load ground truth
         io.load(IO_INFIX + "ground_truth", my_globals)
