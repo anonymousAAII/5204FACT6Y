@@ -28,9 +28,9 @@ def get_model_envy(policies, preferences, epsilon=0.05):
            f"Shapes {policies.shape} and {preferences.shape} do not match."
     user_utils = np.zeros(policies.shape[0])
     user_envies = np.zeros(policies.shape[0])
+    util_matrix = preferences @ policies.T
     for target_user in range(policies.shape[0]):
-        max_util = 0
-        utils = np.sum(policies * preferences[target_user], axis=1)
+        utils = util_matrix[target_user]
         target_util = utils[target_user]
         max_util = np.max(utils)
         user_utils[target_user] = target_util
@@ -83,9 +83,9 @@ def do_experiment(ground_truths, factors, seed=None):
         
 if __name__ == '__main__':
     start = time.perf_counter()
-    gt = get_movielens_ground_truths()
-    #with open('../results/lastfm_ground_truths', 'rb') as f:
-    #    gt = pickle.load(f)
+    # gt = get_movielens_ground_truths()
+    with open('../results/lastfm_ground_truths', 'rb') as f:
+        gt = pickle.load(f)
     factors = [1, 2, 4, 8, 16, 32, 64, 128, 256]
     avg_util, avg_envy, prop_envious = do_experiment(gt, factors, 42)
     end = time.perf_counter()
