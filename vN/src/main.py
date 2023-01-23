@@ -225,14 +225,23 @@ if __name__ == "__main__":
                                                     avg_envy_user_file: avg_envy_user,
                                                     prop_envious_users_file: prop_envious_users
                                                 }        
-    
+
+    # Average envy plotted together    
     plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"], data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
-                            "average envy", "number of factors", "Last.fm", "MovieLens", "average_envy", 1)
+                            "average envy", "number of factors", "MovieLens", "Last.fm", "average_envy", 1)
 
     # print(data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"])
 
+    # Proportion of envious users plotted together
     plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["prop_envious_users"], data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"]],
-                            "prop of envious users (epsilon = 0.05)", "number of factors", "Last.fm", "MovieLens", "prop_envious_users", 2)
+                            "prop of envious users (epsilon = 0.05)", "number of factors", "MovieLens", "Last.fm", "prop_envious_users", 2)
+
+    # Average envy plotted seperately
+    plot.plot_experiment_single([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"]],
+                            "average envy", "number of factors", "MovieLens", "average_envy_mv", 1)
+    plot.plot_experiment_single([data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
+                            "average envy", "number of factors", "Last.fm", "average_envy_fm", 1)
+
 
     # # Try algorithm for one model
     # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)
