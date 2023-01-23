@@ -116,8 +116,7 @@ def create_recommendation_policies(preference_estimates, temperature=5):
 
     :preference_estimates:  estimated preference scores
     :temperature:           controls the softness of the probability distributions
-    :returns:               the picked policy (i.e. recommended item), the probability of recommending an item to a user,
-                            the probality distribution over the items to be selected by the user's policy
+    :returns:               the picked policy (i.e. recommended item) -> recommendation, the probability of recommending an item to a user -> user policies
     """
     print("Generating recommendation policies...")
 
@@ -128,20 +127,20 @@ def create_recommendation_policies(preference_estimates, temperature=5):
     preference_estimates = apply_temperature(preference_estimates)
     
     # Compute the softmax transformation along the second axis (i.e., the rows)
-    probability_policies = scipy.special.softmax(preference_estimates, axis=1)
+    policies = scipy.special.softmax(preference_estimates, axis=1)
 
     # According to a given probability distribution 
-    # select a policy by drawing from this distribution 
+    # select a policy by drawing from this distribution -> is the recommendation
     def select_policy(distribution, indices):
         i_drawn_policy = np.random.choice(indices, 1, p=distribution)
-        policies = np.zeros(len(indices))
-        policies[i_drawn_policy] = 1
-        return policies
+        recommendation = np.zeros(len(indices))
+        recommendation[i_drawn_policy] = 1
+        return recommendation
     
     # Since stationary policies pick a policy for an user only once
-    indices = np.arange(len(probability_policies[0]))
-    policies = np.apply_along_axis(select_policy, 1, probability_policies, indices)
-    return policies, probability_policies
+    indices = np.arange(len(policies[0]))
+    recommendation = np.apply_along_axis(select_policy, 1, policies, indices)
+    return recommendation, policies
 
 def create_rewards(ground_truth, normalize=True):
     """

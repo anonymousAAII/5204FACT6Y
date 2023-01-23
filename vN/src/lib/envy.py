@@ -6,12 +6,12 @@ def utility(m, n, probability_policies, expec_rewards):
     return np.sum(probability_policies[n] * expec_rewards[m])
 
 # Basic definition of envy-freeness in a system (see 3.1 paper)
-def envy_free_basic(policies, probability_policies, expec_rewards, epsilon=0.05, gamma=0.5, lamb=0.5):
+def envy_free_basic(recommendations, policies, expec_rewards, epsilon=0.05, gamma=0.5, lamb=0.5):
     """
     Audits whether a system is envy-free according to the basic definition.
 
-    :policies:              recommender system's policies
-    :probality_policies:    probability distribution over the policies
+    :recommendations:       recommender system's recommendation
+    :policies:              probability distribution over the items of getting picked/recommended -> policies
     :rewards:               binary rewards
     :expec_rewards:         the expectation of the rewards
     :epsilon:               determines how much deviation the utility u_mm and u_mn are allowed to have to be still considered equal
@@ -21,7 +21,7 @@ def envy_free_basic(policies, probability_policies, expec_rewards, epsilon=0.05,
     :returns:               data = {"envy_free": <envy_free>, "avg_envy_user": <average_envy_per_user>, "prop_envious_users": <proportion_envious_users>}
     """
     print("Auditing envy through basic definition...")
-    users, _ = policies.shape
+    users, _ = recommendations.shape
 
     # RELAXATION CONDITIONS: such that we do not have to try ALL users and ALL policies
     # Threshold of when an user is considered envious
@@ -42,7 +42,7 @@ def envy_free_basic(policies, probability_policies, expec_rewards, epsilon=0.05,
     for user in tqdm(range(len(users))):
     
         # Determine utility of own policy for current user
-        u_mm = utility(user, user, probability_policies, expec_rewards)
+        u_mm = utility(user, user, policies, expec_rewards)
         
         # Max utility difference experienced by user
         u_delta_max = 0
@@ -56,7 +56,7 @@ def envy_free_basic(policies, probability_policies, expec_rewards, epsilon=0.05,
 
         # Determine utilities of other users' policies for current user
         for other_user in other_users:
-            u_mn = utility(user, other_user, probability_policies, expec_rewards)
+            u_mn = utility(user, other_user, policies, expec_rewards)
             
             # Update to track the maximum envy experienced by the current user
             u_delta = u_mn - u_mm
@@ -89,12 +89,12 @@ def envy_free_basic(policies, probability_policies, expec_rewards, epsilon=0.05,
     proportion_envious_users = np.count_nonzero(envy_users > epsilon) / M
     return {"envy_free": envy_free, "avg_envy_user": average_envy_per_user, "prop_envious_users": proportion_envious_users}
 
-def determine_envy_freeness(policies, probability_policies, rewards, expec_rewards, mode_envy="basis"):
+def determine_envy_freeness(recommendations, policies, rewards, expec_rewards, mode_envy="basis"):
     """
     Determines/audits for envy-freeness in a system according to different methods
 
-    :policies:              recommender system's policies
-    :probality_policies:    probability distribution over the policies
+    :recommendations:       recommender system's recommendations
+    :policies:              probability distribution over the items of getting picked/recommended -> policies
     :rewards:               binary rewards
     :expec_rewards:         the expectation of the rewards
     :mode_envy:             modus that specifies which method should be applied to audit envy-freeness in the system
@@ -102,7 +102,7 @@ def determine_envy_freeness(policies, probability_policies, rewards, expec_rewar
     """
     # Basic definition of envy-freeness
     if mode_envy == "basic":
-        envy_results = envy_free_basic(policies, probability_policies, expec_rewards)
+        envy_results = envy_free_basic(recommendations, policies, expec_rewards)
     # Algorithm 1: OCEF (Online Certification of Envy-Freeness) algorithm
     elif mode_envy == "OCEF":
         # TO DO
@@ -113,7 +113,7 @@ def determine_envy_freeness(policies, probability_policies, rewards, expec_rewar
         exit()
     # Default is basic envy-freeness
     else:
-        envy_results = envy_free_basic(policies, probability_policies, expec_rewards)
+        envy_results = envy_free_basic(recommendations, policies, expec_rewards)
     
     print(envy_results)
     return envy_results

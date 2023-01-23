@@ -23,7 +23,7 @@ if __name__ == "__main__":
                             "ground_truth": None,
                             "recommendation_system_est_models": None,
                             "preference_estimates": None,
-                            "policies": None,
+                            "recommendation_policies": None,
                             "rewards": None,
                             "expec_rewards": None
                         },
@@ -35,7 +35,7 @@ if __name__ == "__main__":
                             "ground_truth": None,
                             "recommendation_system_est_models": None,
                             "preference_estimates": None,
-                            "policies": None,
+                            "recommendation_policies": None,
                             "rewards": None,
                             "expec_rewards": None
                         },
@@ -129,14 +129,14 @@ if __name__ == "__main__":
 
         data_set["vars"]["preference_estimates"] = preference_estimates
 
-        policies = {}
+        recommendation_policies = {}
 
         # Use the estimated preferences to generate policies
         for latent_factor, data in preference_estimates.items():
-            policies_, probability_policies = recommender.create_recommendation_policies(data)
-            policies[latent_factor] = {"policies": policies_, "probability_policies": probability_policies}
+            recommendations, policies = recommender.create_recommendation_policies(data)
+            recommendation_policies[latent_factor] = {"recommendations": recommendations, "policies": policies}
 
-        data_set["vars"]["policies"] = policies
+        data_set["vars"]["recommendation_policies"] = recommendation_policies
 
         ##########################
         #   REWARDS: the rewards are independent of the recommender system model, thus we only generate it once
@@ -191,7 +191,7 @@ if __name__ == "__main__":
         if len(os.listdir(experiment_dir_path)) == 0:    
             print("Running experiment...", experiment_dir)    
         
-            keys = policies.keys()
+            keys = recommendation_policies.keys()
             envy_free = {key: {} for key in keys}
             avg_envy_user = {key: {} for key in keys}
             prop_envious_users = {key: {} for key in keys}
@@ -201,10 +201,10 @@ if __name__ == "__main__":
                 print("<latent_factor>", latent_factor)
                 model = best_recommendation_est_system[latent_factor]
                 
-                policies_ = policies[latent_factor]["policies"]
-                probability_policies = policies[latent_factor]["probability_policies"]
+                recommendations = recommendation_policies[latent_factor]["recommendations"]
+                policies = recommendation_policies[latent_factor]["policies"]
                     
-                envy_results = envy.determine_envy_freeness(policies_, probability_policies, rewards, expec_rewards)
+                envy_results = envy.determine_envy_freeness(recommendations, policies, rewards, expec_rewards)
                 envy_free[latent_factor] = envy_results["envy_free"]
                 avg_envy_user[latent_factor] = envy_results["avg_envy_user"]
                 prop_envious_users[latent_factor] = envy_results["prop_envious_users"]
