@@ -1,8 +1,6 @@
 ####
 # vN/src/user_movie.py
 #
-#
-#
 # Data set thanks to:
 #
 # F. Maxwell Harper and Joseph A. Konstan. 2015. 

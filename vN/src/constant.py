@@ -8,6 +8,8 @@ VARIABLES_FOLDER = "variables/"
 VAR_SUB_FOLDER = {"fm": "fm/", "movie": "mv/"}
 # Name of experiments folder
 EXPERIMENTS_FOLDER = "experiments/"
+# Name of folder where the results are stored
+RESULTS_FOLDER = "results/"
 # Extension of variable name depending on the data set
 VAR_EXT = {"fm": "_fm", "movie": "_mv"}
 

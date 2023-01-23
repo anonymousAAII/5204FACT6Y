@@ -205,7 +205,7 @@ if __name__ == "__main__":
         io.load(IO_INFIX + experiment_dir + avg_envy_user_file, my_globals)
         io.load(IO_INFIX + experiment_dir + prop_envious_users_file, my_globals)
 
-        plot.plot([avg_envy_user])
+        plot.plot_experiment_5_1A([avg_envy_user])
     
     # # Try algorithm for one model
     # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)
