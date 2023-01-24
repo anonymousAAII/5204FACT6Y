@@ -50,7 +50,7 @@ def conservative_estimate(target_dict, policy_dicts, selected_dict, alpha,
 
 def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
     """
-    Impliments the OCEF algorithm.
+    Implements the OCEF algorithm.
     Inputs:
         target_policy - Policy of the target user
         other_policies - List of policies of other users
@@ -61,6 +61,7 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
     Outputs:
         True if target user is envious, False if not epsilon-envious
         t - The number of timesteps
+        cost - Cost of the audit
     """
     t = 0 # timestep
     K = len(other_policies) # number of other policies
@@ -80,16 +81,16 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
         # beta: bound size
     target_dict = {'policy': target_policy, 'N': 0, 'r': 0, 'mu': 0,
                    'beta': beta_start}
-    policy_dicts = []
+    S = [] # List of dictionaries of other policies
     for policy in other_policies:
-        policy_dicts.append({'policy': policy, 'N': 0, 'r': 0, 'mu': 0,
+        S.append({'policy': policy, 'N': 0, 'r': 0, 'mu': 0,
                              'beta': beta_start})
-    while policy_dicts:
+    while S:
         t += 1
         explore = True
-        policy_dict = np.random.choice(policy_dicts)
-        if conservative_estimate(target_dict, policy_dicts, policy_dict, alpha, delta,
-                                 sigma, A, r, t) < 0 or target_dict['beta'] > beta_min:
+        policy_dict = np.random.choice(S) # Choose policy to explore
+        if conservative_estimate(target_dict, S, policy_dict, alpha, delta, sigma,
+                                 A, r, t) < 0 or target_dict['beta'] > beta_min:
             # Pull baseline, do not explore
             policy_dict = target_dict
             explore = False
@@ -99,26 +100,33 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
         policy_dict['r'] += reward
         policy_dict['mu'] = policy_dict['r'] / policy_dict['N']
         policy_dict['beta'] = bound_size(policy_dict['N'], K, theta, omega, sigma)
+        target_low = target_dict['mu'] - target_dict['beta'] + epsilon
+        target_high = target_dict['mu'] + target_dict['beta']
         if explore: # If we pulled an arm other than the baseline
             # Update variables
             A += 1
             r += reward
             beta_min = min(beta_min, policy_dict['beta'])
-            if policy_dict['mu'] - policy_dict['beta'] > target_dict['mu'] + target_dict['beta']:
+            if policy_dict['mu'] - policy_dict['beta'] > target_high:
                 # Lower bound greater than target upper bound: envy
                 # Compute cost of audit
                 cost = t * target_dict['mu'] - target_dict['r'] - r
                 return True, t, cost
-            if policy_dict['mu'] + policy_dict['beta'] <= target_dict['mu'] - target_dict['beta'] + epsilon:
+            if policy_dict['mu'] + policy_dict['beta'] <= target_low:
                 # Upper bound smaller than target lower bound: remove policy from list
-                policy_dicts.remove(policy_dict)
-        else:
+                S.remove(policy_dict)
+        else: # If we pulled the baseline
             temp_list = []
-            for other_dict in policy_dicts:
+            for other_dict in S:
+                if other_dict['mu'] - other_dict['beta'] > target_high:
+                    # Lower bound greater than target upper bound: envy
+                    # Compute cost of audit
+                    cost = t * target_dict['mu'] - target_dict['r'] - r
+                    return True, t, cost
                 # Check for each policy if upper bound is still greater than target lower bound
-                if policy_dict['mu'] - policy_dict['beta'] + epsilon < other_dict['mu'] + other_dict['beta']:
+                if target_low < other_dict['mu'] + other_dict['beta']:
                     temp_list.append(other_dict)
-            policy_dicts = temp_list
+            S = temp_list
     # List of other policies empty, not epsilon-envious
     # Compute cost of audit
     cost = t * target_dict['mu'] - target_dict['r'] - r
