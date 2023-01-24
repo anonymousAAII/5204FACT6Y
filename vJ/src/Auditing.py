@@ -116,3 +116,6 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
                     temp_list.append(other_dict)
             policy_dicts = temp_list
     return False, t # List of other policies empty, not epsilon-envious
+
+def AUDIT():
+    pass
