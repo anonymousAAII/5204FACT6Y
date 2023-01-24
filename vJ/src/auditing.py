@@ -99,12 +99,16 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
         policy_dict['r'] += reward
         policy_dict['mu'] = policy_dict['r'] / policy_dict['N']
         policy_dict['beta'] = bound_size(policy_dict['N'], K, theta, omega, sigma)
-        if explore:
+        if explore: # If we pulled an arm other than the baseline
+            # Update variables
             A += 1
             r += reward
             beta_min = min(beta_min, policy_dict['beta'])
             if policy_dict['mu'] - policy_dict['beta'] > target_dict['mu'] + target_dict['beta']:
-                return True, t # Lower bound greater than target upper bound: envy
+                # Lower bound greater than target upper bound: envy
+                # Compute cost of audit
+                cost = t * target_dict['mu'] - target_dict['r'] - r
+                return True, t, cost
             if policy_dict['mu'] + policy_dict['beta'] <= target_dict['mu'] - target_dict['beta'] + epsilon:
                 # Upper bound smaller than target lower bound: remove policy from list
                 policy_dicts.remove(policy_dict)
@@ -115,7 +119,10 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
                 if policy_dict['mu'] - policy_dict['beta'] + epsilon < other_dict['mu'] + other_dict['beta']:
                     temp_list.append(other_dict)
             policy_dicts = temp_list
-    return False, t # List of other policies empty, not epsilon-envious
+    # List of other policies empty, not epsilon-envious
+    # Compute cost of audit
+    cost = t * target_dict['mu'] - target_dict['r'] - r
+    return False, t, cost
 
 def AUDIT():
     pass
