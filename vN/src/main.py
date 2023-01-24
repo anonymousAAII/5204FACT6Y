@@ -77,6 +77,9 @@ if __name__ == "__main__":
 
         data_set["vars"]["ground_truth"] = ground_truth
 
+        print(ground_truth.shape)
+        exit()
+
         ##########################
         #   RECOMMENDER SYSTEM: from here on we generate 144 preference estimation models one for each hyperparameter combination
         ##########################
@@ -228,17 +231,17 @@ if __name__ == "__main__":
 
     # Average envy plotted together    
     plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"], data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
-                            "average envy", "number of factors", "MovieLens", "Last.fm", "average_envy", 1)
+                            "average envy", "number of factors", "MovieLens", "Last.fm", "average_envy")
 
     # print(data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"])
 
     # Proportion of envious users plotted together
     plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["prop_envious_users"], data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"]],
-                            "prop of envious users (epsilon = 0.05)", "number of factors", "MovieLens", "Last.fm", "prop_envious_users", 2)
+                            "prop of envious users (epsilon = 0.05)", "number of factors", "MovieLens", "Last.fm", "prop_envious_users")
 
     # Average envy plotted seperately
     plot.plot_experiment_single([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"]],
-                            "average envy", "number of factors", "MovieLens", "average_envy_mv", 1)
+                            "average envy", "number of factors", "MovieLens", "average_envy_mv")
     plot.plot_experiment_single([data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
                             "average envy", "number of factors", "Last.fm", "average_envy_fm", 1)
 
