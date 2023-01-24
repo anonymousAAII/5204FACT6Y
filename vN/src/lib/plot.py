@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 # 1st party imports
 import constant
 
-def plot_experiment_5_1A(data, y_label, x_label, label_1, label_2, data_name, window):
+def plot_experiment_5_1A(data, y_label, x_label, label_1, label_2, data_name, color_1="orange", color_2="tab:blue", window=1):
     line_1 = data[0]
     line_2 = data[1]
 
     plt.figure(window)
-    plt.plot(line_1.keys(), line_1.values(), label=label_1, linestyle='-.')
-    plt.plot(line_2.keys(), line_2.values(), label=label_2, linestyle='dotted', color="orange")
+    plt.plot(line_1.keys(), line_1.values(), label=label_1, linestyle="dotted", color=color_1)
+    plt.plot(line_2.keys(), line_2.values(), label=label_2, linestyle="-.", color=color_2)
 
     plt.legend()
     plt.ylabel(y_label)

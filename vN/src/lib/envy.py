@@ -90,8 +90,9 @@ def envy_free_basic(recommendations, policies, expec_rewards, epsilon=0.05, gamm
 
     envy_free = not envious_system
     M = len(envy_users)
-    average_envy_per_user = np.sum(envy_users) / M
-    proportion_envious_users = np.count_nonzero(envy_users > epsilon) / M
+    average_envy_per_user = np.mean(envy_users)
+    # proportion_envious_users = np.count_nonzero(envy_users > epsilon) / M
+    proportion_envious_users = np.mean(envy_users > epsilon)
     return {"envy_free": envy_free, "avg_envy_user": average_envy_per_user, "prop_envious_users": proportion_envious_users}
 
 def determine_envy_freeness(recommendations, policies, rewards, expec_rewards, mode_envy="basis"):

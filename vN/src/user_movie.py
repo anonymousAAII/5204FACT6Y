@@ -23,6 +23,7 @@ from os import path
 from tqdm import tqdm
 from pandas.api.types import CategoricalDtype
 import sys
+import time
 
 # 1st party imports
 from lib import helper
@@ -55,23 +56,27 @@ if __name__ == "__main__":
     
     # Read in data files
     for var_name, file_name in data_map.items():
-        # Read data in Pandas Dataframe (mainly for manual exploration and visualization)    
         my_globals[var_name] = pd.read_csv(DATA_SRC + file_name, sep="::", header=None, names=header[var_name], encoding="latin-1", engine="python")
 
     # Get the number of ratings per movie (movie rating count)
-    user_movies["rating_count"] = np.full(len(user_movies), 1)
+    user_movies["rating_count"] = np.full(len(user_movies), 1)    
     movies_rating_count = helper.merge_duplicates(user_movies, "movieID", "rating_count")
     movies_rating_count_ranked = movies_rating_count.sort_values(by=["rating_count"], ascending=False)
 
     # Get the top 2500 number of times rated items (i.e number of cumulative rating count) 
     items = np.array(movies_rating_count_ranked["movieID"])[0:2500]
-
+    
     # Filter users that interacted with the top 2500 items 
     # '100%' data set, i.e. contains all relevant users and items
     user_item = user_movies[user_movies["movieID"].isin(items)] 
+    
+    # Get users that gave the most rating
+    users_rating_count = helper.merge_duplicates(user_item, "userID", "rating_count")
+    users_rating_count_ranked = users_rating_count.sort_values(by=["rating_count"], ascending=False)
 
-    # Keep only 2000 through random sample
-    user_item = user_item.sample(n=2000)
+    # Keep top 2000 users
+    users = np.array(users_rating_count_ranked["userID"])[0:2000]
+    user_item = user_item[user_item["userID"].isin(users)]
 
     # Since setting ratings < 3 are usually considered as negative (Wang et al. 2018), we set ratings < 3 to zero
     def transform(r):
@@ -82,13 +87,9 @@ if __name__ == "__main__":
     # Pre-process the ratings
     user_item["rating"] = user_item["rating"].map(transform)
     
-    # Get users
-    users = user_item["userID"].unique()
-    # Get items
-    items = user_item["movieID"].unique()
     shape = (len(users), len(items))
 
-    # Create indices for users and items
+    # Create indices for users and items that have the most rating
     user_cat = CategoricalDtype(categories=sorted(users), ordered=True)
     item_cat = CategoricalDtype(categories=sorted(items), ordered=True)
     user_index = user_item["userID"].astype(user_cat).cat.codes
