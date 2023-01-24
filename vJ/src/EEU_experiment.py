@@ -8,7 +8,7 @@ import numpy as np
 import pickle
 from tqdm import tqdm
 
-from mispecification_experiment import get_model_envy
+from misspecification_experiment import get_model_envy
 
 def loss(policies, preferences, b):
     """
