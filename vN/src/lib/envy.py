@@ -34,14 +34,18 @@ def envy_free_basic(recommendations, policies, expec_rewards, epsilon=0.05, gamm
     # # Threshold of users that should not be envious
     # envy_free_users_threshold = users * (1 - lamb)
 
+    # Get utilities making use of the property utility = policy * expectation rewards
     utilities = policies @ expec_rewards.T
 
+    # Column index = index of user policy, row index = index of user to which the policy was applied
     delta_utilities = utilities - np.repeat([utilities.diagonal()], users, axis=0)
     
+    # Get maximum envy experienced by users (i.e. for each user)
     max_delta_utilities = delta_utilities.max(axis=0, keepdims=True)
 
     delta_envy = np.maximum(max_delta_utilities, np.zeros(users))
 
+    # Envy for each user
     envy_users = delta_envy.flatten()
 
     average_envy_per_user = np.mean(envy_users)
