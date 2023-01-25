@@ -1,9 +1,0 @@
-                                os.environ["OPENBLAS_NUM_THREADS"]: sequential                  multiprocessing.Pool()
-Training ground truth model     1                                   1325.3676090240479 (22 min) 1228.7659089565277 (20.5 min)- seeds / 1393.3282322883606 hyperparameter tuning (23 min) 
-
-
-
-
-Generating ground_truth_model 480
-Gerating 144 preference estimation models 1387.4920725822449 (23 minuten) 1508.646287202835/1420.0632619857788 (with multiprocessing) (25 minutes) 1350 (22 minuten)
-
