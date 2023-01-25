@@ -1,5 +1,5 @@
 # Reproduced: Online Certification of Preference-Based Fairness for Personalized Recommender Systems
-### Auditing for envy in recommender systems
+### Auditing for envy in recommender systems[^1]
 
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
@@ -28,7 +28,7 @@ OPENBLAS_NUM_THREADS=1 python main.py
 ```
 --------------------------------------------------------------------
 
-### Credits
+### Credits[^1]:
 Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier
 LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
 
