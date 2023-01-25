@@ -13,7 +13,7 @@ For changes in the deleted component to work through all the way through the pip
 To make carefull decisions which object files to delete taking computation time into consideration the following info is included:
 
 The intermediate stages object files are stored in the ```/src/variables``` folder.
-The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm or MovieLens in this case). The following table shows the pipeline in sequential order and the corresponding object files:
+The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). The following table shows the pipeline in sequential order and the corresponding object files:
 
 | Pipeline stage                                | Object file/folder created          | Average duration (s - min)  |
 | :---                                          |    :----:                           |                        ---: |
@@ -40,3 +40,5 @@ virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.
 [https://grouplens.org/](https://grouplens.org/)
 
 [^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
+[^2]: https://grouplens.org/datasets/hetrec-2011/
+[^3]: https://grouplens.org/datasets/movielens/1m/
