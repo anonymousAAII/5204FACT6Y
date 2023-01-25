@@ -15,13 +15,13 @@ To make carefull decisions which object files to delete taking computation time 
 The intermediate stages are stored in the ```/src/variables``` folder.
 The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommeder system (Last.fm or MovieLens in this case). The following table shows the pipeline and corresponding object files:
 
-| Stage                                   | Object file/folder created          | Average duration (s - min)  |
-| :---                                    |    :----:                           |                        ---: |
-| Generating ground truth model           | ground\_truth\_model                | 480 - 8                     |
-| Generating ground truth                 | ground\_truth                       | 0.07 - x                    |
-| Generating rec. preference est. models  | recommendation\_system_est\_models  | 1350 - 22                   |
-| Generating expectation of the rewards   | expec\_rewards                      | 28 - 0.5                    |
-| Experiment 5.1                          |  5.1/                               | 4.5 - x                     |
+| Stage                                         | Object file/folder created          | Average duration (s - min)  |
+| :---                                          |    :----:                           |                        ---: |
+| Generating ground truth model                 | ground\_truth\_model                | 480 - 8                     |
+| Generating ground truth                       | ground\_truth                       | 0.07 - x                    |
+| Generating recommender preference est. models | recommendation\_system_est\_models  | 1350 - 22                   |
+| Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    |
+| Experiment 5.1                                |  5.1/                               | 4.5 - x                     |
 --------------------------------------------------------------------
 Please run the code through the terminal with the following command:
 
