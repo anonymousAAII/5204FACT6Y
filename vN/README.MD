@@ -23,7 +23,7 @@ The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a
 | Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    |
 | Experiment 5.1                                |  5.1/                               | 4.5 - x                     |
 --------------------------------------------------------------------
-Please run the code through the terminal with the following command:
+Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
 ```
 # on linux
