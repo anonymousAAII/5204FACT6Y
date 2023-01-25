@@ -6,7 +6,7 @@ For this project experiments can be ran to audit for envy(-freeness) in recommen
 This requires for the code to generate a recommender system with recommender policies for users.
 To achieve this a pipeline is build that synthesizes user data and which generates a recommender system.
 The pipeline is build in a rather modular manner to save computation time.
-For each step in the pipeline intermediate states are stored such that they only have to be created once and effortlessly retrieved.
+For each step in the pipeline intermediate states are stored such that they only have to be created once and can effortlessly be retrieved.
 When one likes to redo running a stage of the pipeline that's possible by **manually deleting** the created intermediate object file. 
 Note however that some computations determine the computations of the subsequent stages. 
 For changes in the deleted component to work through all the way through the pipeline **subsequent objects files ought to also be deleted**. 
