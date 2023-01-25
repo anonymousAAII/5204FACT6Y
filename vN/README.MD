@@ -15,7 +15,7 @@ To make carefull decisions which object files to delete taking computation time 
 The intermediate stages are stored in the ```/src/variables``` folder.
 The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommeder system (Last.fm or MovieLens in this case). The following table shows the pipeline and corresponding object files:
 
-| Stage                                         | Object file/folder created          | Average duration (s - min)  |
+| Pipeline stage                                | Object file/folder created          | Average duration (s - min)  |
 | :---                                          |    :----:                           |                        ---: |
 | Generating ground truth model                 | ground\_truth\_model                | 480 - 8                     |
 | Generating ground truth                       | ground\_truth                       | 0.07 - x                    |
