@@ -7,7 +7,7 @@ This requires for the code to generate a recommender system with recommender pol
 To achieve this a pipeline is build that synthesizes user data and which generates a recommender system.
 The pipeline is build in a rather modular manner to save computation time.
 For each step in the pipeline intermediate states are stored such that they only have to be created once.
-When one likes to redo running a stage of the pipeline that's possible by == manually deleting == the created intermediate object file. Note however that some computations determine the computations of the subsequent stages. For changes in the deleted component to work through all the way through the pipeline ==subsequent objects files ought to also be deleted==. To make carefull decisions which object files to delete taking computation time into consideration the following info is included:
+When one likes to redo running a stage of the pipeline that's possible by <mark>manually deleting</mark> the created intermediate object file. Note however that some computations determine the computations of the subsequent stages. For changes in the deleted component to work through all the way through the pipeline ==subsequent objects files ought to also be deleted==. To make carefull decisions which object files to delete taking computation time into consideration the following info is included:
 
 The intermediate stages are stored in the ```/src/variables``` folder.
 The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommder system (Last.fm or MovieLens in this case). The following table shows the pipeline and corresponding object files:
