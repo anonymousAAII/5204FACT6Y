@@ -36,6 +36,7 @@ Meta AI:
 virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.com
 
 [Last.fm](https://www.last.fm/)
+
 [https://grouplens.org/](https://grouplens.org/)
 
 [^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
