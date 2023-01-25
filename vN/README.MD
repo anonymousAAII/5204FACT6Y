@@ -32,7 +32,7 @@ OPENBLAS_NUM_THREADS=1 python main.py
 --------------------------------------------------------------------
 
 ### Credits
-[^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
-
-Meta AI
+Meta AI:
 virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.com
+
+[^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
