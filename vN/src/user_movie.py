@@ -16,6 +16,8 @@ from datetime import datetime
 from sklearn.model_selection import train_test_split
 import scipy
 from scipy import sparse
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
 import implicit
 from implicit.als import AlternatingLeastSquares
 from implicit.evaluation import precision_at_k, AUC_at_k 
@@ -24,25 +26,72 @@ from tqdm import tqdm
 from pandas.api.types import CategoricalDtype
 import sys
 import time
+import multiprocessing as mp
 
 # 1st party imports
 from lib import helper
 from lib import io
 import constant
 
+def train_model(R_coo, configurations, seed):
+    # Create 70%/10%/20% train/validation/test data split of the user-item top 2500 listening counts
+    train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7, random_state=seed)
+    validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3, random_state=seed)
+
+    # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
+    performance_per_configuration = {}
+
+    p_base = 0
+    model_best = None
+
+    start = time.time()
+    print("Start for seed", seed)
+    
+    # Hyperparameter tuning through grid search
+    for i, hyperparameters in configurations.items():
+        # Initialize model
+        model = AlternatingLeastSquares(factors=hyperparameters["latent_factor"], 
+                                        regularization=hyperparameters["reg"],
+                                        alpha=hyperparameters["alpha"])
+        
+        # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
+        model.fit(train, show_progress=False)        
+
+        # Benchmark model performance using validation set
+        p = AUC_at_k(model, train, validation, K=1000, show_progress=False, num_threads=4)
+
+        # When current model outperforms previous one update tracking states
+        if p > p_base:
+            p_base = p
+            model_best = model
+
+        performance_per_configuration[p] = i
+
+    end = time.time()
+    print("Ending for seed", seed, end - start)
+    
+    hyperparams_optimal = configurations[performance_per_configuration[p_base]]
+
+    # Evaluate TRUE performance of best model on test set for model selection later on
+    p_test = AUC_at_k(model_best, train, test, K=1000, show_progress=False, num_threads=4)  
+
+    return {p_test : {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}}
+
 if __name__ == "__main__":
     """
     <DATA_SRC> and <data_map> that are commented out are used when one wants to run it for the 25M MovieLens data set
     also containing half star ratings 
-    DATA_SRC = "../data/ml-1m/"
     """
-    # data_map = {"movies": "movies.dat", 
-    #             "user_movies": "ratings.dat"}
+    # # Used for 25M MovieLens data set
+    # DATA_SRC = "../data/ml-25m/"
+    # data_map = {"user_movies": "ratings.csv"}
 
+    # Used for 1M MovieLens data set
     # Source folder of datasets
-    DATA_SRC = "../data/ml-25m/"
+    DATA_SRC = "../data/ml-1m/"
     # Mapping from data <variable name> to its <filename>    
-    data_map = {"user_movies": "ratings.csv"}
+    data_map = {"user_movies": "ratings.dat"}
+
     header = {"user_movies": ["userID", "movieID", "rating", "timestamp"]}
 
     # Variable names of datasets to be used
@@ -62,10 +111,12 @@ if __name__ == "__main__":
     # Read in data files
     for var_name, file_name in data_map.items():
         print("Reading in", file_name,"...")
-        my_globals[var_name] = pd.read_csv(DATA_SRC + file_name)
-        my_globals[var_name].columns = header[var_name]
+        # # Used for 25M MovieLens data set
+        # my_globals[var_name] = pd.read_csv(DATA_SRC + file_name)
+        # my_globals[var_name].columns = header[var_name]
+        
         # Used for 1M MovieLens data set
-        # my_globals[var_name] = pd.read_csv(DATA_SRC + file_name, sep="::", header=None, names=header[var_name], encoding="latin-1", engine="python")
+        my_globals[var_name] = pd.read_csv(DATA_SRC + file_name, sep="::", header=None, names=header[var_name], encoding="latin-1", engine="python")
     
     # Get the number of ratings per movie (movie rating count)
     user_movies["rating_count"] = np.full(len(user_movies), 1)    
@@ -137,68 +188,33 @@ if __name__ == "__main__":
         # Get model's hyperparameters to be tuned 
         configurations = helper.generate_hyperparameter_configurations(regularization, confidence_weighting, latent_factors)
 
-        """
-        TO DO: can be parallelized training each data split simultaneously
-        """
+        start = time.time()
+
         # Cross-validation
-        for seed in tqdm(range(num_random_seeds)):
+        print("Training for", num_random_seeds, "models...")
+        # results = [train_model(R_coo, configurations, seed) for seed in range(num_random_seeds)]
 
-            # Create 70%/10%/20% train/validation/test data split of the user-item top 2500 listening counts
-            train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7)
-            validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3)
+        pool = mp.Pool(mp.cpu_count())
+        results = pool.starmap(train_model, [(R_coo, configurations, seed) for seed in range(num_random_seeds)])
+        pool.close()
 
-            # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
-            performance_per_configuration = {}
+        end = time.time()
+        print(end - start)
 
-            p_base = 0
-            model_best = None
+        print(results)
+        exit()
 
-            # Hyperparameter tuning through grid search
-            for i, hyperparameters in configurations.items():
-                # Initialize model
-                model = AlternatingLeastSquares(factors=hyperparameters["latent_factor"], 
-                                                regularization=hyperparameters["reg"],
-                                                alpha=hyperparameters["alpha"])
-                
-                # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
-                model.fit(train, show_progress=False)        
 
-                # Benchmark model performance using validation set
-                p = AUC_at_k(model, train, validation, K=1000, show_progress=False, num_threads=4)
+        # print("Test performance per seed with corresponding hyperparameter configuration:")
+        # print(performance_per_seed)
 
-                # When current model outperforms previous one update tracking states
-                if p > p_base:
-                    p_base = p
-                    model_best = model
+        # # Model selection by test set performance    
+        # key_best_end_model = np.amax(np.array(list(performance_per_seed.keys())))
+        # global ground_truth_model
+        # ground_truth_model = performance_per_seed[key_best_end_model]
 
-                # print("Seed:", seed, ", iteration:", i)
-                # print("Hyperparameters:", hyperparameters)
-                # print("Precision=", p, "\n")
-
-                performance_per_configuration[p] = i
-
-            p_val_max = np.amax(np.array(list(performance_per_configuration.keys())))
-            print("Best validation performance =", p_val_max)
-
-            hyperparams_optimal = configurations[performance_per_configuration[p_val_max]]
-            print("Optimal hyperparameters for model of current seed", seed," =", hyperparams_optimal)
-
-            # Evaluate TRUE performance of best model on test set for model selection later on
-            p_test = AUC_at_k(model_best, train, test, K=1000, show_progress=False, num_threads=4)  
-            print("Performance on test set =", p_test, "\n")
-
-            performance_per_seed[p_test] = {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}
-
-        print("Test performance per seed with corresponding hyperparameter configuration:")
-        print(performance_per_seed)
-
-        # Model selection by test set performance    
-        key_best_end_model = np.amax(np.array(list(performance_per_seed.keys())))
-        global ground_truth_model
-        ground_truth_model = performance_per_seed[key_best_end_model]
-
-        ## SAVE: Save model that can generate the ground truth
-        io.save(IO_INFIX + model_file, (model_var_name, ground_truth_model))
+        # ## SAVE: Save model that can generate the ground truth
+        # io.save(IO_INFIX + model_file, (model_var_name, ground_truth_model))
 
     # Only generate ground truth when not yet generated
     ground_truth_file = "ground_truth"

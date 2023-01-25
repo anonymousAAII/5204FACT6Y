@@ -3,6 +3,7 @@ import numpy as np
 from os import path
 import matplotlib.pyplot as plt
 import sys
+import multiprocessing as mp
 
 # 1st party imports
 from lib import io
@@ -13,7 +14,6 @@ from lib import plot
 import constant
 
 if __name__ == "__main__":
-    # os.environ["OPENBLAS_NUM_THREADS"] = "1"
     my_globals = globals()
 
     # Data sets to perform experiments on
