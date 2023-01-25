@@ -3,6 +3,8 @@
 #
 # This file simulates the existence of 'constants' which can be used globally accross files
 ####
+EXPERIMENT_RUN_OPTIONS = ["all", "5.1"]
+
 VARIABLES_FOLDER = "variables/"
 # Variable path infix depending on the data set
 VAR_SUB_FOLDER = {"fm": "fm/", "movie": "mv/"}

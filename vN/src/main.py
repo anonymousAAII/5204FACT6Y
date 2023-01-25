@@ -3,6 +3,7 @@ import numpy as np
 from os import path
 import matplotlib.pyplot as plt
 import time
+import pyinputplus as pyip
 
 # 1st party imports
 from lib import io
@@ -13,10 +14,12 @@ from lib import plot
 import constant
 
 if __name__ == "__main__":
-    my_globals = globals()
+    print("**Please specify which experiments to run**")
+    experiment_choice = pyip.inputMenu(constant.EXPERIMENT_RUN_OPTIONS)
 
     # Data sets to perform experiments on
-    data_sets = {   0: {"name": "movie",
+    data_sets = {"all": {"name": "all"},
+                "movie": {"name": "movie",
                         "filename": "user_movie.py",
                         "vars": {
                             "ground_truth": None,
@@ -27,8 +30,8 @@ if __name__ == "__main__":
                             "expec_rewards": None
                         },
                         "experiments_results": {}
-                        },
-                    1: {"name": "fm",
+                    },
+                "fm": {"name": "fm",
                         "filename": "user_artist.py",
                         "vars": {
                             "ground_truth": None,
@@ -39,11 +42,20 @@ if __name__ == "__main__":
                             "expec_rewards": None
                         },
                         "experiments_results": {}
-                    }
+                    },
                 }
 
+    print("**Please specify for which data set**")
+    data_set_choice = pyip.inputMenu(list(data_sets.keys()))
+    
+    my_globals = globals()
+
     # For all datas sets simulate recommendation system and run experiments
-    for i, data_set in data_sets.items(): 
+    for data_set in data_sets.values(): 
+        # Only execute code for requested data sets by user input
+        if data_set["name"] == "all" or (data_set_choice != "all" and data_set["name"] != data_set_choice):
+            continue
+
         print("Starting for data set", data_set["name"], "...")
 
         # Define 'GLOBALS'
@@ -188,7 +200,7 @@ if __name__ == "__main__":
             os.mkdir(experiment_dir_path)
         
         # Only perform experiment when not yet executed
-        if len(os.listdir(experiment_dir_path)) == 0:    
+        if len(os.listdir(experiment_dir_path)) == 0 and (experiment_choice == "5.1" or experiment_choice == "all"):    
             print("Running experiment...", experiment_dir)    
         
             keys = recommendation_policies.keys()
@@ -226,21 +238,21 @@ if __name__ == "__main__":
                                                     prop_envious_users_file: prop_envious_users
                                                 }        
 
-    # Average envy plotted together    
-    plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"], data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
-                            "average envy", "number of factors", "MovieLens", "Last.fm", "average_envy")
+    # # Average envy plotted together    
+    # plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"], data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
+    #                         "average envy", "number of factors", "MovieLens", "Last.fm", "average_envy")
 
-    # print(data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"])
+    # # print(data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"])
 
-    # Proportion of envious users plotted together
-    plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["prop_envious_users"], data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"]],
-                            "prop of envious users (epsilon = 0.05)", "number of factors", "MovieLens", "Last.fm", "prop_envious_users")
+    # # Proportion of envious users plotted together
+    # plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["prop_envious_users"], data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"]],
+    #                         "prop of envious users (epsilon = 0.05)", "number of factors", "MovieLens", "Last.fm", "prop_envious_users")
 
-    # Average envy plotted seperately
-    plot.plot_experiment_single([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"]],
-                            "average envy", "number of factors", "MovieLens", "average_envy_mv")
-    plot.plot_experiment_single([data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
-                            "average envy", "number of factors", "Last.fm", "average_envy_fm", 1)
+    # # Average envy plotted seperately
+    # plot.plot_experiment_single([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"]],
+    #                         "average envy", "number of factors", "MovieLens", "average_envy_mv")
+    # plot.plot_experiment_single([data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
+    #                         "average envy", "number of factors", "Last.fm", "average_envy_fm", 1)
 
 
     # # Try algorithm for one model
