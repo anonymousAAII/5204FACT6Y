@@ -1,6 +1,6 @@
-# Reproduced: Online Certification of Preference-Based Fairness for Personalized Recommender Systems
-### Auditing for envy in recommender systems
-[^1]
+# Reproduced paper framework 
+### Online Certification of Preference-Based Fairness for Personalized Recommender Systems
+Auditing for envy in recommender systems[^1]
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
 This requires for the code to generate a recommender system with recommender policies for users.
@@ -32,8 +32,7 @@ OPENBLAS_NUM_THREADS=1 python main.py
 --------------------------------------------------------------------
 
 ### Credits
-[^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier
-LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
+[^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
 
 Meta AI
 virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.com
