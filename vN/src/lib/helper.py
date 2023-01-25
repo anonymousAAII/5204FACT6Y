@@ -22,7 +22,7 @@ def merge_duplicates(df, col_duplicate, col_merge_value, mode_operation="sum"):
     else:
         return df.groupby(col_duplicate, as_index = False)[col_merge_value].sum()
 
-def generate_hyperparameter_configurations(regularization, confidence_weighting, latent_factors=None):
+def generate_hyperparameter_configurations(regularization, confidence_weighting, latent_factors):
     """
     Given the hyperparameter spaces generates all possible combinations for grid search
 
@@ -36,17 +36,20 @@ def generate_hyperparameter_configurations(regularization, confidence_weighting,
     # Initialize with all possible hyperparameter combinations
     i = 0
 
-    # UGLY but works
-    if latent_factors is not None:
-        for latent_factor in latent_factors:
-            for reg in regularization:
-                for alpha in confidence_weighting:
-                    configurations[i] = {"latent_factor": latent_factor, "reg": reg, "alpha": alpha}
-                    i+=1
-    else:
+    for latent_factor in latent_factors:
         for reg in regularization:
             for alpha in confidence_weighting:
-                configurations[i] = {"reg": reg, "alpha": alpha}
+                configurations[i] = {"latent_factor": latent_factor, "reg": reg, "alpha": alpha}
                 i+=1
                            
     return configurations
+
+def get_index_best_model(model_train_results):
+    """
+    Returns the index in <model_train_results> corresponding with the highest performance <p_test>.
+
+    :model_train_results:   results of training the models in format:
+                            [[<p_test>, {"seed": <seed>, "model": <model_best>, "hyperparameters": <hyperparams_optimal>, "precision_test": <p_test>}]]
+    """
+    precision_models = [item[0] for item in model_train_results]
+    return precision_models.index(max(precision_models))

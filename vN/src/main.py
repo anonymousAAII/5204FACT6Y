@@ -2,8 +2,7 @@ import os
 import numpy as np
 from os import path
 import matplotlib.pyplot as plt
-import sys
-import multiprocessing as mp
+import time
 
 # 1st party imports
 from lib import io
@@ -156,6 +155,7 @@ if __name__ == "__main__":
             io.save(IO_INFIX + rewards_file, (rewards_var_name, rewards))
             io.save(IO_INFIX + expec_rewards_file, (expec_rewards_var_name, expec_rewards))
 
+
         # LOAD: Load binary rewards and expectation of rewards
         io.load(IO_INFIX + rewards_file, my_globals)
         io.load(IO_INFIX + expec_rewards_file, my_globals)
@@ -182,6 +182,8 @@ if __name__ == "__main__":
         avg_envy_user_file = "avg_envy_user"
         prop_envious_users_file = "prop_envious_users"
         
+        start = time.time()
+
         # Run experiment 5.1
         if not path.exists(experiment_dir_path):
             print("Creating directory for experiment...", experiment_dir)
@@ -213,6 +215,9 @@ if __name__ == "__main__":
             io.save(IO_INFIX + experiment_dir + envy_free_file, (envy_free_file, envy_free))
             io.save(IO_INFIX + experiment_dir + avg_envy_user_file, (avg_envy_user_file, avg_envy_user))
             io.save(IO_INFIX + experiment_dir + prop_envious_users_file, (prop_envious_users_file, prop_envious_users))
+
+        end = time.time()
+        print(end - start)
 
         # Load results experiment
         print("Loading results of experiment...", experiment_dir)

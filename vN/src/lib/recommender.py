@@ -5,12 +5,33 @@
 ####
 import numpy as np
 import pandas as pd
+import os
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
 import implicit
 from implicit.als import AlternatingLeastSquares
 from implicit.evaluation import precision_at_k, AUC_at_k 
 import scipy
 from scipy import sparse
 from tqdm import tqdm
+import multiprocessing as mp
+
+# 1st party imports
+from lib import istarmap
+
+def train_model(hyperparameter_configurations, i, train, validation):
+    params = hyperparameter_configurations[i]
+
+    # Create model
+    model = AlternatingLeastSquares(factors=params["latent_factor"],
+                                    regularization=params["reg"],
+                                    alpha=params["alpha"])
+
+    # Train model
+    model.fit(train, show_progress=False)
+
+    # Validate model
+    precision = AUC_at_k(model, train, validation, K=100, show_progress=False)
+    return {"latent_factor": params["latent_factor"], "result": {precision: {"i_params": i, "params": params, "p_val": precision, "model": model}}} 
 
 # Create a recommendation system's preference estimation model using the given "ground truth"
 def create_recommendation_est_system(ground_truth, hyperparameter_configurations, split={"train": 0.7, "validation": 0.1}):
@@ -47,28 +68,20 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
     # for each latent factor
     models = {key: {} for key in keys}
 
-    print("Generating recommender preference estimation models...")
+    print("Generating recommender preference estimation models...MULTIPROCESSING")
 
-    
-    """
-    TO DO: can be parallelized training each hyperparameter configuration simultaneously
-    """
     # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995)
-    for i in tqdm(range(len(hyperparameter_configurations))):
-        params = hyperparameter_configurations[i]
+    # pool = mp.Pool(mp.cpu_count())
+    # for result in pool.starmap(train_model, [(hyperparameter_configurations, i, train, validation) for i in range(len(hyperparameter_configurations))]):
+    #     models[result["latent_factor"]] = result["result"]
+    # pool.close()
 
-        # Create model
-        model = AlternatingLeastSquares(factors=params["latent_factor"],
-                                        regularization=params["reg"],
-                                        alpha=params["alpha"])
-
-        # Train model
-        model.fit(train, show_progress=False)
-
-        # Validate model
-        precision = AUC_at_k(model, train, validation, K=1000, show_progress=False, num_threads=4)
-        models[params["latent_factor"]][precision] = {"i_params": i, "params": params, "p_val": precision, "model": model} 
-
+    with mp.Pool(mp.cpu_count()) as pool:
+        iterable = [(hyperparameter_configurations, i, train, validation) for i in range(len(hyperparameter_configurations))]
+        for result in tqdm(pool.istarmap(train_model, iterable), total=len(iterable)):
+            models[result["latent_factor"]] = result["result"]
+    pool.close()
+    
     return models
 
 def select_best_recommendation_est_system(recommendation_system_est_model, select_mode="latent"):
