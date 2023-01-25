@@ -31,14 +31,19 @@ from lib import io
 import constant
 
 if __name__ == "__main__":
-    # Source folder of datasets
+    """
+    <DATA_SRC> and <data_map> that are commented out are used when one wants to run it for the 25M MovieLens data set
+    also containing half star ratings 
     DATA_SRC = "../data/ml-1m/"
-    # Mapping from data <variable name> to its <filename>
-    data_map = {"movies": "movies.dat", 
-                "user_movies": "ratings.dat"}
+    """
+    # data_map = {"movies": "movies.dat", 
+    #             "user_movies": "ratings.dat"}
 
-    header = {"movies": ["movieID", "title", "genres"],
-            "user_movies": ["userID", "movieID", "rating", "timestamp"]}
+    # Source folder of datasets
+    DATA_SRC = "../data/ml-25m/"
+    # Mapping from data <variable name> to its <filename>    
+    data_map = {"user_movies": "ratings.csv"}
+    header = {"user_movies": ["userID", "movieID", "rating", "timestamp"]}
 
     # Variable names of datasets to be used
     var_names = list(data_map.keys())
@@ -56,8 +61,12 @@ if __name__ == "__main__":
     
     # Read in data files
     for var_name, file_name in data_map.items():
-        my_globals[var_name] = pd.read_csv(DATA_SRC + file_name, sep="::", header=None, names=header[var_name], encoding="latin-1", engine="python")
-
+        print("Reading in", file_name,"...")
+        my_globals[var_name] = pd.read_csv(DATA_SRC + file_name)
+        my_globals[var_name].columns = header[var_name]
+        # Used for 1M MovieLens data set
+        # my_globals[var_name] = pd.read_csv(DATA_SRC + file_name, sep="::", header=None, names=header[var_name], encoding="latin-1", engine="python")
+    
     # Get the number of ratings per movie (movie rating count)
     user_movies["rating_count"] = np.full(len(user_movies), 1)    
     movies_rating_count = helper.merge_duplicates(user_movies, "movieID", "rating_count")
@@ -128,6 +137,9 @@ if __name__ == "__main__":
         # Get model's hyperparameters to be tuned 
         configurations = helper.generate_hyperparameter_configurations(regularization, confidence_weighting, latent_factors)
 
+        """
+        TO DO: can be parallelized training each data split simultaneously
+        """
         # Cross-validation
         for seed in tqdm(range(num_random_seeds)):
 

@@ -34,8 +34,7 @@ if __name__ == "__main__":
     # Source folder of datasets
     DATA_SRC = "../data/hetrec2011-lastfm-2k/"
     # Mapping from data <variable name> to its <filename>
-    data_map = {"artists": "artists.dat", 
-                "user_artists": "user_artists.dat"}
+    data_map = {"user_artists": "user_artists.dat"}
 
     # Variable names of datasets to be used
     var_names = list(data_map.keys())
@@ -124,6 +123,9 @@ if __name__ == "__main__":
             p_base = 0
             model_best = None
 
+            """
+            TO DO: can be parallelized training each hyperparameter configuration simultaneously
+            """
             # Hyperparameter tuning through grid search
             for i, hyperparameters in configurations.items():
                 # Initialize model

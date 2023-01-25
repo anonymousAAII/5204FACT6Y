@@ -49,6 +49,10 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
 
     print("Generating recommender preference estimation models...")
 
+    
+    """
+    TO DO: can be parallelized training each hyperparameter configuration simultaneously
+    """
     # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995)
     for i in tqdm(range(len(hyperparameter_configurations))):
         params = hyperparameter_configurations[i]
@@ -120,11 +124,15 @@ def create_recommendation_policies(preference_estimates, temperature=5):
     """
     print("Generating recommendation policies...")
 
-    def inverse_temperature(x):
-        return x/temperature
-    
-    apply_temperature = np.vectorize(inverse_temperature)   
-    preference_estimates = apply_temperature(preference_estimates)
+    # def inverse_temperature(x):
+    #     return x/temperature
+
+    # apply_temperature = np.vectorize(inverse_temperature)   
+    # preference_estimates = apply_temperature(preference_estimates)
+
+    # Apply temperature parameter   
+    divider = np.full(preference_estimates.shape[0], temperature)
+    preference_estimates = np.divide(preference_estimates.T, divider).T
     
     # Compute the softmax transformation along the second axis (i.e., the rows)
     policies = scipy.special.softmax(preference_estimates, axis=1)

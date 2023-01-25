@@ -7,13 +7,13 @@ import numpy as np
 import random
 from tqdm import tqdm
 
-def utility(m, n, probability_policies, expec_rewards):
-    return np.sum(probability_policies[n] * expec_rewards[m])
+# def utility(m, n, probability_policies, expec_rewards):
+#     return np.sum(probability_policies[n] * expec_rewards[m])
 
 # Basic definition of envy-freeness in a system (see 3.1 paper)
 def envy_free_basic(recommendations, policies, expec_rewards, epsilon=0.05, gamma=0.5, lamb=0.5, relax_criterion=False):
     """
-    Audits whether a system is envy-free according to the basic definition.
+    Checks whether a system is envy-free according to the basic definition.
 
     :recommendations:       recommender system's recommendation
     :policies:              probability distribution over the items of getting picked/recommended -> policies
@@ -34,7 +34,9 @@ def envy_free_basic(recommendations, policies, expec_rewards, epsilon=0.05, gamm
     # # Threshold of users that should not be envious
     # envy_free_users_threshold = users * (1 - lamb)
 
-    # Get utilities making use of the property utility = policy * expectation rewards
+    # This whole section belows makes use of the properties of lineair algebra to compute sources of envy
+
+    # According to definition utility = policy * expectation rewards
     utilities = policies @ expec_rewards.T
 
     # Column index = index of user policy, row index = index of user to which the policy was applied
@@ -42,7 +44,6 @@ def envy_free_basic(recommendations, policies, expec_rewards, epsilon=0.05, gamm
     
     # Get maximum envy experienced by users (i.e. for each user)
     max_delta_utilities = delta_utilities.max(axis=0, keepdims=True)
-
     delta_envy = np.maximum(max_delta_utilities, np.zeros(users))
 
     # Envy for each user
@@ -51,12 +52,12 @@ def envy_free_basic(recommendations, policies, expec_rewards, epsilon=0.05, gamm
     average_envy_per_user = np.mean(envy_users)
     proportion_envious_users = np.mean(envy_users > epsilon)
 
-    # <envy_free> temporarily none
+    # <envy_free> temporarily None
     return {"envy_free": None, "avg_envy_user": average_envy_per_user, "prop_envious_users": proportion_envious_users}
 
 def determine_envy_freeness(recommendations, policies, rewards, expec_rewards, mode_envy="basis"):
     """
-    Determines/audits for envy-freeness in a system according to different methods
+    Determines envy-freeness in a system according to different methods
 
     :recommendations:       recommender system's recommendations
     :policies:              probability distribution over the items of getting picked/recommended -> policies

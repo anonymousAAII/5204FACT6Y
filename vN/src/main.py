@@ -13,7 +13,7 @@ from lib import plot
 import constant
 
 if __name__ == "__main__":
-    os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    # os.environ["OPENBLAS_NUM_THREADS"] = "1"
     my_globals = globals()
 
     # Data sets to perform experiments on
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         data_set["vars"]["ground_truth"] = ground_truth
 
         ##########################
-        #   RECOMMENDER SYSTEM: from here on we generate 144 preference estimation models one for each hyperparameter combination
+        #   RECOMMENDER SYSTEM: from here on we generate 144 preference estimation models, one for each hyperparameter combination
         ##########################
 
         # Hyperparameter spaces
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         data_set["vars"]["recommendation_system_est_models"] = recommendation_system_est_models
 
         ##########################
-        #   RECOMMENDER SYSTEM: from here on we continue with the best models we select which are either the overall best model
+        #   RECOMMENDER SYSTEM: from here on we continue with the best models we select which are either solely the overall best model
         #                       or the best model per latent_factor. Thus we have a list in the form:
         #                       {<latent_factor>: {<precision>: {"i_params": <index hyperparams config>, "params": <hyperparams config>, "p_val": <validation precision>, "model": <model>}}}}
         ##########################
@@ -188,7 +188,7 @@ if __name__ == "__main__":
             os.mkdir(experiment_dir_path)
         
         # Only perform experiment when not yet executed
-        if True:#len(os.listdir(experiment_dir_path)) == 0:    
+        if len(os.listdir(experiment_dir_path)) == 0:    
             print("Running experiment...", experiment_dir)    
         
             keys = recommendation_policies.keys()
