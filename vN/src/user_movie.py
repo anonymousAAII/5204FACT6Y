@@ -33,6 +33,20 @@ from lib import helper
 from lib import io
 import constant
 
+def validate_model(hyperparameters, train, validation):
+    # Initialize model
+    model = AlternatingLeastSquares(factors=hyperparameters["latent_factor"], 
+                                    regularization=hyperparameters["reg"],
+                                    alpha=hyperparameters["alpha"])
+    
+    # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
+    model.fit(train, show_progress=False)        
+
+    # Benchmark model performance using validation set
+    p = AUC_at_k(model, train, validation, K=1000, show_progress=False, num_threads=4)
+
+    return [p, model, hyperparameters]
+
 def train_model(R_coo, configurations, seed):
     # Create 70%/10%/20% train/validation/test data split of the user-item top 2500 listening counts
     train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7, random_state=seed)
@@ -48,34 +62,22 @@ def train_model(R_coo, configurations, seed):
     print("Start for seed", seed)
     
     # Hyperparameter tuning through grid search
-    for i, hyperparameters in configurations.items():
-        # Initialize model
-        model = AlternatingLeastSquares(factors=hyperparameters["latent_factor"], 
-                                        regularization=hyperparameters["reg"],
-                                        alpha=hyperparameters["alpha"])
-        
-        # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
-        model.fit(train, show_progress=False)        
-
-        # Benchmark model performance using validation set
-        p = AUC_at_k(model, train, validation, K=1000, show_progress=False, num_threads=4)
-
-        # When current model outperforms previous one update tracking states
-        if p > p_base:
-            p_base = p
-            model_best = model
-
-        performance_per_configuration[p] = i
-
+    pool = mp.Pool(mp.cpu_count())
+    results = pool.starmap(validate_model, [(hyperparameters, train, validation) for i, hyperparameters in configurations.items()])
+    pool.close()
+    
     end = time.time()
     print("Ending for seed", seed, end - start)
-    
-    hyperparams_optimal = configurations[performance_per_configuration[p_base]]
+    print(results, "\n")
 
-    # Evaluate TRUE performance of best model on test set for model selection later on
-    p_test = AUC_at_k(model_best, train, test, K=1000, show_progress=False, num_threads=4)  
+    return results
 
-    return {p_test : {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}}
+    # hyperparams_optimal = configurations[performance_per_configuration[p_base]]
+
+    # # Evaluate TRUE performance of best model on test set for model selection later on
+    # p_test = AUC_at_k(model_best, train, test, K=1000, show_progress=False, num_threads=4)  
+
+    # return {p_test : {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}}
 
 if __name__ == "__main__":
     """
@@ -192,16 +194,16 @@ if __name__ == "__main__":
 
         # Cross-validation
         print("Training for", num_random_seeds, "models...")
-        # results = [train_model(R_coo, configurations, seed) for seed in range(num_random_seeds)]
+        results = [train_model(R_coo, configurations, seed) for seed in range(num_random_seeds)]
 
-        pool = mp.Pool(mp.cpu_count())
-        results = pool.starmap(train_model, [(R_coo, configurations, seed) for seed in range(num_random_seeds)])
-        pool.close()
+        # pool = mp.Pool(mp.cpu_count())
+        # results = pool.starmap(train_model, [(R_coo, configurations, seed) for seed in range(num_random_seeds)])
+        # pool.close()
 
         end = time.time()
         print(end - start)
 
-        print(results)
+        # print(results)
         exit()
 
 
