@@ -63,6 +63,8 @@ if __name__ == "__main__":
     movies_rating_count = helper.merge_duplicates(user_movies, "movieID", "rating_count")
     movies_rating_count_ranked = movies_rating_count.sort_values(by=["rating_count"], ascending=False)
 
+    # print(movies_rating_count_ranked)
+
     # Get the top 2500 number of times rated items (i.e number of cumulative rating count) 
     items = np.array(movies_rating_count_ranked["movieID"])[0:2500]
     
@@ -71,7 +73,7 @@ if __name__ == "__main__":
     user_item = user_movies[user_movies["movieID"].isin(items)] 
     
     # Get users that gave the most rating
-    users_rating_count = helper.merge_duplicates(user_item, "userID", "rating_count")
+    users_rating_count = helper.merge_duplicates(user_movies, "userID", "rating_count")
     users_rating_count_ranked = users_rating_count.sort_values(by=["rating_count"], ascending=False)
 
     # Keep top 2000 users
@@ -87,6 +89,11 @@ if __name__ == "__main__":
     # Pre-process the ratings
     user_item["rating"] = user_item["rating"].map(transform)
     
+    # Get users
+    users = user_item["userID"].unique()
+    # Get items
+    items = user_item["movieID"].unique()
+
     shape = (len(users), len(items))
 
     # Create indices for users and items that have the most rating

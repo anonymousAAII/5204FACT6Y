@@ -77,9 +77,6 @@ if __name__ == "__main__":
 
         data_set["vars"]["ground_truth"] = ground_truth
 
-        print(ground_truth.shape)
-        exit()
-
         ##########################
         #   RECOMMENDER SYSTEM: from here on we generate 144 preference estimation models one for each hyperparameter combination
         ##########################
@@ -191,7 +188,7 @@ if __name__ == "__main__":
             os.mkdir(experiment_dir_path)
         
         # Only perform experiment when not yet executed
-        if len(os.listdir(experiment_dir_path)) == 0:    
+        if True:#len(os.listdir(experiment_dir_path)) == 0:    
             print("Running experiment...", experiment_dir)    
         
             keys = recommendation_policies.keys()
