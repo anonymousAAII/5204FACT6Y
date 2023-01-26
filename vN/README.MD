@@ -22,15 +22,15 @@ The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a
 | Generating recommender preference est. models | recommendation\_system_est\_models  | 1350 - 22                   |
 | Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    |
 | Experiment 5.1                                |  5.1/                               | 4.5 - x                     |
---------------------------------------------------------------------
+
 Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
 ```
 # on linux
 OPENBLAS_NUM_THREADS=1 python main.py
 ```
---------------------------------------------------------------------
-The program will ask which experiment you would like to execute. The following legenda describes the numbering: 
+
+> The program will ask which experiment you would like to execute. The following legenda describes the numbering: 
 
 #### Experiments legenda
 | Experiment       | Description                          | Corresponding fig. in *original* paper[^2] | 
