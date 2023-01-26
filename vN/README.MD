@@ -32,6 +32,11 @@ OPENBLAS_NUM_THREADS=1 python main.py
 --------------------------------------------------------------------
 The program will ask which experiment you would like to execute. The following legenda describes the numbering: 
 
+#### Experiments legenda
+| Experiment       | Description                          | Corresponding fig. in *original* paper[^2] | 
+| :-               |    :----:                            |                                       ---: |
+| 5.1              | average envy / number of factors & prop.of envious users / number of factors | Figure 2                                   |
+
 
 ### Credits
 Meta AI:
@@ -42,5 +47,6 @@ virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.
 [https://grouplens.org/](https://grouplens.org/)
 
 [^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
-[^2]: https://grouplens.org/datasets/hetrec-2011/
-[^3]: https://grouplens.org/datasets/movielens/1m/
+[^2]: https://arxiv.org/abs/2104.14527
+[^3]: https://grouplens.org/datasets/hetrec-2011/
+[^4]: https://grouplens.org/datasets/movielens/1m/
