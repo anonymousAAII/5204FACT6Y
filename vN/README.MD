@@ -15,11 +15,12 @@ To make carefull decisions which object files to delete taking computation time 
 The intermediate stages object files are stored in the ```/src/variables``` folder.
 The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). The following table shows the pipeline in sequential order and the corresponding object files:
 
+#### Last.fm
 | Pipeline stage                                | Object file/folder created          | Avg. duration sequental (s - min)  |  Avg. duration multiprocessing batch[^4] | Avg. duration multiprocessing single
 | :---                                          |    :----:                           |    :----:                           |    :----:                           |                        ---: |
 | Generating ground truth model                 | ground\_truth\_model                | 480 - 8                     | | |
 | Generating ground truth                       | ground\_truth                       | 0.07 - x                    | | |
-| Generating recommender preference est. models | recommendation\_system_est\_models  | 1350 - 22                   |1248 - 20 | |
+| Generating recommender preference est. models | recommendation\_system_est\_models  | 1306 - 22                   |1248 - 20 | |
 | Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    | | |
 | Experiment 5.1                                |  5.1/                               | 4.5 - x                     | | |
 
