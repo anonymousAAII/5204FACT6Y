@@ -15,13 +15,13 @@ To make carefull decisions which object files to delete taking computation time 
 The intermediate stages object files are stored in the ```/src/variables``` folder.
 The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). The following table shows the pipeline in sequential order and the corresponding object files:
 
-| Pipeline stage                                | Object file/folder created          | Average duration (s - min)  |
-| :---                                          |    :----:                           |                        ---: |
-| Generating ground truth model                 | ground\_truth\_model                | 480 - 8                     |
-| Generating ground truth                       | ground\_truth                       | 0.07 - x                    |
-| Generating recommender preference est. models | recommendation\_system_est\_models  | 1350 - 22                   |
-| Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    |
-| Experiment 5.1                                |  5.1/                               | 4.5 - x                     |
+| Pipeline stage                                | Object file/folder created          | Average duration sequental (s - min)  |  Avg. duration multiprocessing batch[^4] | Avg. duration multiprocessing single
+| :---                                          |    :----:                           |    :----:                           |    :----:                           |                        ---: |
+| Generating ground truth model                 | ground\_truth\_model                | 480 - 8                     | | |
+| Generating ground truth                       | ground\_truth                       | 0.07 - x                    | | |
+| Generating recommender preference est. models | recommendation\_system_est\_models  | 1350 - 22                   |1248 - 20 | |
+| Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    | | |
+| Experiment 5.1                                |  5.1/                               | 4.5 - x                     | | |
 
 Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
@@ -33,7 +33,7 @@ OPENBLAS_NUM_THREADS=1 python main.py
 The program will *ask which experiment* you would like to execute. The following legenda describes the numbering: 
 
 #### Experiments legenda
-| Experiment       | Description                          | Corresponding fig. in *original* paper[^4] | 
+| Experiment       | Description                          | Corresponding fig. in *original* paper[^5] | 
 | :-               |    :----:                            |                                       ---: |
 | 5.1              | average envy / number of factors & prop.of envious users / number of factors | Figure 2                                   |
 
@@ -49,4 +49,5 @@ virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.
 [^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
 [^2]: https://grouplens.org/datasets/hetrec-2011/
 [^3]: https://grouplens.org/datasets/movielens/1m/
-[^4]: https://arxiv.org/abs/2104.14527
+[^4]: Refers to whether a batch of models is multiprocessed or a single model is assigned to each process.
+[^5]: https://arxiv.org/abs/2104.14527
