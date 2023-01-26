@@ -30,7 +30,7 @@ Please run the code through the terminal by going to the ```src/``` folder and r
 OPENBLAS_NUM_THREADS=1 python main.py
 ```
 
-> The program will ask which experiment you would like to execute. The following legenda describes the numbering: 
+The program will *ask which experiment* you would like to execute. The following legenda describes the numbering: 
 
 #### Experiments legenda
 | Experiment       | Description                          | Corresponding fig. in *original* paper[^2] | 
