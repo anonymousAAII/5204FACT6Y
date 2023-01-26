@@ -53,3 +53,12 @@ def get_index_best_model(model_train_results):
     """
     precision_models = [item[0] for item in model_train_results]
     return precision_models.index(max(precision_models))
+
+def get_dictionary_subsets(dictionary, n):
+    keys = np.array(list(dictionary.keys()))
+    # Random split selection
+    np.random.shuffle(keys)
+
+    # Generate n splits of the dictionary
+    subsets_keys = np.split(keys, n) 
+    return {i: [dictionary[key] for key in subset_keys] for i, subset_keys in enumerate(subsets_keys)}

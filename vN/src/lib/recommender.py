@@ -14,27 +14,36 @@ import scipy
 from scipy import sparse
 from tqdm import tqdm
 import multiprocessing as mp
+import time
 
 # 1st party imports
 from lib import istarmap
+from lib import helper
 
-def train_model(hyperparameter_configurations, i, train, validation):
-    params = hyperparameter_configurations[i]
+def train_model(hyperparameter_configurations, batch, train, validation):
+    results = {}
+    
+    print("Processing batch {}...".format(batch))
 
-    # Create model
-    model = AlternatingLeastSquares(factors=params["latent_factor"],
-                                    regularization=params["reg"],
-                                    alpha=params["alpha"])
+    # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995)
+    for i, params in enumerate(hyperparameter_configurations):
+        # Create model
+        model = AlternatingLeastSquares(factors=params["latent_factor"],
+                                        regularization=params["reg"],
+                                        alpha=params["alpha"])
 
-    # Train model
-    model.fit(train, show_progress=False)
+        # Train model
+        model.fit(train, show_progress=False)
 
-    # Validate model
-    precision = AUC_at_k(model, train, validation, K=100, show_progress=False)
-    return {"latent_factor": params["latent_factor"], "result": {precision: {"i_params": i, "params": params, "p_val": precision, "model": model}}} 
+        # Validate model
+        precision = AUC_at_k(model, train, validation, K=100, show_progress=False)
+
+        results[i] = {"latent_factor": params["latent_factor"], "result": {"p_val": precision, "model": model, "params": params}} 
+
+    return results
 
 # Create a recommendation system's preference estimation model using the given "ground truth"
-def create_recommendation_est_system(ground_truth, hyperparameter_configurations, split={"train": 0.7, "validation": 0.1}):
+def create_recommendation_est_system(ground_truth, hyperparameter_configurations, split={"train": 0.7, "validation": 0.1}, multiprocessing=True):
     """
     Generates models that simulate a recommender system's estimation of preferences using low-rank matrix completion (Bell and Sejnowski 1995)
 
@@ -68,20 +77,50 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
     # for each latent factor
     models = {key: {} for key in keys}
 
-    print("Generating recommender preference estimation models...MULTIPROCESSING")
+    start = time.time()
 
-    # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995)
-    # pool = mp.Pool(mp.cpu_count())
-    # for result in pool.starmap(train_model, [(hyperparameter_configurations, i, train, validation) for i in range(len(hyperparameter_configurations))]):
-    #     models[result["latent_factor"]] = result["result"]
-    # pool.close()
 
-    with mp.Pool(mp.cpu_count()) as pool:
-        iterable = [(hyperparameter_configurations, i, train, validation) for i in range(len(hyperparameter_configurations))]
-        for result in tqdm(pool.istarmap(train_model, iterable), total=len(iterable)):
-            models[result["latent_factor"]] = result["result"]
-    pool.close()
-    
+    # Multiprocessing: assign a batch of models to a processor
+    if multiprocessing:
+        print("Generating recommender preference estimation models...MULTIPROCESSING")
+        # Generate random batches of hyperparameter configurations for multiprocessing
+        configurations_batches = helper.get_dictionary_subsets(hyperparameter_configurations, 4)
+
+        with mp.Pool(mp.cpu_count()) as pool:
+            iterable = [(batch, i, train, validation) for i, batch in configurations_batches.items()]
+            for batch_results in tqdm(pool.istarmap(train_model, iterable), total=len(iterable)):
+                for result in batch_results.values():
+                    models[result["latent_factor"]][result["result"]["p_val"]] = result["result"] 
+        pool.close()
+    # Sequential
+    else:
+        print("Generating recommender preference estimation models...SEQUENTIAL")
+        print("Processing batch {}...".format(1))
+
+        # NOT DRY (Don't Repeat Yourself)! Could have called the train() function, but function calls might have too much overhead in Python
+        for i in tqdm(range(len(hyperparameter_configurations))):
+            params = hyperparameter_configurations[i]
+
+            # Create model
+            model = AlternatingLeastSquares(factors=params["latent_factor"],
+                                            regularization=params["reg"],
+                                            alpha=params["alpha"])
+
+            # Train model
+            model.fit(train, show_progress=False)
+
+            # Validate model
+            precision = AUC_at_k(model, train, validation, K=100, show_progress=False)
+
+            models[params["latent_factor"]][precision] =  {"p_val": precision, "model": model, "params": params}
+
+        # for result in train_model(list(hyperparameter_configurations.values()), 1, train, validation):
+        #     models[result["latent_factor"]][result["result"]["p_val"]] = result["result"] 
+        
+    print(models)
+    end = time.time()
+    print(end - start)
+
     return models
 
 def select_best_recommendation_est_system(recommendation_system_est_model, select_mode="latent"):
@@ -125,7 +164,7 @@ def recommendation_estimation(recommendation_est_system_model):
     # Calculate estimated preference scores
     return recommendation_est_system_model.user_factors @ recommendation_est_system_model.item_factors.T
 
-def create_recommendation_policies(preference_estimates, temperature=5):
+def create_recommendation_policies(preference_estimates, temperature=1/5):
     """
     Generates the recommendation policies given the estimated preference scores. 
     The recommendation policies we consider are softmax distributions over the predicted scores with fixed inverse temperature. 
@@ -136,12 +175,6 @@ def create_recommendation_policies(preference_estimates, temperature=5):
     :returns:               the picked policy (i.e. recommended item) -> recommendation, the probability of recommending an item to a user -> user policies
     """
     print("Generating recommendation policies...")
-
-    # def inverse_temperature(x):
-    #     return x/temperature
-
-    # apply_temperature = np.vectorize(inverse_temperature)   
-    # preference_estimates = apply_temperature(preference_estimates)
 
     # Apply temperature parameter   
     divider = np.full(preference_estimates.shape[0], temperature)

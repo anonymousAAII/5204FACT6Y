@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
         # Only when not yet generated
         if not path.exists(recommendation_system_est_models_file_path):
-            recommendation_system_est_models = recommender.create_recommendation_est_system(ground_truth, configurations, split={"train": 0.7, "validation": 0.1})
+            recommendation_system_est_models = recommender.create_recommendation_est_system(ground_truth, configurations, split={"train": 0.7, "validation": 0.1}, multiprocessing=True)
 
             ## SAVE: Save models that can estimate preferences as a recommender system would
             io.save(IO_INFIX + recommendation_system_est_models_file, (recommendation_system_est_models_var_name, recommendation_system_est_models))
@@ -162,11 +162,10 @@ if __name__ == "__main__":
         expec_rewards_var_name = expec_rewards_file + VAR_EXT
 
         # We generate binary rewards using a Bernoulli distribution with expectation given by our ground truth
-        if not path.exists(rewards_file_path):
+        if not path.exists(rewards_file_path) or not path.exists(expec_rewards_file_path):
             rewards, expec_rewards = recommender.create_rewards(ground_truth)
             io.save(IO_INFIX + rewards_file, (rewards_var_name, rewards))
             io.save(IO_INFIX + expec_rewards_file, (expec_rewards_var_name, expec_rewards))
-
 
         # LOAD: Load binary rewards and expectation of rewards
         io.load(IO_INFIX + rewards_file, my_globals)
@@ -201,7 +200,7 @@ if __name__ == "__main__":
         
         # Only perform experiment when not yet executed
         if len(os.listdir(experiment_dir_path)) == 0 and (experiment_choice == "5.1" or experiment_choice == "all"):    
-            print("Running experiment...", experiment_dir)    
+            print("**Running experiment...", experiment_dir)    
         
             keys = recommendation_policies.keys()
             envy_free = {key: {} for key in keys}
@@ -238,21 +237,24 @@ if __name__ == "__main__":
                                                     prop_envious_users_file: prop_envious_users
                                                 }        
 
-    # # Average envy plotted together    
-    # plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"], data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
-    #                         "average envy", "number of factors", "MovieLens", "Last.fm", "average_envy")
+    """
+    TO DO: Still have to make this dynamic
+    """
+    # Average envy plotted together    
+    plot.plot_experiment_5_1A([data_sets["movie"]["experiments_results"]["5.1"]["avg_envy_user"], data_sets["fm"]["experiments_results"]["5.1"]["avg_envy_user"]],
+                            "average envy", "number of factors", "MovieLens", "Last.fm", "average_envy")
 
-    # # print(data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"])
+    # print(data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"])
 
     # # Proportion of envious users plotted together
     # plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["prop_envious_users"], data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"]],
-    #                         "prop of envious users (epsilon = 0.05)", "number of factors", "MovieLens", "Last.fm", "prop_envious_users")
+                            # "prop of envious users (epsilon = 0.05)", "number of factors", "MovieLens", "Last.fm", "prop_envious_users")
 
-    # # Average envy plotted seperately
-    # plot.plot_experiment_single([data_sets[0]["experiments_results"]["5.1"]["avg_envy_user"]],
-    #                         "average envy", "number of factors", "MovieLens", "average_envy_mv")
-    # plot.plot_experiment_single([data_sets[1]["experiments_results"]["5.1"]["avg_envy_user"]],
-    #                         "average envy", "number of factors", "Last.fm", "average_envy_fm", 1)
+    # Average envy plotted seperately
+    plot.plot_experiment_single([data_sets["movie"]["experiments_results"]["5.1"]["avg_envy_user"]],
+                            "average envy", "number of factors", "MovieLens", "average_envy_mv")
+    plot.plot_experiment_single([data_sets["fm"]["experiments_results"]["5.1"]["avg_envy_user"]],
+                            "average envy", "number of factors", "Last.fm", "average_envy_fm", 1)
 
 
     # # Try algorithm for one model
