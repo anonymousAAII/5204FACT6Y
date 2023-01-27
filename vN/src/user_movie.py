@@ -23,6 +23,7 @@ from implicit.als import AlternatingLeastSquares
 from implicit.evaluation import AUC_at_k 
 from pandas.api.types import CategoricalDtype
 import multiprocessing as mp
+import time
 
 # 1st party imports
 from lib import helper
@@ -79,6 +80,8 @@ def train_model(R_coo, configurations, seed):
     return [p_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}]
 
 if __name__ == "__main__":
+    io.initialize_empty_file(constant.TIMING_FOLDER + constant.TIMING_FILE["movie"])
+
     """
     <DATA_SRC> and <data_map> that are commented out are used when one wants to run it for the 25M MovieLens data set
     also containing half star ratings 
@@ -173,6 +176,7 @@ if __name__ == "__main__":
     model_var_name = model_file + VAR_EXT
 
     if not path.exists(model_file_path):
+        start = time.time()
         print("Start generating ground_truth model MOVIE...")
 
         # Train, validate and test model of 3 different data splits
@@ -202,12 +206,16 @@ if __name__ == "__main__":
         # SAVE: Save model that can generate the ground truth
         io.save(IO_INFIX + model_file, (model_var_name, ground_truth_model))
 
+        end = time.time() - start
+        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE["movie"], "Generating " + model_file + "  " + str(end) + "\n")
+
     # Only generate ground truth when not yet generated
     ground_truth_file = "ground_truth"
     ground_truth_file_path = IO_PATH + ground_truth_file
     ground_truth_var_name = ground_truth_file + VAR_EXT
 
     if not path.exists(ground_truth_file_path):   
+        start = time.time()
         print("Loading ground truth model MOVIE...")
 
         ## LOAD: Load model settings that can generate the ground truth
@@ -219,3 +227,6 @@ if __name__ == "__main__":
 
         # SAVE: Save ground truth preferences
         io.save(IO_INFIX + ground_truth_file, (ground_truth_var_name, ground_truth_mv))   
+        
+        end = time.time() - start
+        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE["movie"], "Predicting " + ground_truth_file + "  " + str(end) + "\n")

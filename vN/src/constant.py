@@ -3,7 +3,13 @@
 #
 # This file simulates the existence of 'constants' which can be used globally accross files
 ####
-EXPERIMENT_RUN_OPTIONS = ["all", "5.1"]
+EXPERIMENT_RUN_OPTIONS = {"all": {"id": "all"},
+                        "5.1": {"id": "5.1",
+                                "experiment_dir": "5.1/"}}
+
+# Folder to save time performances
+TIMING_FOLDER = "results/execution times/"
+TIMING_FILE = {"fm": "fm.txt", "movie": "mv.txt"}
 
 VARIABLES_FOLDER = "variables/"
 # Variable path infix depending on the data set

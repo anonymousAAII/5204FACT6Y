@@ -5,6 +5,7 @@
 ####
 import pandas as pd
 import numpy as np
+from datetime import datetime
 
 def merge_duplicates(df, col_duplicate, col_merge_value, mode_operation="sum"):
     """
@@ -62,3 +63,9 @@ def get_dictionary_subsets(dictionary, n):
     # Generate n splits of the dictionary
     subsets_keys = np.split(keys, n) 
     return {i: [dictionary[key] for key in subset_keys] for i, subset_keys in enumerate(subsets_keys)}
+
+def get_current_datetime():
+    # datetime object containing current date and time
+    now = datetime.now()
+    # dd/mm/YY H:M:S
+    return now.strftime("%d/%m/%Y %H:%M:%S")

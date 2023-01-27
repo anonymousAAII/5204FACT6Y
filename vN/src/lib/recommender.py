@@ -43,7 +43,7 @@ def train_model(hyperparameter_configurations, batch, train, validation):
     return results
 
 # Create a recommendation system's preference estimation model using the given "ground truth"
-def create_recommendation_est_system(ground_truth, hyperparameter_configurations, split={"train": 0.7, "validation": 0.1}, multiprocessing=True):
+def create_recommendation_est_system(ground_truth, hyperparameter_configurations, split={"train": 0.2, "validation": 0.1}, multiprocessing=True):
     """
     Generates models that simulate a recommender system's estimation of preferences using low-rank matrix completion (Bell and Sejnowski 1995)
 
@@ -76,9 +76,6 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
     # {<latent_factor>: {<precision>: {"i_params": <index hyperparams config>, "params": <hyperparams config>, "p_val": <validation precision>, "model": <model>}}}
     # for each latent factor
     models = {key: {} for key in keys}
-
-    start = time.time()
-
 
     # Multiprocessing: assign a batch of models to a processor
     if multiprocessing:
@@ -117,10 +114,6 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
         # for result in train_model(list(hyperparameter_configurations.values()), 1, train, validation):
         #     models[result["latent_factor"]][result["result"]["p_val"]] = result["result"] 
         
-    print(models)
-    end = time.time()
-    print(end - start)
-
     return models
 
 def select_best_recommendation_est_system(recommendation_system_est_model, select_mode="latent"):

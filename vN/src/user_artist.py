@@ -85,6 +85,8 @@ def train_model(R_coo, configurations, seed):
     return [p_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}]
 
 if __name__ == "__main__":
+    io.initialize_empty_file(constant.TIMING_FOLDER + constant.TIMING_FILE["fm"])
+
     # Source folder of datasets
     DATA_SRC = "../data/hetrec2011-lastfm-2k/"
     # Mapping from data <variable name> to its <filename>
@@ -148,6 +150,7 @@ if __name__ == "__main__":
     model_var_name = model_file + VAR_EXT
 
     if not path.exists(model_file_path):
+        start = time.time()
         print("Start generating ground_truth model FM...")
 
         # Train, validate and test model of 3 different data splits
@@ -176,6 +179,9 @@ if __name__ == "__main__":
 
         # SAVE: Save model that can generate the ground truth
         io.save(IO_INFIX + model_file, (model_var_name, ground_truth_model))
+        
+        end = time.time() - start
+        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE["fm"], "Generating " + model_file + "  " + str(end) + "\n")
 
     # Only generate ground truth when not yet generated
     ground_truth_file = "ground_truth"
@@ -183,6 +189,7 @@ if __name__ == "__main__":
     ground_truth_var_name = ground_truth_file + VAR_EXT
 
     if not path.exists(ground_truth_file_path):   
+        start = time.time()
         print("Loading ground truth model FM...")
 
         ## LOAD: Load model settings that can generate the ground truth
@@ -194,4 +201,7 @@ if __name__ == "__main__":
 
         # SAVE: Save ground truth preferences
         io.save(IO_INFIX + ground_truth_file, (ground_truth_var_name, ground_truth_fm))   
+        
+        end = time.time() - start
+        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE["fm"], "Predicting " + ground_truth_file + "  " + str(end) + "\n")
 
