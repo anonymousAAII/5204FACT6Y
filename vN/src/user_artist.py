@@ -21,7 +21,7 @@ import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 from os import path
 import implicit
-from implicit.als import AlternatingLeastSquares
+from implicit.als import AlternatingLeastSquares, LogisticMatrixFactorization
 from implicit.evaluation import precision_at_k, AUC_at_k 
 from pandas.api.types import CategoricalDtype
 import multiprocessing as mp
@@ -58,9 +58,9 @@ def train_model(R_coo, configurations, seed):
         hyperparameters = configurations[i]
 
         # Initialize model
-        model = AlternatingLeastSquares(factors=hyperparameters["latent_factor"], 
-                                        regularization=hyperparameters["reg"],
-                                        alpha=hyperparameters["alpha"])
+        model = LogisticMatrixFactorization(factors=hyperparameters["latent_factor"], 
+                                            regularization=hyperparameters["reg"],
+                                            alpha=hyperparameters["alpha"])
         
         # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
         model.fit(train, show_progress=False)        
