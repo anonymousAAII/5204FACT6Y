@@ -13,10 +13,10 @@ For changes in the deleted component to work through all the way through the pip
 To make carefull decisions which object files to delete taking computation time into consideration the following info is included:
 
 The intermediate stages object files are stored in the ```/src/variables``` folder.
-The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). The following table shows the pipeline in sequential order and the corresponding object files:
+The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). The following table shows the pipeline in sequential order, the corresponding object files and a random pick of duration of each stage:
 
 #### Last.fm
-| Pipeline stage                                | Object file/folder created          | Avg. duration sequental (s - min)  |  Avg. duration multiprocessing batch[^4] |
+| Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |                        ---: |
 | Generating ground truth model                 | ground\_truth\_model                |                      | | 
 | Generating ground truth                       | ground\_truth                       |                     | | 
@@ -34,8 +34,12 @@ The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a
 | Estimating preference scores                  | -                                   | 176.76 - 2.95                     |              
 | Constructing policies                         | -                                   | 2.93 - x               |        |                                                   
 | Generating expectation of the rewards         | expec\_rewards                      | 31.92 - 0.5                     | | 
-| Experiment 5.1                                |  5.1/                               |                      | | 
+| Experiment 5.1                                |  5.1/                               | 5.26 - x                     | | 
 
+These values are picked from the log files which stores the wall clock execution times each time the code is ran.
+```
+/src/results/execution times/<data_set>.log
+```
 
 Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
