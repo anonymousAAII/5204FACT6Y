@@ -16,13 +16,25 @@ The intermediate stages object files are stored in the ```/src/variables``` fold
 The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). The following table shows the pipeline in sequential order and the corresponding object files:
 
 #### Last.fm
-| Pipeline stage                                | Object file/folder created          | Avg. duration sequental (s - min)  |  Avg. duration multiprocessing batch[^4] | Avg. duration multiprocessing single
-| :---                                          |    :----:                           |    :----:                           |    :----:                           |                        ---: |
-| Generating ground truth model                 | ground\_truth\_model                | 480 - 8                     | | |
-| Generating ground truth                       | ground\_truth                       | 0.07 - x                    | | |
-| Generating recommender preference est. models | recommendation\_system_est\_models  | 1306 - 22                   |1250 - 21 | |
-| Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    | | |
-| Experiment 5.1                                |  5.1/                               | 4.5 - x                     | | |
+| Pipeline stage                                | Object file/folder created          | Avg. duration sequental (s - min)  |  Avg. duration multiprocessing batch[^4] |
+| :---                                          |    :----:                           |    :----:                           |                        ---: |
+| Generating ground truth model                 | ground\_truth\_model                | 480 - 8                     | | 
+| Generating ground truth                       | ground\_truth                       | 0.07 - x                    | | 
+| Generating recommender preference est. models | recommendation\_system_est\_models  | 1306 - 22                   |1250 - 21 | 
+| Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    | | 
+| Experiment 5.1                                |  5.1/                               | 4.5 - x                     | | 
+
+#### MovieLens
+| Pipeline stage                                | Object file/folder created          | Avg. duration sequental (s - min)  |  Avg. duration multiprocessing batch[^4] |
+| :---                                          |    :----:                           |    :----:                           |                        ---: |
+| Generating ground truth model                 | ground\_truth\_model                | 480 - 8                     | | 
+| Generating ground truth                       | ground\_truth                       | 0.07 - x                    | | 
+| Generating recommender preference est. models | recommendation\_system_est\_models  | 1306 - 22                   | 3153.75 - 52 | 
+| Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    | | 
+| Experiment 5.1                                |  5.1/                               | 4.5 - x                     | | 
+
+
+
 
 Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
