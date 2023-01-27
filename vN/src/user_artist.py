@@ -121,12 +121,12 @@ if __name__ == "__main__":
     # '100%' data set, i.e. contains all relevant users and items
     user_item = user_artists[user_artists["artistID"].isin(items)] 
 
-    # Log transform of raw count input data (Johnson 2014)
-    def log_transform(r):
-        return np.log(r) 
+    # # Log transform of raw count input data (Johnson 2014)
+    # def log_transform(r):
+    #     return np.log(r) 
 
-    # Pre-process the raw counts with log-transformation
-    user_item["weight"] = user_item["weight"].map(log_transform)
+    # # Pre-process the raw counts with log-transformation
+    # user_item["weight"] = user_item["weight"].map(log_transform)
     
     # Get users
     users = user_item["userID"].unique()
