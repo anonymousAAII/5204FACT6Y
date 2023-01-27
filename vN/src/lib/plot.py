@@ -4,6 +4,7 @@
 # This file contains all the functionality to plot and save data of experiments
 ####
 import matplotlib.pyplot as plt
+import numpy as np
 
 # 1st party imports
 import constant
@@ -30,7 +31,12 @@ def plot_experiment_line(data, y_label, x_label, labels, linestyles, colors, fil
         plt.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 
     for i, line in enumerate(data):
-        plt.plot(line.keys(), line.values(), label=labels[i], linestyle=linestyles[i], color=colors[i])
+        x, y = np.array(list(line.keys())), np.array(list(line.values()))
+        if x_upper_bound is not None:
+            x = np.extract(x <= np.full(len(x), x_upper_bound), x)
+            y = np.extract(x <= np.full(len(x), x_upper_bound), y)
+
+        plt.plot(x, y, label=labels[i], linestyle=linestyles[i], color=colors[i])
 
     plt.legend()
 

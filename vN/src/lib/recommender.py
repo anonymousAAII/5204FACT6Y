@@ -43,7 +43,7 @@ def train_model(hyperparameter_configurations, batch, train, validation):
     return results
 
 # Create a recommendation system's preference estimation model using the given "ground truth"
-def create_recommendation_est_system(ground_truth, hyperparameter_configurations, split={"train": 0.2, "validation": 0.1}, multiprocessing=True):
+def create_recommendation_est_system(ground_truth, hyperparameter_configurations, split={"train": 0.7, "validation": 0.1}, multiprocessing=True):
     """
     Generates models that simulate a recommender system's estimation of preferences using low-rank matrix completion (Bell and Sejnowski 1995)
 

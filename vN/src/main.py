@@ -279,7 +279,7 @@ if __name__ == "__main__":
         labels = ["Last.fm", "MovieLens"]
         linestyles = ["-.", "dotted"] 
         colors = ["tab:blue", "orange"]
-        plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy")
+        plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
 
         # Proportion of envious users plotted together
         data = [data_sets["fm"]["experiments_results"][label]["prop_envious_users"], data_sets["movie"]["experiments_results"][label]["prop_envious_users"]]    
@@ -287,7 +287,7 @@ if __name__ == "__main__":
         linestyles = ["-.", "dotted"] 
         colors = ["tab:blue", "orange"]
 
-        plot.plot_experiment_line(data, "prop of envious users (epsilon = 0.05)", "number of factors", labels, linestyles, colors, "average_envy")
+        plot.plot_experiment_line(data, "prop of envious users (epsilon = 0.05)", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
 
 
     # # Try algorithm for one model
