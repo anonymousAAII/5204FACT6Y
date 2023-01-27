@@ -64,7 +64,7 @@ class Recommender(object):
         return item
 
 def grid_search(train_matrix, val_matrix, factors, regularization,
-                confidence_weights, seed=None):
+                confidence_weights, temperature=1, seed=None):
     """
     Performs grid search over the hyperparameters for a recommender using the
     precision_at_k metric.
@@ -85,7 +85,7 @@ def grid_search(train_matrix, val_matrix, factors, regularization,
     best_performance = 0
     for fi, ri, ci in np.ndindex(results.shape):
         rec = Recommender(factors=factors[fi], regularization=regularization[ri],
-                          alpha=confidence_weights[ci],
+                          alpha=confidence_weights[ci], temperature=temperature,
                           compute_dense_matrix=True, random_state=seed)
         rec.fit_model(train_matrix)
         performance = precision_at_k(rec.model, train_matrix, val_matrix,
