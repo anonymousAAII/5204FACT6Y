@@ -20,8 +20,9 @@ The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a
 | :---                                          |    :----:                           |    :----:                           |                        ---: |
 | Generating ground truth model                 | ground\_truth\_model                |                      | | 
 | Generating ground truth                       | ground\_truth                       |                     | | 
-| Generating recommender preference est. models | recommendation\_system_est\_models  |                    | | 
-| Generating expectation of the rewards         | expec\_rewards                      |                     | | 
+| Generating recommender preference est. models | recommendation\_system_est\_models  |                    |1858.69 - 30.98 | 
+| Constructing policies                         | -                                   | 2.48 - x               |        |                                                   
+| Generating expectation of the rewards         | expec\_rewards                      | 28.05 - 0.47           | | 
 | Experiment 5.1                                |  5.1/                               |                      | | 
 
 #### MovieLens
