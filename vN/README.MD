@@ -62,5 +62,5 @@ virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.
 [^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
 [^2]: https://grouplens.org/datasets/hetrec-2011/
 [^3]: https://grouplens.org/datasets/movielens/1m/
-[^4]: Refers to whether a batch of models is multiprocessed or a single model is assigned to each process.
+[^4]: A batch of models is assigned to a CPU core.
 [^5]: https://arxiv.org/abs/2104.14527
