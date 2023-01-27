@@ -273,23 +273,21 @@ if __name__ == "__main__":
     # Experiment 5.1
     if plot_all or experiment_choice == "5.1":
         label = experiment_choice if experiment_choice != "all" else "5.1"
+
         # Average envy plotted together
-        data = [data_sets["movie"]["experiments_results"][label]["avg_envy_user"], data_sets["fm"]["experiments_results"][label]["avg_envy_user"]]    
-        labels = ["MovieLens", "Last.fm"]
-        linestyles = ["dotted", ".-"] 
-        colors = ["orange", "tab:blue"]
+        data = [data_sets["fm"]["experiments_results"][label]["avg_envy_user"], data_sets["movie"]["experiments_results"][label]["avg_envy_user"], ]    
+        labels = ["Last.fm", "MovieLens"]
+        linestyles = ["-.", "dotted"] 
+        colors = ["tab:blue", "orange"]
         plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy")
 
+        # Proportion of envious users plotted together
+        data = [data_sets["fm"]["experiments_results"][label]["prop_envious_users"], data_sets["movie"]["experiments_results"][label]["prop_envious_users"]]    
+        labels = ["Last.fm", "MovieLens"]
+        linestyles = ["-.", "dotted"] 
+        colors = ["tab:blue", "orange"]
 
-        # # Proportion of envious users plotted together
-        # plot.plot_experiment_5_1A([data_sets[0]["experiments_results"]["5.1"]["prop_envious_users"], data_sets[1]["experiments_results"]["5.1"]["prop_envious_users"]],
-                                # "prop of envious users (epsilon = 0.05)", "number of factors", "MovieLens", "Last.fm", "prop_envious_users")
-
-    # # Average envy plotted seperately
-    # plot.plot_experiment_single([data_sets["movie"]["experiments_results"]["5.1"]["avg_envy_user"]],
-    #                         "average envy", "number of factors", "MovieLens", "average_envy_mv")
-    # plot.plot_experiment_single([data_sets["fm"]["experiments_results"]["5.1"]["avg_envy_user"]],
-    #                         "average envy", "number of factors", "Last.fm", "average_envy_fm", 1)
+        plot.plot_experiment_line(data, "prop of envious users (epsilon = 0.05)", "number of factors", labels, linestyles, colors, "average_envy")
 
 
     # # Try algorithm for one model
