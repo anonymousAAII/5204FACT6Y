@@ -50,22 +50,23 @@ def conservative_estimate(target_dict, policy_dicts, selected_dict, alpha,
 
 def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
     """
-    Implements the OCEF algorithm.
+    Implements the OCEF algorithm to audit whether a target user is envious of
+    other users.
     Inputs:
         target_policy - Policy of the target user
-        other_policies - List of policies of other users
+        other_policies - List or array of policies of other users
         reward_func - Function that takes a policy and returns a reward
         delta - Confidence parameter
         alpha - Conservative exploration parameter
         epsilon - Envy parameter
     Outputs:
-        True if target user is envious, False if not epsilon-envious
+        envy - True if target user is envious, False if not epsilon-envious
         t - The number of timesteps
         cost - Cost of the audit
     """
     t = 0 # timestep
     K = len(other_policies) # number of other policies
-    omega = 0.5 # see lemma 4
+    omega = 0.99 # see lemma 4
     sigma = 0.5 # see lemma 4
     A = 0 # number of times arm other than baseline was selected
     r = 0 # sum of rewards from times arm other than baseline was selected
@@ -84,7 +85,7 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
     S = [] # List of dictionaries of other policies
     for policy in other_policies:
         S.append({'policy': policy, 'N': 0, 'r': 0, 'mu': 0,
-                             'beta': beta_start})
+                  'beta': beta_start})
     while S:
         t += 1
         explore = True
@@ -110,8 +111,9 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
             if policy_dict['mu'] - policy_dict['beta'] > target_high:
                 # Lower bound greater than target upper bound: envy
                 # Compute cost of audit
+                envy = True
                 cost = t * target_dict['mu'] - target_dict['r'] - r
-                return True, t, cost
+                return envy, t, cost
             if policy_dict['mu'] + policy_dict['beta'] <= target_low:
                 # Upper bound smaller than target lower bound: remove policy from list
                 S.remove(policy_dict)
@@ -121,16 +123,28 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
                 if other_dict['mu'] - other_dict['beta'] > target_high:
                     # Lower bound greater than target upper bound: envy
                     # Compute cost of audit
+                    envy = True
                     cost = t * target_dict['mu'] - target_dict['r'] - r
-                    return True, t, cost
+                    return envy, t, cost
                 # Check for each policy if upper bound is still greater than target lower bound
                 if target_low < other_dict['mu'] + other_dict['beta']:
                     temp_list.append(other_dict)
             S = temp_list
     # List of other policies empty, not epsilon-envious
     # Compute cost of audit
+    envy = False
     cost = t * target_dict['mu'] - target_dict['r'] - r
-    return False, t, cost
+    return envy, t, cost
 
-def AUDIT():
-    pass
+def AUDIT(policies, reward_func, delta, alpha, epsilon, gamma, lambda_):
+    M = math.ceil(np.log(3 / delta) / lambda_)
+    S_indices = np.random.choice(len(policies), size=M, replace=False)
+    S = policies[S_indices]
+    for S_index in S_indices:
+        K = math.ceil(np.log(3 * M / delta) / np.log(1 / (1 - gamma)))
+        arms = policies[:S_index] + policies[S_index + 1:] # TODO: use concat
+        arms = arms[np.random.choice(len(arms), size=K, replace=False)]
+        f_reward = lambda x: reward_func(x, S_index)
+        if OCEF(S[S_index], arms, f_reward, delta, alpha, epsilon)[0]:
+            return True
+    return False

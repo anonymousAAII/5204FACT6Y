@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 from scipy import sparse
-import time
 from tqdm import tqdm
 
 from Recommender import Recommender, grid_search
@@ -42,8 +41,8 @@ def get_model_envy(policies, preferences, epsilon=0.05):
 
 def do_experiment(ground_truths, factors, seed=None):
     # Scale ground_truths between 0 and 1
-    #ground_truths -= np.min(ground_truths)
-    #ground_truths /= np.max(ground_truths)
+    # ground_truths -= np.min(ground_truths)
+    # ground_truths /= np.max(ground_truths)
     
     # Create split
     ground_truths_sparse = sparse.csr_matrix(ground_truths)
@@ -56,13 +55,14 @@ def do_experiment(ground_truths, factors, seed=None):
     reg = [0.001, 0.01, 0.1, 1.]
     conf_weights = [0.1, 1., 10., 100.]
     epsilon = 0.05
+    temperature = 0.2
     total_util_list = list()
     avg_envy_list = list()
     prop_envious_list = list()
     for factor in tqdm(factors):
         # Find best hyperparameters
         _, rec = grid_search(train_matrix, val_matrix, [factor], reg,
-                             conf_weights, seed)
+                             conf_weights, temperature, seed)
         # max_indices = np.unravel_index(hyperparams.argmax(), hyperparams.shape)
         # best_reg = reg[max_indices[1]]
         # best_conf_weight = conf_weights[max_indices[2]]
@@ -74,24 +74,21 @@ def do_experiment(ground_truths, factors, seed=None):
         
         # Assess envy
         total_util, avg_envy, prop_envious = get_model_envy(rec.policies,
-                                                          ground_truths,
-                                                          epsilon)
+                                                            ground_truths,
+                                                            epsilon)
         total_util_list.append(total_util)
         avg_envy_list.append(avg_envy)
         prop_envious_list.append(prop_envious)
-    return total_util_list, avg_envy_list, prop_envious_list
+    return rec, total_util_list, avg_envy_list, prop_envious_list
 
 def main(dataset_name, factors):
     print(f"Experiment with {dataset_name} data started")
-    start = time.perf_counter()
     with open(f'../results/{dataset_name}_ground_truths', 'rb') as f:
         gt = pickle.load(f)
     total_util, avg_envy, prop_envious = do_experiment(gt, factors, 42)
     with open(f'../results/mispecification_{dataset_name}', 'wb') as f:
         pickle.dump((avg_envy, prop_envious), f)
-    end = time.perf_counter()
     print(f"Experiment with {dataset_name} data finished")
-    print(f"Experiment took {end-start} seconds")
     print(f"Total utility: {total_util}")
     print(f"Average envy: {avg_envy}")
     print(f"Proportion of 0.05-envious users: {prop_envious}\n")
