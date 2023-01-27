@@ -30,8 +30,9 @@ The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a
 | Generating ground truth model                 | ground\_truth\_model                |                      | | 
 | Generating ground truth                       | ground\_truth                       |                     | | 
 | Generating recommender preference est. models | recommendation\_system_est\_models  |                    | 3153.75 - 52 | 
-| Estimating preference scores                  | -                                   | 176.76                      |              |             
-| Generating expectation of the rewards         | expec\_rewards                      |                     | | 
+| Estimating preference scores                  | -                                   | 176.76 - 2.95                     |              
+| Constructing policies                         | -                                   | 2.93 - x               |        |                                                   
+| Generating expectation of the rewards         | expec\_rewards                      | 31.92 - 0.5                     | | 
 | Experiment 5.1                                |  5.1/                               |                      | | 
 
 
