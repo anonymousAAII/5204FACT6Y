@@ -82,6 +82,10 @@ if __name__ == "__main__":
         # Generate ground truth of user-item preferences
         exec(compile(open(data_set["filename"], "rb").read(), data_set["filename"], "exec"))
 
+        if not path.exists(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE + "/"):
+            print("Creating variables directory for {} recommender model...".format(ALGORITHM_CHOICE))
+            os.mkdir(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE + "/")
+
         ## LOAD: Load ground truth
         io.load(IO_INFIX + "ground_truth", my_globals)
 
