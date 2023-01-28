@@ -76,18 +76,16 @@ if __name__ == "__main__":
             IO_INFIX = constant.VAR_SUB_FOLDER["movie"]
             VAR_EXT = constant.VAR_EXT["movie"]
 
-        # Full path where variables of I/O operations are stored
-        IO_PATH = constant.VARIABLES_FOLDER + IO_INFIX
-
-        # Generate ground truth of user-item preferences
-        exec(compile(open(data_set["filename"], "rb").read(), data_set["filename"], "exec"))
-
+        # Possibility for different recommender model algorithms   
         if not path.exists(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE + "/"):
             print("Creating variables directory for {} recommender model...".format(ALGORITHM_CHOICE))
             os.mkdir(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE + "/")
 
+        # Generate ground truth of user-item preferences
+        exec(compile(open(data_set["filename"], "rb").read(), data_set["filename"], "exec"))
+        
         ## LOAD: Load ground truth
-        io.load(IO_INFIX + "ground_truth", my_globals)
+        io.load(IO_INFIX + "ground_truth", my_globals)        
 
         if data_set["name"] == "fm":
             print("Loading ground truth FM...")
@@ -98,6 +96,10 @@ if __name__ == "__main__":
 
         data_set["vars"]["ground_truth"] = ground_truth
 
+        IO_INFIX = IO_INFIX + ALGORITHM_CHOICE + "/"
+
+        # Full path where variables of I/O operations are stored
+        IO_PATH = constant.VARIABLES_FOLDER + IO_INFIX
 
         ##########################
         #   RECOMMENDER SYSTEM: from here on we generate 144 preference estimation models, one for each hyperparameter combination

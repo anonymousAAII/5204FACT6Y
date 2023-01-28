@@ -224,32 +224,36 @@ def select_best_recommendation_est_system(recommendation_system_est_model, selec
     # Only return one single best model over all hyperparameter combinations (no picking by <latent_factor>)
     return best_recommendation_est_system
 
-def recommendation_estimation(recommendation_est_system_model, ground_truth):
+def recommendation_estimation(recommendation_est_system_model, ground_truth, algorithm):
     """
     :recommendation_est_system_model:   model object that simulates a recommender system's preference estimations
     :returns:                           estimated preference scores
     """
     print("Estimating preferences...")
     
-    R_coo = sparse.coo_matrix(ground_truth)
-    
-    # Access `row`, `col` and `data` properties of coo matrix.
-    df = pd.DataFrame({"u_id": R_coo.row, "i_id": R_coo.col, "rating": R_coo.data})
-    
-    # Calculate estimated preference scores
-    pred = recommendation_est_system_model.predict(df)
+    if algorithm == "SVD":
+        R_coo = sparse.coo_matrix(ground_truth)
+        
+        # Access `row`, `col` and `data` properties of coo matrix.
+        df = pd.DataFrame({"u_id": R_coo.row, "i_id": R_coo.col, "rating": R_coo.data})
+        
+        # Calculate estimated preference scores
+        pred = recommendation_est_system_model.predict(df)
 
-    # print(df)
-    # print(R_coo.shape)
-    # print(len(R_coo.row))
-    # print(len(R_coo.col))
-    # print(len(R_coo.data))
-    # print(len(pred))
-    # print(ground_truth.shape)
-    
-    # exit()
+        # print(df)
+        # print(R_coo.shape)
+        # print(len(R_coo.row))
+        # print(len(R_coo.col))
+        # print(len(R_coo.data))
+        # print(len(pred))
+        # print(ground_truth.shape)
+        
+        # exit()
 
-    return np.array(pred).reshape(ground_truth.shape)
+        return np.array(pred).reshape(ground_truth.shape)
+    # ALS
+    else:
+        return recommendation_est_system_model.user_factors @ recommendation_est_system_model.item_factors.T
 
 def create_recommendation_policies(preference_estimates, temperature=1/5):
     """

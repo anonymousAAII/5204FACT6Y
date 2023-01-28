@@ -74,7 +74,7 @@ def train_model(R_coo, configurations, seed, built_in_LMF):
         # Benchmark model performance using validation set
         ndcg = ndcg_at_k(model, train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), validation.multiply(hyperparameters["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
         
-        print("Seed: {} NDCG@{}".format((seed + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        print("Seed {}: NDCG@{}".format((seed + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
 
         # When current model outperforms previous one update tracking states
         if ndcg > ndcg_base:
@@ -133,12 +133,8 @@ if __name__ == "__main__":
     def log_transform(r):
         return np.log(r) 
 
-    built_in_LMF = False
-
-    # Approximate LMF by applying a log-transform beforehand   
-    if built_in_LMF == False:
-        # Pre-process the raw counts with log-transformation
-        user_item["weight"] = user_item["weight"].map(log_transform)
+    # Pre-process the raw counts with log-transformation
+    user_item["weight"] = user_item["weight"].map(log_transform)
     
     # Get users
     users = user_item["userID"].unique()
