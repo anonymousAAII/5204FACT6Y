@@ -13,16 +13,33 @@ For changes in the deleted component to work through all the way through the pip
 To make carefull decisions which object files to delete taking computation time into consideration the following info is included:
 
 The intermediate stages object files are stored in the ```/src/variables``` folder.
-The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). The following table shows the pipeline in sequential order and the corresponding object files:
+The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). The following table shows the pipeline in sequential order, the corresponding object files and a random pick of duration of each stage:
 
 #### Last.fm
-| Pipeline stage                                | Object file/folder created          | Avg. duration sequental (s - min)  |  Avg. duration multiprocessing batch[^4] | Avg. duration multiprocessing single
-| :---                                          |    :----:                           |    :----:                           |    :----:                           |                        ---: |
-| Generating ground truth model                 | ground\_truth\_model                | 480 - 8                     | | |
-| Generating ground truth                       | ground\_truth                       | 0.07 - x                    | | |
-| Generating recommender preference est. models | recommendation\_system_est\_models  | 1306 - 22                   |1250 - 21 | |
-| Generating expectation of the rewards         | expec\_rewards                      | 28 - 0.5                    | | |
-| Experiment 5.1                                |  5.1/                               | 4.5 - x                     | | |
+| Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
+| :---                                          |    :----:                           |    :----:                           |                        ---: |
+| Generating ground truth model                 | ground\_truth\_model                |                      | | 
+| Generating ground truth                       | ground\_truth                       |                     | | 
+| Generating recommender preference est. models | recommendation\_system_est\_models  |                    |1858.69 - 30.98 | 
+| Constructing policies                         | -                                   | 2.48 - x               |        |                                                   
+| Generating expectation of the rewards         | expec\_rewards                      | 28.05 - 0.47           | | 
+| Experiment 5.1                                |  5.1/                               |                      | | 
+
+#### MovieLens
+| Pipeline stage                                | Object file/folder created          | Avg. duration sequental (s - min)  |  Avg. duration multiprocessing batch[^4] |
+| :---                                          |    :----:                           |    :----:                           |                        ---: |
+| Generating ground truth model                 | ground\_truth\_model                |                      | | 
+| Generating ground truth                       | ground\_truth                       |                     | | 
+| Generating recommender preference est. models | recommendation\_system_est\_models  |                    | 3153.75 - 52 | 
+| Estimating preference scores                  | -                                   | 176.76 - 2.95                     |              
+| Constructing policies                         | -                                   | 2.93 - x               |        |                                                   
+| Generating expectation of the rewards         | expec\_rewards                      | 31.92 - 0.5                     | | 
+| Experiment 5.1                                |  5.1/                               | 5.26 - x                     | | 
+
+These values are picked from the log files which stores the wall clock execution times each time the code is ran.
+```
+/src/results/execution times/<data_set>.log
+```
 
 Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
@@ -50,5 +67,5 @@ virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.
 [^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
 [^2]: https://grouplens.org/datasets/hetrec-2011/
 [^3]: https://grouplens.org/datasets/movielens/1m/
-[^4]: Refers to whether a batch of models is multiprocessed or a single model is assigned to each process.
+[^4]: A batch of models is assigned to a CPU core.
 [^5]: https://arxiv.org/abs/2104.14527
