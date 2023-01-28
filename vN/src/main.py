@@ -14,8 +14,8 @@ from lib import envy
 from lib import plot
 import constant
 
-def preferences_to_policies(latent_factor, model, ground_truth):
-    preference_estimates = recommender.recommendation_estimation(model, ground_truth)
+def preferences_to_policies(latent_factor, model, ground_truth, algorithm):
+    preference_estimates = recommender.recommendation_estimation(model, ground_truth, algorithm)
     recommendation_policies = recommender.create_recommendation_policies(preference_estimates)
     return {"latent_factor": latent_factor, "recommendation_policies": {"recommendations": recommendation_policies["recommendations"], "policies": recommendation_policies["policies"]}}
 
@@ -161,11 +161,11 @@ if __name__ == "__main__":
             # Create and configure the process pool
             with mp.Pool(mp.cpu_count()) as pool:
                 # Prepare arguments
-                items = [(latent_factor, data["model"], ground_truth) for latent_factor, data in best_recommendation_est_system.items()]
+                items = [(latent_factor, data["model"], ground_truth, ALGORITHM_CHOICE) for latent_factor, data in best_recommendation_est_system.items()]
                 # Execute tasks and process results in order
                 for result in pool.starmap(preferences_to_policies, items):
                     recommendation_policies[result["latent_factor"]] = result["recommendation_policies"]
-                    print(f'Got result: {result}', flush=True)
+                    # print(f'Got result: {result}', flush=True)
             # Process pool is closed automatically
 
             end = time.time() - start            
@@ -182,7 +182,6 @@ if __name__ == "__main__":
             print("Loading recommendation policies rewards...")
             recommendation_policies = recommendation_policies_mv
 
-        print(recommendation_policies)
         data_set["vars"]["recommendation_policies"] = recommendation_policies
 
 
@@ -281,14 +280,14 @@ if __name__ == "__main__":
             io.load(IO_INFIX + experiment_dir + avg_envy_user_file, my_globals)
             io.load(IO_INFIX + experiment_dir + prop_envious_users_file, my_globals)
 
-            experiments_results[label][data_set["name"]] = {"data": 
+            experiment_results[label][data_set["name"]] = {"data": 
                                                                 {
                                                                     envy_free_file: envy_free,
                                                                     avg_envy_user_file: avg_envy_user,
                                                                     prop_envious_users_file: prop_envious_users
                                                                 },
                                                             "label": constant.DATA_LABELS[data_set["name"]],
-                                                            "linestyle": constant.DATA_LABELS[data_set["name"]],
+                                                            "linestyle": constant.DATA_LINESTYLES[data_set["name"]],
                                                             "color": constant.DATA_COLORS[data_set["name"]]
                                                             }        
 
@@ -312,14 +311,14 @@ if __name__ == "__main__":
         linestyles = [] 
         colors = []
 
-        for data_set in experiment_results["5.1"]:
-            for name, data in data_set.items():
-                lines.append(data["data"]["avg_envy_user"])
-                labels.append(data["label"])  
-                linestyles.append(data["linestyle"])
-                colors.append(data["color"])              
+        for name, data in experiment_results[label].items():
+            lines.append(data["data"]["avg_envy_user"])
+            labels.append(data["label"])  
+            linestyles.append(data["linestyle"])
+            colors.append(data["color"])          
 
-        plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
+
+        plot.plot_experiment_line(lines, "average envy", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
 
         # Proportion of envious users plotted together
         lines = []  
@@ -327,14 +326,13 @@ if __name__ == "__main__":
         linestyles = [] 
         colors = []
 
-        for data_set in experiment_results["5.1"]:
-            for name, data in data_set.items():
-                lines.append(data["data"]["prop_envious_users"])
-                labels.append(data["label"])  
-                linestyles.append(data["linestyle"])
-                colors.append(data["color"])              
+        for name, data in experiment_results[label].items():
+            lines.append(data["data"]["prop_envious_users"])
+            labels.append(data["label"])  
+            linestyles.append(data["linestyle"])
+            colors.append(data["color"])              
 
-        plot.plot_experiment_line(data, "prop of envious users (epsilon = 0.05)", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
+        plot.plot_experiment_line(lines, "prop of envious users (epsilon = 0.05)", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
 
     # # Try algorithm for one model
     # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)

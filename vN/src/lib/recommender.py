@@ -28,7 +28,7 @@ import constant
 def train_SVD_model(hyperparameter_configurations, batch, min_rating, max_rating, train, validation, test, normalize=True):
     results = {}
     
-    print("Processing batch {}...".format(batch))
+    print("Processing batch {}...".format((batch + 1)))
 
     # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995) using SVD
     for i, params in enumerate(hyperparameter_configurations):
@@ -68,14 +68,14 @@ def train_SVD_model(hyperparameter_configurations, batch, min_rating, max_rating
             ndcg = ndcg_score(np.asarray([y_true]), np.asarray([y_score]), k=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"])
             results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": svd, "params": params}} 
         
-        print("NDCG@{}".format(constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        print("Batch {}: NDCG@{}".format((batch + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
 
     return results
 
 def train_ALS_model(hyperparameter_configurations, batch, train, validation):
     results = {}
     
-    print("Processing batch {}...".format(batch))
+    print("Processing batch {}...".format((batch + 1)))
 
     # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995)
     for i, params in enumerate(hyperparameter_configurations):
@@ -89,7 +89,7 @@ def train_ALS_model(hyperparameter_configurations, batch, train, validation):
 
         # Validate model
         ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
-        print("NDCG@{}".format(constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        print("Batch {}: NDCG@{}".format((batch + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
 
         results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": model, "params": params}} 
 
