@@ -21,8 +21,9 @@ import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 from os import path
 import implicit
-from implicit.als import AlternatingLeastSquares, LogisticMatrixFactorization
-from implicit.evaluation import precision_at_k, AUC_at_k 
+from implicit.als import AlternatingLeastSquares
+from implicit.lmf import LogisticMatrixFactorization
+from implicit.evaluation import ndcg_at_k
 from pandas.api.types import CategoricalDtype
 import multiprocessing as mp
 from tqdm import tqdm
@@ -33,7 +34,7 @@ from lib import helper
 from lib import io
 import constant
 
-def train_model(R_coo, configurations, seed):
+def train_model(R_coo, configurations, seed, built_in_LMF):
     """
     For a random seed trains a model on a sparse matrix for all given hyperparameter combinations.
 
@@ -57,16 +58,21 @@ def train_model(R_coo, configurations, seed):
     for i in tqdm(range(len(configurations))):
         hyperparameters = configurations[i]
 
-        # Initialize model
-        model = LogisticMatrixFactorization(factors=hyperparameters["latent_factor"], 
+        # Use standard Logistic Matrix Factorization model of implicit lib, not however you can't specify alpha here
+        if built_in_LMF:
+            # Initialize model
+            model = LogisticMatrixFactorization(factors=hyperparameters["latent_factor"], 
+                                                regularization=hyperparameters["reg"])
+        else:
+            model = AlternatingLeastSquares(factors=hyperparameters["latent_factor"], 
                                             regularization=hyperparameters["reg"],
                                             alpha=hyperparameters["alpha"])
-        
+
         # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
         model.fit(train, show_progress=False)        
 
         # Benchmark model performance using validation set
-        p = AUC_at_k(model, train, validation, K=100, show_progress=False)
+        p = ndcg_at_k(model, train, validation, K=40, show_progress=False)
 
         # When current model outperforms previous one update tracking states
         if p > p_base:
@@ -80,7 +86,7 @@ def train_model(R_coo, configurations, seed):
     hyperparams_optimal = configurations[performance_per_configuration[p_base]]
 
     # Evaluate TRUE performance of best model on test set for model selection later on
-    p_test = AUC_at_k(model_best, train, test, K=100, show_progress=False)  
+    p_test = ndcg_at_k(model_best, train, test, K=40, show_progress=False)  
 
     return [p_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}]
 
@@ -121,12 +127,16 @@ if __name__ == "__main__":
     # '100%' data set, i.e. contains all relevant users and items
     user_item = user_artists[user_artists["artistID"].isin(items)] 
 
-    # # Log transform of raw count input data (Johnson 2014)
-    # def log_transform(r):
-    #     return np.log(r) 
+    # Log transform of raw count input data (Johnson 2014)
+    def log_transform(r):
+        return np.log(r) 
 
-    # # Pre-process the raw counts with log-transformation
-    # user_item["weight"] = user_item["weight"].map(log_transform)
+    built_in_LMF = False
+
+    # Approximate LMF by applying a log-transform beforehand   
+    if built_in_LMF == False:
+        # Pre-process the raw counts with log-transformation
+        user_item["weight"] = user_item["weight"].map(log_transform)
     
     # Get users
     users = user_item["userID"].unique()

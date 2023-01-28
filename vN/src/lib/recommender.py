@@ -9,22 +9,73 @@ import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 import implicit
 from implicit.als import AlternatingLeastSquares
-from implicit.evaluation import precision_at_k, AUC_at_k 
+from implicit.evaluation import ndcg_at_k
 import scipy
 from scipy import sparse
 from tqdm import tqdm
 import multiprocessing as mp
 import time
+import sys
+
+from funk_svd.dataset import fetch_ml_ratings
+from funk_svd import SVD
+from sklearn.metrics import ndcg_score
 
 # 1st party imports
 from lib import istarmap
 from lib import helper
 
-def train_model(hyperparameter_configurations, batch, train, validation):
+def train_SVD_model(hyperparameter_configurations, batch, min_rating, max_rating, train, validation, test):
     results = {}
     
     print("Processing batch {}...".format(batch))
 
+    # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995) using SVD
+    for i, params in enumerate(hyperparameter_configurations):
+        train["rating"] = train["rating"].apply(lambda x: params["alpha"]*x)
+        validation["rating"] = validation["rating"].apply(lambda x: params["alpha"]*x)
+        test["rating"] = test["rating"].apply(lambda x: params["alpha"]*x)
+
+        svd = SVD(lr=0.001, reg=params["reg"], n_epochs=100, n_factors=params["latent_factor"], early_stopping=True, shuffle=False, min_rating=min_rating, max_rating=max_rating)
+
+        svd.fit(X=train, X_val=validation)
+        pred = svd.predict(test)
+     
+        # To prevent NDCG to be unbounded
+        # Normalize y_true
+        if test["rating"].abs().max() != 0:
+            test["rating"] = test["rating"] /test["rating"].abs().max()
+
+        y_true = np.array(test["rating"])
+
+        # Normalize y_score        
+        y_score = np.array(pred)
+        normalizer = (np.max(y_score) - np.min(y_score))
+
+        # To prevent division by 0 error
+        if normalizer != 0:
+            y_score = (y_score - np.min(y_score))/ normalizer
+
+        ndcg = ndcg_score(np.asarray([y_true]), np.asarray([y_score]), k=40)
+
+        # shape = (len(test["u_id"].unique()), len(test["i_id"].unique()))
+        # coo = sparse.coo_matrix(test["rating"], (test["u_id"].values.tolist(), test["i_id"].values.tolist()), shape)
+
+        # # Validate model
+        # ndcg = ndcg_at_k(model, train, validation, K=40, show_progress=False)
+
+        results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": svd, "params": params}} 
+
+    return results
+
+def train_ALS_model(hyperparameter_configurations, batch, train, validation):
+    results = {}
+    
+    print("Processing batch {}...".format(batch))
+
+    print(train)
+    print(train.sparse.to_coo())
+    exit()
     # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995)
     for i, params in enumerate(hyperparameter_configurations):
         # Create model
@@ -36,19 +87,20 @@ def train_model(hyperparameter_configurations, batch, train, validation):
         model.fit(train, show_progress=False)
 
         # Validate model
-        precision = AUC_at_k(model, train, validation, K=100, show_progress=False)
+        ndcg = ndcg_at_k(model, train, validation, K=40, show_progress=False)
 
-        results[i] = {"latent_factor": params["latent_factor"], "result": {"p_val": precision, "model": model, "params": params}} 
+        results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": model, "params": params}} 
 
     return results
 
 # Create a recommendation system's preference estimation model using the given "ground truth"
-def create_recommendation_est_system(ground_truth, hyperparameter_configurations, split={"train": 0.7, "validation": 0.1}, multiprocessing=True):
+def create_recommendation_est_system(ground_truth, hyperparameter_configurations, algorithm, split={"train": 0.7, "validation": 0.1}, multiprocessing=True):
     """
     Generates models that simulate a recommender system's estimation of preferences using low-rank matrix completion (Bell and Sejnowski 1995)
 
     :ground_truth:                  matrix containing estimated relevance scores serving as the ground truth preference
     :hyperparameter_configurions:   dictionary containing the hyperparameter spaces i.e. all possible hyperparameter combinations for grid search
+    :algorithm:                     which algorithm to use for low-rank matrix completiong either SVD or ALS
     :split:                         specifies the ratio in which the train/validation/test split should be applied
     :returns:                       all models found during grid search indexed by <latent_factor> with corresponding validation performance in terms of precision
                                     {<latent_factor>: 
@@ -62,11 +114,6 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
                                     for each model
     """
     R_coo = sparse.coo_matrix(ground_truth)
-    # print(R)
-
-    # Create data split 
-    train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=split["train"])
-    validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=split["validation"]/(1 - split["train"]))
     
     # Create keys from <latent_factors>
     df = pd.DataFrame.from_dict(hyperparameter_configurations)
@@ -77,42 +124,68 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
     # for each latent factor
     models = {key: {} for key in keys}
 
-    # Multiprocessing: assign a batch of models to a processor
-    if multiprocessing:
-        print("Generating recommender preference estimation models...MULTIPROCESSING")
-        # Generate random batches of hyperparameter configurations for multiprocessing
-        configurations_batches = helper.get_dictionary_subsets(hyperparameter_configurations, 4)
+    # FunkySVD 
+    if algorithm == "SVD":
+        min_score, max_score = R_coo.min(), R_coo.max()
 
-        with mp.Pool(mp.cpu_count()) as pool:
-            iterable = [(batch, i, train, validation) for i, batch in configurations_batches.items()]
-            for batch_results in tqdm(pool.istarmap(train_model, iterable), total=len(iterable)):
-                for result in batch_results.values():
-                    models[result["latent_factor"]][result["result"]["p_val"]] = result["result"] 
-        pool.close()
-    # Sequential
+        # Access `row`, `col` and `data` properties of coo matrix.
+        df = pd.DataFrame({"u_id": list(R_coo.row), "i_id": list(R_coo.col), "rating": list(R_coo.data)})
+
+        train = df.sample(frac=split["train"])
+        validation = df.drop(train.index.tolist()).sample(frac=split["validation"])
+        test = df.drop(train.index.tolist()).drop(validation.index.tolist())
+
+        # Temp
+        start = time.time()
+
+        # Multiprocessing: assign a batch of models to a processor
+        if multiprocessing:
+            print("Generating recommender preference estimation models...MULTIPROCESSING")
+            # Generate random batches of hyperparameter configurations for multiprocessing
+            configurations_batches = helper.get_dictionary_subsets(hyperparameter_configurations, 4)
+            
+            with mp.Pool(mp.cpu_count()) as pool:
+                iterable = [(batch, i, min_score, max_score, train, validation, test) for i, batch in configurations_batches.items()]
+                for batch_results in tqdm(pool.istarmap(train_SVD_model, iterable), total=len(iterable)):
+                    for result in batch_results.values():
+                        models[result["latent_factor"]][result["result"]["ndcg"]] = result["result"] 
+            pool.close()
+        # Sequential
+        else:
+            print("Generating recommender preference estimation models...SEQUENTIAL")
+            print("Processing batch {}...".format(1))
+            
+            results = train_SVD_model(list(hyperparameter_configurations.values()), 1, min_score, max_score, train, validation, test)
+            print(results)
+                # models[result["latent_factor"]][result["result"]["mae"]] = result["result"] 
+
+        end = time.time() - start
+        print("TOOOOOK " + end + " SECONDS")
+    # Default use ALS which solves the matrix completion algorithm by seeing it as an optimazation problem using SVD
     else:
-        print("Generating recommender preference estimation models...SEQUENTIAL")
-        print("Processing batch {}...".format(1))
+        # Create data split 
+        train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=split["train"])
+        validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=split["validation"]/(1 - split["train"]))
+        
+        # Multiprocessing: assign a batch of models to a processor
+        if multiprocessing:
+            print("Generating recommender preference estimation models...MULTIPROCESSING")
+            # Generate random batches of hyperparameter configurations for multiprocessing
+            configurations_batches = helper.get_dictionary_subsets(hyperparameter_configurations, 4)
 
-        # NOT DRY (Don't Repeat Yourself)! Could have called the train() function, but function calls might have too much overhead in Python
-        for i in tqdm(range(len(hyperparameter_configurations))):
-            params = hyperparameter_configurations[i]
+            with mp.Pool(mp.cpu_count()) as pool:
+                iterable = [(batch, i, train, validation) for i, batch in configurations_batches.items()]
+                for batch_results in tqdm(pool.istarmap(train_ALS_model, iterable), total=len(iterable)):
+                    for result in batch_results.values():
+                        models[result["latent_factor"]][result["result"]["ndcg"]] = result["result"] 
+            pool.close()
+        # Sequential
+        else:
+            print("Generating recommender preference estimation models...SEQUENTIAL")
+            print("Processing batch {}...".format(1))
 
-            # Create model
-            model = AlternatingLeastSquares(factors=params["latent_factor"],
-                                            regularization=params["reg"],
-                                            alpha=params["alpha"])
-
-            # Train model
-            model.fit(train, show_progress=False)
-
-            # Validate model
-            precision = AUC_at_k(model, train, validation, K=100, show_progress=False)
-
-            models[params["latent_factor"]][precision] =  {"p_val": precision, "model": model, "params": params}
-
-        # for result in train_model(list(hyperparameter_configurations.values()), 1, train, validation):
-        #     models[result["latent_factor"]][result["result"]["p_val"]] = result["result"] 
+            for result in train_ALS_model(list(hyperparameter_configurations.values()), 1, train, validation):
+                models[result["latent_factor"]][result["result"]["ndcg"]] = result["result"] 
         
     return models
 
@@ -137,25 +210,31 @@ def select_best_recommendation_est_system(recommendation_system_est_model, selec
         return best_recommendation_est_systems
 
     # Find overall best model
-    p_base = 0
+    ndcg_base = 0
     best_recommendation_est_system = {}
     for latent_factor, data in best_recommendation_est_systems.items():
-        p = data["p_val"]
-        if p > p_base:
-            p_base = p
+        if data["ndcg"] > ndcg_base:
+            ndcg_base = data["ndcg"]
             best_recommendation_est_system = {latent_factor: data}
 
     # Only return one single best model over all hyperparameter combinations (no picking by <latent_factor>)
     return best_recommendation_est_system
 
-def recommendation_estimation(recommendation_est_system_model):
+def recommendation_estimation(recommendation_est_system_model, ground_truth):
     """
     :recommendation_est_system_model:   model object that simulates a recommender system's preference estimations
     :returns:                           estimated preference scores
     """
     print("Estimating preferences...")
+    
+    R_coo = sparse.coo_matrix(ground_truth)
+    
+    # Access `row`, `col` and `data` properties of coo matrix.
+    df = pd.DataFrame({"u_id": list(R_coo.row), "i_id": list(R_coo.col), "rating": list(R_coo.data)})
+    
     # Calculate estimated preference scores
-    return recommendation_est_system_model.user_factors @ recommendation_est_system_model.item_factors.T
+    pred = recommendation_est_system_model.predict(df)
+    return np.array(pred).reshape(ground_truth.shape)
 
 def create_recommendation_policies(preference_estimates, temperature=1/5):
     """
@@ -187,7 +266,7 @@ def create_recommendation_policies(preference_estimates, temperature=1/5):
     # Since stationary policies pick a policy for an user only once
     indices = np.arange(len(policies[0]))
     recommendation = np.apply_along_axis(select_policy, 1, policies, indices)
-    return recommendation, policies
+    return {"recommendations": recommendation, "policies": policies}
 
 def create_rewards(ground_truth, normalize=True):
     """

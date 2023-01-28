@@ -4,6 +4,7 @@ from os import path
 import matplotlib.pyplot as plt
 import time
 import pyinputplus as pyip
+import multiprocessing as mp
 
 # 1st party imports
 from lib import io
@@ -12,6 +13,11 @@ from lib import recommender
 from lib import envy
 from lib import plot
 import constant
+
+def preferences_to_policies(model, ground_truth):
+    preference_estimates = recommender.recommendation_estimation(model, ground_truth)
+    recommendation_policies = recommender.create_recommendation_policies(preference_estimates)
+    return {"preferences_estimates": preference_estimates, "recommendation_policies": recommendation_policies}
 
 if __name__ == "__main__":
     print("**Please specify which experiments to run**")
@@ -48,6 +54,9 @@ if __name__ == "__main__":
     print("**Please specify for which (recommender system) data set**")
     data_set_choice = pyip.inputMenu(list(data_sets.keys()))
     
+    print("**Which algorithm would you like the recommender system to use to estimate user preferences?**")
+    ALGORITHM_CHOICE = pyip.inputMenu(constant.ALGORITHM)
+
     my_globals = globals()
 
     # For all datas sets simulate recommendation system and run experiments
@@ -105,7 +114,7 @@ if __name__ == "__main__":
         # Only when not yet generated
         if not path.exists(recommendation_system_est_models_file_path):
             start = time.time()
-            recommendation_system_est_models = recommender.create_recommendation_est_system(ground_truth, configurations, split={"train": 0.7, "validation": 0.1}, multiprocessing=True)
+            recommendation_system_est_models = recommender.create_recommendation_est_system(ground_truth, configurations, ALGORITHM_CHOICE, split={"train": 0.7, "validation": 0.1}, multiprocessing=True)
 
             ## SAVE: Save models that can estimate preferences as a recommender system would
             io.save(IO_INFIX + recommendation_system_est_models_file, (recommendation_system_est_models_var_name, recommendation_system_est_models))
@@ -135,28 +144,38 @@ if __name__ == "__main__":
         best_recommendation_est_system = recommender.select_best_recommendation_est_system(recommendation_system_est_models, select_mode="latent")
 
         preference_estimates = {}
+        recommendation_policies = {}
 
         start = time.time()
 
-        # Use the model to simulate a recommender system’s estimation of preferences
-        for latent_factor, data in best_recommendation_est_system.items():
-            preference_estimates[latent_factor] = recommender.recommendation_estimation(data["model"])
+        # # Use the model to simulate a recommender system’s estimation of preferences
+        # for latent_factor, data in best_recommendation_est_system.items():
+        #     preference_estimates[latent_factor] = recommender.recommendation_estimation(data["model"], ground_truth)
+        #     recommendation_policies[latent_factor] = recommender.create_recommendation_policies(preference_estimates[latent_factor])
+
+        pool = mp.Pool(mp.cpu_count())
+        preferences__policies = pool.starmap(preferences_to_policies, [(data["model"], ground_truth) for latent_factor, data in best_recommendation_est_system.items()])
+        pool.close()
 
         end = time.time() - start
         io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "Estimate preference scores   " + str(end) + "\n")
 
+        
+        print(preferences__policies)
+        
         data_set["vars"]["preference_estimates"] = preference_estimates
-
-        recommendation_policies = {}
 
         start = time.time()
         
         # Use the estimated preferences to generate policies
-        for latent_factor, data in preference_estimates.items():
-            recommendations, policies = recommender.create_recommendation_policies(data)
-            recommendation_policies[latent_factor] = {"recommendations": recommendations, "policies": policies}
+        pool = mp.Pool(mp.cpu_count())
+        recommendation_policies_result = pool.starmap(recommender.create_recommendation_policies, [(data) for i, data in preference_estimates.items()])
+        pool.close()
         
+        recommendation_policies = {latent_factor: data for latent_factor, data in zip(list(preference_estimates.keys()), recommendation_policies_result)}
+
         end = time.time() - start
+
         io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "Construct policies   " + str(end) + "\n")
 
         data_set["vars"]["recommendation_policies"] = recommendation_policies
@@ -275,11 +294,25 @@ if __name__ == "__main__":
         label = experiment_choice if experiment_choice != "all" else "5.1"
 
         # Average envy plotted together
-        data = [data_sets["fm"]["experiments_results"][label]["avg_envy_user"], data_sets["movie"]["experiments_results"][label]["avg_envy_user"], ]    
+        data = [data_sets["fm"]["experiments_results"][label]["avg_envy_user"], data_sets["movie"]["experiments_results"][label]["avg_envy_user"]]    
         labels = ["Last.fm", "MovieLens"]
         linestyles = ["-.", "dotted"] 
         colors = ["tab:blue", "orange"]
         plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
+        
+        # Average envy LastFM
+        data = [data_sets["fm"]["experiments_results"][label]["avg_envy_user"]]    
+        labels = ["Last.fm"]
+        linestyles = ["-."] 
+        colors = ["tab:blue"]
+        plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy_fm", x_upper_bound=128)
+        
+        # Average envy plotted together
+        data = [data_sets["movie"]["experiments_results"][label]["avg_envy_user"]]    
+        labels = ["MovieLens"]
+        linestyles = ["dotted"] 
+        colors = ["orange"]
+        plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy_mv", x_upper_bound=128)
 
         # Proportion of envious users plotted together
         data = [data_sets["fm"]["experiments_results"][label]["prop_envious_users"], data_sets["movie"]["experiments_results"][label]["prop_envious_users"]]    

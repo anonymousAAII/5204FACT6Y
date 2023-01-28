@@ -20,7 +20,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 from os import path
 import implicit
 from implicit.als import AlternatingLeastSquares
-from implicit.evaluation import AUC_at_k 
+from implicit.evaluation import ndcg_at_k
 from pandas.api.types import CategoricalDtype
 import multiprocessing as mp
 import time
@@ -61,7 +61,7 @@ def train_model(R_coo, configurations, seed):
         model.fit(train, show_progress=False)        
 
         # Benchmark model performance using validation set
-        p = AUC_at_k(model, train, validation, K=100, show_progress=False)
+        p = ndcg_at_k(model, train, validation, K=40, show_progress=False)
 
         # When current model outperforms previous one update tracking states
         if p > p_base:
@@ -75,7 +75,7 @@ def train_model(R_coo, configurations, seed):
     hyperparams_optimal = configurations[performance_per_configuration[p_base]]
 
     # Evaluate TRUE performance of best model on test set for model selection later on
-    p_test = AUC_at_k(model_best, train, test, K=100, show_progress=False)  
+    p_test = ndcg_at_k(model_best, train, test, K=40, show_progress=False)  
 
     return [p_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}]
 
@@ -165,6 +165,9 @@ if __name__ == "__main__":
     item_cat = CategoricalDtype(categories=sorted(items), ordered=True)
     user_index = user_item["userID"].astype(user_cat).cat.codes
     item_index = user_item["movieID"].astype(item_cat).cat.codes
+
+    # print(user_index)
+    # exit()
 
     # Conversion via COO matrix to the whole user-item observation/interaction matrix R
     R_coo = sparse.coo_matrix((user_item["rating"], (user_index, item_index)), shape=shape)
