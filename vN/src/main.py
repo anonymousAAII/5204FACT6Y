@@ -14,40 +14,39 @@ from lib import envy
 from lib import plot
 import constant
 
-def preferences_to_policies(model, ground_truth):
+def preferences_to_policies(latent_factor, model, ground_truth):
     preference_estimates = recommender.recommendation_estimation(model, ground_truth)
     recommendation_policies = recommender.create_recommendation_policies(preference_estimates)
-    return {"preferences_estimates": preference_estimates, "recommendation_policies": recommendation_policies}
+    return {"latent_factor": latent_factor, "recommendation_policies": {"recommendations": recommendation_policies["recommendations"], "policies": recommendation_policies["policies"]}}
 
 if __name__ == "__main__":
+    # To save the experiment results
+    experiment_results = {k: {} for k in constant.EXPERIMENT_RUN_OPTIONS.keys() if k not in {"all"}}
+
     print("**Please specify which experiments to run**")
     experiment_choice = pyip.inputMenu(list(constant.EXPERIMENT_RUN_OPTIONS.keys()))
 
     # Data sets to perform experiments on
     data_sets = {"all": {"name": "all"},
-                "movie": {"name": "movie",
+                "movie": {"name": "mv",
                         "filename": "user_movie.py",
                         "vars": {
                             "ground_truth": None,
                             "recommendation_system_est_models": None,
-                            "preference_estimates": None,
                             "recommendation_policies": None,
                             "rewards": None,
                             "expec_rewards": None
-                        },
-                        "experiments_results": {}
+                        }
                     },
                 "fm": {"name": "fm",
                         "filename": "user_artist.py",
                         "vars": {
                             "ground_truth": None,
                             "recommendation_system_est_models": None,
-                            "preference_estimates": None,
                             "recommendation_policies": None,
                             "rewards": None,
                             "expec_rewards": None
                         },
-                        "experiments_results": {}
                     },
                 }
 
@@ -60,9 +59,9 @@ if __name__ == "__main__":
     my_globals = globals()
 
     # For all datas sets simulate recommendation system and run experiments
-    for data_set in data_sets.values(): 
+    for key, data_set in data_sets.items(): 
         # Only execute code for requested data sets by user input
-        if data_set["name"] == "all" or (data_set_choice != "all" and data_set["name"] != data_set_choice):
+        if key == "all" or (data_set_choice != "all" and key != data_set_choice):
             continue
 
         print("Starting for data set", data_set["name"], "...")
@@ -95,6 +94,7 @@ if __name__ == "__main__":
 
         data_set["vars"]["ground_truth"] = ground_truth
 
+
         ##########################
         #   RECOMMENDER SYSTEM: from here on we generate 144 preference estimation models, one for each hyperparameter combination
         ##########################
@@ -114,14 +114,13 @@ if __name__ == "__main__":
         # Only when not yet generated
         if not path.exists(recommendation_system_est_models_file_path):
             start = time.time()
-            recommendation_system_est_models = recommender.create_recommendation_est_system(ground_truth, configurations, ALGORITHM_CHOICE, split={"train": 0.7, "validation": 0.1}, multiprocessing=True)
+            recommendation_system_est_models = recommender.create_recommendation_est_system(ground_truth, configurations, ALGORITHM_CHOICE, split={"train": 0.7, "validation": 0.1})
 
             ## SAVE: Save models that can estimate preferences as a recommender system would
             io.save(IO_INFIX + recommendation_system_est_models_file, (recommendation_system_est_models_var_name, recommendation_system_est_models))
             end = time.time() - start
             io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "Generating " + recommendation_system_est_models_file + "  " + str(end) + "\n")
 
-        
         ## LOAD: Load models that can estimate preferences
         io.load(IO_INFIX + recommendation_system_est_models_file, my_globals)
         
@@ -134,6 +133,7 @@ if __name__ == "__main__":
 
         data_set["vars"]["recommendation_system_est_models"] = recommendation_system_est_models
 
+
         ##########################
         #   RECOMMENDER SYSTEM: from here on we continue with the best models we select which are either solely the overall best model
         #                       or the best model per latent_factor. Thus we have a list in the form:
@@ -142,48 +142,48 @@ if __name__ == "__main__":
 
         # Get the recommender preference estimation models with best performances
         best_recommendation_est_system = recommender.select_best_recommendation_est_system(recommendation_system_est_models, select_mode="latent")
-
-        preference_estimates = {}
+        
         recommendation_policies = {}
 
-        start = time.time()
+        recommendation_policies_file = "recommendation_policies"
+        recommendation_policies_file_path = IO_PATH + recommendation_policies_file
+        recommendation_policies_var_name = recommendation_policies_file + VAR_EXT
 
-        # # Use the model to simulate a recommender system’s estimation of preferences
-        # for latent_factor, data in best_recommendation_est_system.items():
-        #     preference_estimates[latent_factor] = recommender.recommendation_estimation(data["model"], ground_truth)
-        #     recommendation_policies[latent_factor] = recommender.create_recommendation_policies(preference_estimates[latent_factor])
+        if not path.exists(recommendation_policies_file_path):
+            start = time.time()
 
-        pool = mp.Pool(mp.cpu_count())
-        preferences__policies = pool.starmap(preferences_to_policies, [(data["model"], ground_truth) for latent_factor, data in best_recommendation_est_system.items()])
-        pool.close()
+            # Create and configure the process pool
+            with mp.Pool(mp.cpu_count()) as pool:
+                # Prepare arguments
+                items = [(latent_factor, data["model"], ground_truth) for latent_factor, data in best_recommendation_est_system.items()]
+                # Execute tasks and process results in order
+                for result in pool.starmap(preferences_to_policies, items):
+                    recommendation_policies[result["latent_factor"]] = result["recommendation_policies"]
+                    print(f'Got result: {result}', flush=True)
+            # Process pool is closed automatically
 
-        end = time.time() - start
-        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "Estimate preference scores   " + str(end) + "\n")
+            end = time.time() - start            
+            io.save(IO_INFIX + recommendation_policies_file, (recommendation_policies_var_name, recommendation_policies))
+            io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "Construct recommendation_policies   " + str(end) + "\n")
 
-        
-        print(preferences__policies)
-        
-        data_set["vars"]["preference_estimates"] = preference_estimates
+        # LOAD: Load recommendation policies
+        io.load(IO_INFIX + recommendation_policies_file, my_globals)
 
-        start = time.time()
-        
-        # Use the estimated preferences to generate policies
-        pool = mp.Pool(mp.cpu_count())
-        recommendation_policies_result = pool.starmap(recommender.create_recommendation_policies, [(data) for i, data in preference_estimates.items()])
-        pool.close()
-        
-        recommendation_policies = {latent_factor: data for latent_factor, data in zip(list(preference_estimates.keys()), recommendation_policies_result)}
+        if data_set["name"] == "fm":
+            print("Loading recommendation policies FM...")
+            recommendation_policies = recommendation_policies_fm
+        else:
+            print("Loading recommendation policies rewards...")
+            recommendation_policies = recommendation_policies_mv
 
-        end = time.time() - start
-
-        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "Construct policies   " + str(end) + "\n")
-
+        print(recommendation_policies)
         data_set["vars"]["recommendation_policies"] = recommendation_policies
+
 
         ##########################
         #   REWARDS: the rewards are independent of the recommender system model, thus we only generate it once
         ##########################
-                
+
         rewards_file = "rewards"
         rewards_file_path = IO_PATH + rewards_file
         rewards_var_name = rewards_file + VAR_EXT
@@ -219,9 +219,11 @@ if __name__ == "__main__":
         data_set["vars"]["rewards"] = rewards
         data_set["vars"]["expec_rewards"] = expec_rewards
 
+
         ##########################
         # EXPERIMENT 5.1: sources of envy
         ##########################
+
         if experiment_choice == "5.1" or experiment_choice == "all":
             label = experiment_choice if experiment_choice != "all" else "5.1"            
             experiment_dir = constant.EXPERIMENT_RUN_OPTIONS[label]["experiment_dir"]
@@ -273,11 +275,16 @@ if __name__ == "__main__":
             io.load(IO_INFIX + experiment_dir + avg_envy_user_file, my_globals)
             io.load(IO_INFIX + experiment_dir + prop_envious_users_file, my_globals)
 
-            data_set["experiments_results"][label] = {
-                                                        envy_free_file: envy_free,
-                                                        avg_envy_user_file: avg_envy_user,
-                                                        prop_envious_users_file: prop_envious_users
-                                                        }        
+            experiments_results[label][data_set["name"]] = {"data": 
+                                                                {
+                                                                    envy_free_file: envy_free,
+                                                                    avg_envy_user_file: avg_envy_user,
+                                                                    prop_envious_users_file: prop_envious_users
+                                                                },
+                                                            "label": constant.DATA_LABELS[data_set["name"]],
+                                                            "linestyle": constant.DATA_LABELS[data_set["name"]],
+                                                            "color": constant.DATA_COLORS[data_set["name"]]
+                                                            }        
 
     
         io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "-------------------------------------------------------\n")
@@ -294,34 +301,34 @@ if __name__ == "__main__":
         label = experiment_choice if experiment_choice != "all" else "5.1"
 
         # Average envy plotted together
-        data = [data_sets["fm"]["experiments_results"][label]["avg_envy_user"], data_sets["movie"]["experiments_results"][label]["avg_envy_user"]]    
-        labels = ["Last.fm", "MovieLens"]
-        linestyles = ["-.", "dotted"] 
-        colors = ["tab:blue", "orange"]
+        lines = []  
+        labels = []
+        linestyles = [] 
+        colors = []
+
+        for data_set in experiment_results["5.1"]:
+            for name, data in data_set.items():
+                lines.append(data["data"]["avg_envy_user"])
+                labels.append(data["label"])  
+                linestyles.append(data["linestyle"])
+                colors.append(data["color"])              
+
         plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
-        
-        # Average envy LastFM
-        data = [data_sets["fm"]["experiments_results"][label]["avg_envy_user"]]    
-        labels = ["Last.fm"]
-        linestyles = ["-."] 
-        colors = ["tab:blue"]
-        plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy_fm", x_upper_bound=128)
-        
-        # Average envy plotted together
-        data = [data_sets["movie"]["experiments_results"][label]["avg_envy_user"]]    
-        labels = ["MovieLens"]
-        linestyles = ["dotted"] 
-        colors = ["orange"]
-        plot.plot_experiment_line(data, "average envy", "number of factors", labels, linestyles, colors, "average_envy_mv", x_upper_bound=128)
 
         # Proportion of envious users plotted together
-        data = [data_sets["fm"]["experiments_results"][label]["prop_envious_users"], data_sets["movie"]["experiments_results"][label]["prop_envious_users"]]    
-        labels = ["Last.fm", "MovieLens"]
-        linestyles = ["-.", "dotted"] 
-        colors = ["tab:blue", "orange"]
+        lines = []  
+        labels = []
+        linestyles = [] 
+        colors = []
+
+        for data_set in experiment_results["5.1"]:
+            for name, data in data_set.items():
+                lines.append(data["data"]["prop_envious_users"])
+                labels.append(data["label"])  
+                linestyles.append(data["linestyle"])
+                colors.append(data["color"])              
 
         plot.plot_experiment_line(data, "prop of envious users (epsilon = 0.05)", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
-
 
     # # Try algorithm for one model
     # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)

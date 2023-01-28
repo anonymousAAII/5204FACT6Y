@@ -45,15 +45,18 @@ def generate_hyperparameter_configurations(regularization, confidence_weighting,
                            
     return configurations
 
-def get_index_best_model(model_train_results):
+def get_index_best_model(model_train_results, mode="max"):
     """
     Returns the index in <model_train_results> corresponding with the highest performance <p_test>.
 
     :model_train_results:   results of training the models in format:
                             [[<p_test>, {"seed": <seed>, "model": <model_best>, "hyperparameters": <hyperparams_optimal>, "precision_test": <p_test>}]]
     """
-    precision_models = [item[0] for item in model_train_results]
-    return precision_models.index(max(precision_models))
+    performance_models = [item[0] for item in model_train_results]
+    if mode == "max":
+        return performance_models.index(max(performance_models))
+    else:
+        return performance_models.index(min(performance_models))
 
 def get_dictionary_subsets(dictionary, n):
     keys = np.array(list(dictionary.keys()))

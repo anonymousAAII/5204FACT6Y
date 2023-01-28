@@ -10,6 +10,9 @@ EXPERIMENT_RUN_OPTIONS = {"all": {"id": "all"},
 # Algorithm of recommender system's preference estimates
 ALGORITHM = ["SVD", "ALS"]
 
+# Parameter values for the performance metrics
+PERFORMANCE_METRIC_VARS = {"NDCG": {"K": 40}}
+
 # Folder to save time performances
 TIMING_FOLDER = "results/execution times/"
 TIMING_FILE = {"fm": "fm.log", "movie": "mv.log"}
@@ -21,6 +24,9 @@ VAR_SUB_FOLDER = {"fm": "fm/", "movie": "mv/"}
 EXPERIMENTS_FOLDER = "experiments/"
 # Name of folder where the results are stored
 RESULTS_FOLDER = "results/"
-# Extension of variable name depending on the data set
+# Extension of variable name depending on the data set name
 VAR_EXT = {"fm": "_fm", "movie": "_mv"}
-
+# Label of data depending on the data set name
+DATA_LABELS = {"fm": "Last.fm", "mv": "MovieLens"}
+DATA_LINESTYLES = {"fm": "-.", "mv": "dotted"}
+DATA_COLORS = {"fm": "tab:blue", "mv": "orange"}

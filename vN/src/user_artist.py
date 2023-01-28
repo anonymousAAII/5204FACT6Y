@@ -44,12 +44,12 @@ def train_model(R_coo, configurations, seed, built_in_LMF):
     """
     # Create 70%/10%/20% train/validation/test data split of the user-item top 2500 listening counts
     train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7)
-    validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3, random_state=seed)
+    validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3)
 
     # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
     performance_per_configuration = {}
 
-    p_base = 0
+    ndcg_base = 0
     model_best = None
 
     print("Start training for {}th seed".format(seed + 1))
@@ -58,9 +58,9 @@ def train_model(R_coo, configurations, seed, built_in_LMF):
     for i in tqdm(range(len(configurations))):
         hyperparameters = configurations[i]
 
-        # Use standard Logistic Matrix Factorization model of implicit lib, not however you can't specify alpha here
+        # Initialize model
         if built_in_LMF:
-            # Initialize model
+            # Notice you can't specify the confidence weighing parameter alpha here so it is applied below
             model = LogisticMatrixFactorization(factors=hyperparameters["latent_factor"], 
                                                 regularization=hyperparameters["reg"])
         else:
@@ -68,27 +68,29 @@ def train_model(R_coo, configurations, seed, built_in_LMF):
                                             regularization=hyperparameters["reg"],
                                             alpha=hyperparameters["alpha"])
 
-        # Train standard matrix factorization algorithm (Hu, Koren, and Volinsky (2008)) on the train set
-        model.fit(train, show_progress=False)        
+        # Train matrix factorization algorithm on the train set
+        model.fit(train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), show_progress=False)        
 
         # Benchmark model performance using validation set
-        p = ndcg_at_k(model, train, validation, K=40, show_progress=False)
+        ndcg = ndcg_at_k(model, train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), validation.multiply(hyperparameters["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
+        
+        print("Seed: {} NDCG@{}".format((seed + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
 
         # When current model outperforms previous one update tracking states
-        if p > p_base:
-            p_base = p
+        if ndcg > ndcg_base:
+            ndcg_base = ndcg
             model_best = model
 
-        performance_per_configuration[p] = i
+        performance_per_configuration[ndcg] = i
 
     print("Training ended for {}th seed".format(seed + 1))
     
-    hyperparams_optimal = configurations[performance_per_configuration[p_base]]
+    hyperparams_optimal = configurations[performance_per_configuration[ndcg_base]]
 
     # Evaluate TRUE performance of best model on test set for model selection later on
-    p_test = ndcg_at_k(model_best, train, test, K=40, show_progress=False)  
+    ndcg_test = ndcg_at_k(model_best, train.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), test.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)  
 
-    return [p_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "precision_test": p_test}]
+    return [ndcg_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "ndcg_test": ndcg_test}]
 
 if __name__ == "__main__":
     io.initialize_empty_file(constant.TIMING_FOLDER + constant.TIMING_FILE["fm"])
@@ -181,7 +183,7 @@ if __name__ == "__main__":
         print("Training for", num_random_seeds, "models...MULTIPROCESSING")
 
         pool = mp.Pool(mp.cpu_count())
-        results = pool.starmap(train_model, [(R_coo, configurations, seed) for seed in range(num_random_seeds)])
+        results = pool.starmap(train_model, [(R_coo, configurations, seed, True) for seed in range(num_random_seeds)])
         pool.close()
 
         # Model selection by test set performance    
