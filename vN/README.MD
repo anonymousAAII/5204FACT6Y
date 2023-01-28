@@ -19,7 +19,7 @@ The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a
 | Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
 | Generating ground truth model                 | ground\_truth\_model                |-|397.39|  
-| Generating ground truth                       | ground\_truth                       |0.09|| 
+| Generating ground truth                       | ground\_truth                       |0.09|-| 
 | Generating recommender preference est. models | recommendation\_system_est\_models  |(SVD) 5658.18|(SVD) 3331.07 <br> (ALS) 1360.55| 
 | Generating recommendation policies            | recommendation\_policies            |||                                                   
 | Generating rewards and its expectation        | rewards & expec\_rewards            ||| 
@@ -28,8 +28,8 @@ The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a
 #### MovieLens
 | Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
-| Generating ground truth model                 | ground\_truth\_model                ||| 
-| Generating ground truth                       | ground\_truth                       ||| 
+| Generating ground truth model                 | ground\_truth\_model                |-|407.63| 
+| Generating ground truth                       | ground\_truth                       |0.12|-| 
 | Generating recommender preference est. models | recommendation\_system_est\_models  ||| 
 | Generating recommendation policies            | recommendation\_policies            |||                                                   
 | Generating rewards and its expectation        | rewards & expec\_rewards            ||| 
