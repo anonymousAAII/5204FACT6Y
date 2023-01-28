@@ -17,26 +17,25 @@ The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a
 
 #### Last.fm
 | Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
-| :---                                          |    :----:                           |    :----:                           |                        ---: |
-| Generating ground truth model                 | ground\_truth\_model                |                      | | 
-| Generating ground truth                       | ground\_truth                       |                     | | 
-| Generating recommender preference est. models | recommendation\_system_est\_models  |                    |1858.69 - 30.98 | 
-| Constructing policies                         | -                                   | 2.48 - x               |        |                                                   
-| Generating expectation of the rewards         | expec\_rewards                      | 28.05 - 0.47           | | 
-| Experiment 5.1                                |  5.1/                               |                      | | 
+| :---                                          |    :----:                           |    :----:                           |       ---: |
+| Generating ground truth model                 | ground\_truth\_model                |-|397.39|  
+| Generating ground truth                       | ground\_truth                       |0.09|| 
+| Generating recommender preference est. models | recommendation\_system_est\_models  |5658.18|| 
+| Generating recommendation policies            | recommendation\_policies            |||                                                   
+| Generating rewards and its expectation        | rewards & expec\_rewards            ||| 
+| Experiment 5.1                                |  5.1/                               ||| 
 
 #### MovieLens
-| Pipeline stage                                | Object file/folder created          | Avg. duration sequental (s - min)  |  Avg. duration multiprocessing batch[^4] |
-| :---                                          |    :----:                           |    :----:                           |                        ---: |
-| Generating ground truth model                 | ground\_truth\_model                |                      | | 
-| Generating ground truth                       | ground\_truth                       |                     | | 
-| Generating recommender preference est. models | recommendation\_system_est\_models  |                    | 3153.75 - 52 | 
-| Estimating preference scores                  | -                                   | 176.76 - 2.95                     |              
-| Constructing policies                         | -                                   | 2.93 - x               |        |                                                   
-| Generating expectation of the rewards         | expec\_rewards                      | 31.92 - 0.5                     | | 
-| Experiment 5.1                                |  5.1/                               | 5.26 - x                     | | 
+| Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
+| :---                                          |    :----:                           |    :----:                           |       ---: |
+| Generating ground truth model                 | ground\_truth\_model                ||| 
+| Generating ground truth                       | ground\_truth                       ||| 
+| Generating recommender preference est. models | recommendation\_system_est\_models  ||| 
+| Generating recommendation policies            | recommendation\_policies            |||                                                   
+| Generating rewards and its expectation        | rewards & expec\_rewards            ||| 
+| Experiment 5.1                                | 5.1/                                ||| 
 
-These values are picked from the log files which stores the wall clock execution times each time the code is ran.
+These values are an arbitraty pick from the log files which stores the wall clock execution times each time the code is ran and the pipeline stage has to be (re)build from scratch, i.e. the object file/folder does not yet exist.
 ```
 /src/results/execution times/<data_set>.log
 ```
