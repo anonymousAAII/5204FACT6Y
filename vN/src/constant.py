@@ -14,6 +14,7 @@ ALGORITHM = ["SVD", "ALS"]
 PERFORMANCE_METRIC_VARS = {"ndcg": {"K": 40},
                         "precision": {"K": 40},
                         "auc": {"K": 40}}
+PERFORMANCE_METRIC = None
 
 # Folder to save time performances
 TIMING_FOLDER = "results/execution times/"

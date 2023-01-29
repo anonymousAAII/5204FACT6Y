@@ -72,7 +72,7 @@ def train_SVD_model(hyperparameter_configurations, batch, min_rating, max_rating
 
     return results
 
-def train_ALS_model(hyperparameter_configurations, batch, train, validation, performance_metric="ndcg"):
+def train_ALS_model(hyperparameter_configurations, batch, train, validation, performance_metric):
     results = {}
     
     print("Processing batch {}...".format((batch + 1)))
@@ -95,7 +95,7 @@ def train_ALS_model(hyperparameter_configurations, batch, train, validation, per
         else:
             ndcg = AUC_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
         
-        print("Batch {}: {}@{}".format((batch + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        print("Batch {}: {}@{}".format((batch + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"]), ndcg)
 
         results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": model, "params": params}} 
 
@@ -183,7 +183,7 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
             # Create and configure the process pool
             with mp.Pool(mp.cpu_count()) as pool:
                 # Prepare arguments
-                items = [(batch, i, train, validation) for i, batch in configurations_batches.items()]
+                items = [(batch, i, train, validation, constant.PERFORMANCE_METRIC) for i, batch in configurations_batches.items()]
                 # Execute tasks and process results in order
                 for result in tqdm(pool.istarmap(train_ALS_model, items), total=len(items)):
                     for train_result in result.values():
@@ -193,7 +193,7 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
             print("Generating recommender preference estimation models...SEQUENTIAL")
             print("Processing batch {}...".format(1))
 
-            result = train_ALS_model(list(hyperparameter_configurations.values()), 1, train, validation)
+            result = train_ALS_model(list(hyperparameter_configurations.values()), 1, train, validation, constant.PERFORMANCE_METRIC)
             for train_result in result.values():
                 models[train_result["latent_factor"]][train_result["result"]["ndcg"]] = train_result["result"] 
                 

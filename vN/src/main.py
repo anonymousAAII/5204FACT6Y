@@ -23,7 +23,6 @@ if __name__ == "__main__":
     # To save the experiment results
     experiment_results = {k: {} for k in constant.EXPERIMENT_RUN_OPTIONS.keys() if k not in {"all"}}
 
-
     print("**Please specify which experiments to run**")
     experiment_choice = pyip.inputMenu(list(constant.EXPERIMENT_RUN_OPTIONS.keys()))
 
@@ -56,7 +55,11 @@ if __name__ == "__main__":
     
     print("**Which algorithm would you like the recommender system to use to estimate user preferences?**")
     ALGORITHM_CHOICE = pyip.inputMenu(constant.ALGORITHM)
-    
+
+    print("**With which <performance metric>@K would you like the recommender system to be trained, validated and selected?***")
+    constant.PERFORMANCE_METRIC = pyip.inputMenu(list(constant.PERFORMANCE_METRIC_VARS.keys()))
+    print("{}@{}".format(constant.PERFORMANCE_METRIC, constant.PERFORMANCE_METRIC_VARS[constant.PERFORMANCE_METRIC]["K"]))
+
     # To save figures/plots
     for data_set in data_sets.values():
         folder1 = constant.RESULTS_FOLDER + data_set["name"]

@@ -34,7 +34,7 @@ from lib import helper
 from lib import io
 import constant
 
-def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric="ndcg"):
+def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
     """
     For a random seed trains a model on a sparse matrix for all given hyperparameter combinations.
 
@@ -82,7 +82,7 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric="n
             ndcg = AUC_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
             # ndcg = AUC_at_k(model, train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), validation.multiply(hyperparameters["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
         
-        print("Seed {}: {}@{}".format((seed + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        print("Seed {}: {}@{}".format((seed + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"]), ndcg)
 
         # When current model outperforms previous one update tracking states
         if ndcg > ndcg_base:
@@ -194,7 +194,7 @@ if __name__ == "__main__":
         print("Training for", num_random_seeds, "models...MULTIPROCESSING")
 
         pool = mp.Pool(mp.cpu_count())
-        results = pool.starmap(train_model, [(R_coo, configurations, seed, False) for seed in range(num_random_seeds)])
+        results = pool.starmap(train_model, [(R_coo, configurations, seed, False, constant.PERFORMANCE_METRIC) for seed in range(num_random_seeds)])
         pool.close()
 
         # Model selection by test set performance    

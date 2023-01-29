@@ -212,7 +212,7 @@ if __name__ == "__main__":
         print("Training for", num_random_seeds, "models...MULTIPROCESSING")
 
         pool = mp.Pool(mp.cpu_count())
-        results = pool.starmap(train_model, [(R_coo, configurations, seed) for seed in range(num_random_seeds)])
+        results = pool.starmap(train_model, [(R_coo, configurations, seed, constant.PERFORMANCE_METRIC) for seed in range(num_random_seeds)])
         pool.close()
 
         # Model selection by test set performance    
