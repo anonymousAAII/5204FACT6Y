@@ -5,12 +5,12 @@
 ####
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.interpolate import make_interp_spline
+from scipy import interpolate
 
 # 1st party imports
 import constant
 
-def plot_experiment_line(data, y_label, x_label, labels, linestyles, colors, file_name, x_upper_bound = None, sci_x=False, window=1):
+def plot_experiment_line(data, y_label, x_label, labels, linestyles, colors, file_name, x_upper_bound = None, sci_x=False, window=1, linewidth=2.5, smoothing=175):
     """
     Makes a line plot given a list of data containing the x, y data of each line in a dictionary in the format {x_1: y_1, ..., x_N: y_N}
 
@@ -37,19 +37,10 @@ def plot_experiment_line(data, y_label, x_label, labels, linestyles, colors, fil
             x = np.extract(x <= np.full(len(x), x_upper_bound), x)
             y = np.extract(x <= np.full(len(x), x_upper_bound), y)
 
-        # # create integers from strings
-        # idx = range(len(x))
-        # xnew = np.linspace(min(idx), max(idx), 300)
-
-        # # interpolation
-        # spl = make_interp_spline(idx, y, k=3)
-        # smooth = spl(xnew)
-
-        # # plotting, and tick replacement
-        # plt.plot(xnew, smooth , label=labels[i], linestyle=linestyles[i], color=colors[i])
-        # plt.xticks(idx, x)
-        plt.plot(x, y, label=labels[i], linestyle=linestyles[i], color=colors[i])
-
+        f = interpolate.interp1d(x, y,kind = 'linear')
+        xnew = np.linspace(x.min(), x.max(), smoothing) 
+        plt.plot(xnew, f(xnew), label=labels[i], linestyle=linestyles[i], color=colors[i], linewidth=linewidth)
+    
     plt.legend()
 
     plt.ylabel(y_label)
