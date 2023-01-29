@@ -11,7 +11,9 @@ EXPERIMENT_RUN_OPTIONS = {"all": {"id": "all"},
 ALGORITHM = ["SVD", "ALS"]
 
 # Parameter values for the performance metrics
-PERFORMANCE_METRIC_VARS = {"NDCG": {"K": 40}}
+PERFORMANCE_METRIC_VARS = {"ndcg": {"K": 40},
+                        "precision": {"K": 40},
+                        "auc": {"K": 40}}
 
 # Folder to save time performances
 TIMING_FOLDER = "results/execution times/"

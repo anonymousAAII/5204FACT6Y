@@ -23,7 +23,7 @@ from os import path
 import implicit
 from implicit.als import AlternatingLeastSquares
 from implicit.lmf import LogisticMatrixFactorization
-from implicit.evaluation import ndcg_at_k
+from implicit.evaluation import ndcg_at_k, precision_at_k, AUC_at_k
 from pandas.api.types import CategoricalDtype
 import multiprocessing as mp
 from tqdm import tqdm
@@ -34,7 +34,7 @@ from lib import helper
 from lib import io
 import constant
 
-def train_model(R_coo, configurations, seed, built_in_LMF):
+def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric="ndcg"):
     """
     For a random seed trains a model on a sparse matrix for all given hyperparameter combinations.
 
@@ -69,12 +69,20 @@ def train_model(R_coo, configurations, seed, built_in_LMF):
                                             alpha=hyperparameters["alpha"])
 
         # Train matrix factorization algorithm on the train set
-        model.fit(train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), show_progress=False)        
+        model.fit(train, show_progress=False)        
+        # model.fit(train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), show_progress=False)        
 
         # Benchmark model performance using validation set
-        ndcg = ndcg_at_k(model, train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), validation.multiply(hyperparameters["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
+        if performance_metric == "ndcg":
+            ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            # ndcg = ndcg_at_k(model, train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), validation.multiply(hyperparameters["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
+        elif performance_metric == "precision":
+            ndcg = precision_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+        else:
+            ndcg = AUC_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            # ndcg = AUC_at_k(model, train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), validation.multiply(hyperparameters["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
         
-        print("Seed {}: NDCG@{}".format((seed + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        print("Seed {}: {}@{}".format((seed + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
 
         # When current model outperforms previous one update tracking states
         if ndcg > ndcg_base:
@@ -88,7 +96,14 @@ def train_model(R_coo, configurations, seed, built_in_LMF):
     hyperparams_optimal = configurations[performance_per_configuration[ndcg_base]]
 
     # Evaluate TRUE performance of best model on test set for model selection later on
-    ndcg_test = ndcg_at_k(model_best, train.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), test.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)  
+    if performance_metric == "ndcg":
+        ndcg_test = ndcg_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)  
+        # ndcg_test = ndcg_at_k(model_best, train.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), test.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)  
+    elif performance_metric == "precision":
+        ndcg_test = precision_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)  
+    else:
+        ndcg_test = AUC_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)  
+        # ndcg_test = AUC_at_k(model_best, train.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), test.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)  
 
     return [ndcg_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "ndcg_test": ndcg_test}]
 
@@ -179,7 +194,7 @@ if __name__ == "__main__":
         print("Training for", num_random_seeds, "models...MULTIPROCESSING")
 
         pool = mp.Pool(mp.cpu_count())
-        results = pool.starmap(train_model, [(R_coo, configurations, seed, True) for seed in range(num_random_seeds)])
+        results = pool.starmap(train_model, [(R_coo, configurations, seed, False) for seed in range(num_random_seeds)])
         pool.close()
 
         # Model selection by test set performance    

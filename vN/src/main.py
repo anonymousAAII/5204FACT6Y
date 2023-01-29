@@ -23,6 +23,7 @@ if __name__ == "__main__":
     # To save the experiment results
     experiment_results = {k: {} for k in constant.EXPERIMENT_RUN_OPTIONS.keys() if k not in {"all"}}
 
+
     print("**Please specify which experiments to run**")
     experiment_choice = pyip.inputMenu(list(constant.EXPERIMENT_RUN_OPTIONS.keys()))
 
@@ -55,6 +56,17 @@ if __name__ == "__main__":
     
     print("**Which algorithm would you like the recommender system to use to estimate user preferences?**")
     ALGORITHM_CHOICE = pyip.inputMenu(constant.ALGORITHM)
+    
+    # To save figures/plots
+    for data_set in data_sets.values():
+        folder1 = constant.RESULTS_FOLDER + data_set["name"]
+        if not path.exists(folder1):
+            os.mkdir(folder1)
+
+        for algorithm in constant.ALGORITHM:
+            folder = folder1 + "/" + algorithm + "/"
+            if not path.exists(folder):
+                os.mkdir(folder)
 
     my_globals = globals()
 
@@ -88,10 +100,10 @@ if __name__ == "__main__":
         io.load(IO_INFIX + "ground_truth", my_globals)        
 
         if data_set["name"] == "fm":
-            print("Loading ground truth FM...")
+            print("Loading ground truth FM...{}".format(IO_INFIX + "ground_truth"))
             ground_truth = ground_truth_fm
         else:
-            print("Loading ground truth MOVIE...")
+            print("Loading ground truth MOVIE...{}".format(IO_INFIX + "ground_truth"))
             ground_truth = ground_truth_mv
 
         data_set["vars"]["ground_truth"] = ground_truth
@@ -131,10 +143,10 @@ if __name__ == "__main__":
         io.load(IO_INFIX + recommendation_system_est_models_file, my_globals)
         
         if data_set["name"] == "fm":
-            print("Loading recommender preference estimation models FM...")
+            print("Loading recommender preference estimation models FM...{}".format(IO_INFIX + recommendation_system_est_models_file, my_globals))
             recommendation_system_est_models = recommendation_system_est_models_fm
         else:
-            print("Loading recommender preference estimation models MOVIE...")
+            print("Loading recommender preference estimation models MOVIE...{}".format(IO_INFIX + recommendation_system_est_models_file, my_globals))
             recommendation_system_est_models = recommendation_system_est_models_mv
 
         data_set["vars"]["recommendation_system_est_models"] = recommendation_system_est_models
@@ -176,10 +188,10 @@ if __name__ == "__main__":
         io.load(IO_INFIX + recommendation_policies_file, my_globals)
 
         if data_set["name"] == "fm":
-            print("Loading recommendation policies FM...")
+            print("Loading recommendation policies FM...{}".format(IO_INFIX + recommendation_policies_file, my_globals))
             recommendation_policies = recommendation_policies_fm
         else:
-            print("Loading recommendation policies rewards...")
+            print("Loading recommendation policies rewards...{}".format(IO_INFIX + recommendation_policies_file, my_globals))
             recommendation_policies = recommendation_policies_mv
 
         data_set["vars"]["recommendation_policies"] = recommendation_policies
@@ -211,13 +223,13 @@ if __name__ == "__main__":
         io.load(IO_INFIX + expec_rewards_file, my_globals)
 
         if data_set["name"] == "fm":
-            print("Loading rewards FM...")
-            print("Loading expectations rewards...")
+            print("Loading rewards FM...{}".format(IO_INFIX + rewards_file, my_globals))
+            print("Loading expectations rewards...{}".format(IO_INFIX + expec_rewards_file, my_globals))
             rewards = rewards_fm
             expec_rewards = expec_rewards_fm
         else:
-            print("Loading rewards MOVIE...")
-            print("Loading expectations rewards...")
+            print("Loading rewards MOVIE...{}".format(IO_INFIX + rewards_file, my_globals))
+            print("Loading expectations rewards...{}".format(IO_INFIX + expec_rewards_file, my_globals))
             rewards = rewards_mv
             expec_rewards = expec_rewards_mv
 
@@ -276,7 +288,7 @@ if __name__ == "__main__":
                 io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "Experiment {}   ".format(label) + str(end) + "\n")
 
             # Load results experiment
-            print("Loading results of experiment...", experiment_dir)
+            print("Loading results of experiment...{}".format(IO_INFIX + experiment_dir))
             io.load(IO_INFIX + experiment_dir + envy_free_file, my_globals)
             io.load(IO_INFIX + experiment_dir + avg_envy_user_file, my_globals)
             io.load(IO_INFIX + experiment_dir + prop_envious_users_file, my_globals)
@@ -333,7 +345,7 @@ if __name__ == "__main__":
             linestyles.append(data["linestyle"])
             colors.append(data["color"])              
 
-        plot.plot_experiment_line(lines, "prop of envious users (epsilon = 0.05)", "number of factors", labels, linestyles, colors, "average_envy", x_upper_bound=128)
+        plot.plot_experiment_line(lines, "prop of envious users (epsilon = 0.05)", "number of factors", labels, linestyles, colors, "prop_envy_users", x_upper_bound=128)
 
     # # Try algorithm for one model
     # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)

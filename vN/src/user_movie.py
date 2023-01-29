@@ -20,7 +20,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 from os import path
 import implicit
 from implicit.als import AlternatingLeastSquares
-from implicit.evaluation import ndcg_at_k
+from implicit.evaluation import ndcg_at_k, precision_at_k, AUC_at_k
 from pandas.api.types import CategoricalDtype
 import multiprocessing as mp
 import time
@@ -30,7 +30,7 @@ from lib import helper
 from lib import io
 import constant
 
-def train_model(R_coo, configurations, seed):
+def train_model(R_coo, configurations, seed, performance_metric="ndcg"):
     """
     For a random seed trains a model on a sparse matrix for all given hyperparameter combinations.
 
@@ -61,9 +61,14 @@ def train_model(R_coo, configurations, seed):
         model.fit(train, show_progress=False)        
 
         # Benchmark model performance using validation set
-        ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
+        if performance_metric == "ndcg":
+            ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+        elif performance_metric == "precision":
+            ndcg = precision_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+        else:
+            ndcg = AUC_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
         
-        print("Seed {}: NDCG@{}".format((seed + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        print("Seed {}: {}@{}".format((seed + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"]), ndcg)
 
         # When current model outperforms previous one update tracking states
         if ndcg > ndcg_base:
@@ -77,12 +82,17 @@ def train_model(R_coo, configurations, seed):
     hyperparams_optimal = configurations[performance_per_configuration[ndcg_base]]
 
     # Evaluate TRUE performance of best model on test set for model selection later on
-    ndcg_test = ndcg_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)  
+    if performance_metric == "ndcg":
+        ndcg_test = ndcg_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS["ndcg"]["K"], show_progress=False)  
+    elif performance_metric == "precision":
+        ndcg_test = precision_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS["precision"]["K"], show_progress=False)  
+    else:
+        ndcg_test = AUC_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS["auc"]["K"], show_progress=False)  
 
     return [ndcg_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "ndcg_test": ndcg_test}]
 
 if __name__ == "__main__":
-    io.initialize_empty_file(constant.TIMING_FOLDER + constant.TIMING_FILE["movie"])
+    io.initialize_empty_file(constant.TIMING_FOLDER + constant.TIMING_FILE["mv"])
 
     """
     <DATA_SRC> and <data_map> that are commented out are used when one wants to run it for the 25M MovieLens data set
@@ -212,7 +222,7 @@ if __name__ == "__main__":
         io.save(IO_INFIX + model_file, (model_var_name, ground_truth_model))
 
         end = time.time() - start
-        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE["movie"], "Generating " + model_file + "  " + str(end) + "\n")
+        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE["mv"], "Generating " + model_file + "  " + str(end) + "\n")
 
     # Only generate ground truth when not yet generated
     ground_truth_file = "ground_truth"
@@ -234,4 +244,4 @@ if __name__ == "__main__":
         io.save(IO_INFIX + ground_truth_file, (ground_truth_var_name, ground_truth_mv))   
         
         end = time.time() - start
-        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE["movie"], "Predicting " + ground_truth_file + "  " + str(end) + "\n")
+        io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE["mv"], "Predicting " + ground_truth_file + "  " + str(end) + "\n")

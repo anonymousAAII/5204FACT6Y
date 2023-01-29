@@ -9,7 +9,7 @@ import os
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 import implicit
 from implicit.als import AlternatingLeastSquares
-from implicit.evaluation import ndcg_at_k
+from implicit.evaluation import ndcg_at_k, precision_at_k, AUC_at_k
 import scipy
 from scipy import sparse
 from tqdm import tqdm
@@ -68,11 +68,11 @@ def train_SVD_model(hyperparameter_configurations, batch, min_rating, max_rating
             ndcg = ndcg_score(np.asarray([y_true]), np.asarray([y_score]), k=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"])
             results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": svd, "params": params}} 
         
-        print("Batch {}: NDCG@{}".format((batch + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        print("Batch {}: ndcg NDCG@{}".format((batch + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
 
     return results
 
-def train_ALS_model(hyperparameter_configurations, batch, train, validation):
+def train_ALS_model(hyperparameter_configurations, batch, train, validation, performance_metric="ndcg"):
     results = {}
     
     print("Processing batch {}...".format((batch + 1)))
@@ -88,8 +88,14 @@ def train_ALS_model(hyperparameter_configurations, batch, train, validation):
         model.fit(train, show_progress=False)
 
         # Validate model
-        ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
-        print("Batch {}: NDCG@{}".format((batch + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        if performance_metric == "ndcg":
+            ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+        elif performance_metric == "precision":
+            ndcg = precision_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+        else:
+            ndcg = AUC_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+        
+        print("Batch {}: {}@{}".format((batch + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
 
         results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": model, "params": params}} 
 
