@@ -15,7 +15,7 @@ PERFORMANCE_METRIC_VARS = {"NDCG": {"K": 40}}
 
 # Folder to save time performances
 TIMING_FOLDER = "results/execution times/"
-TIMING_FILE = {"fm": "fm.log", "movie": "mv.log"}
+TIMING_FILE = {"fm": "fm.log", "mv": "mv.log"}
 
 VARIABLES_FOLDER = "variables/"
 # Variable path infix depending on the data set

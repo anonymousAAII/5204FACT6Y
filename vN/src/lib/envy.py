@@ -10,7 +10,7 @@ from tqdm import tqdm
 #     return np.sum(probability_policies[n] * expec_rewards[m])
 
 # Basic definition of envy-freeness in a system (see 3.1 paper)
-def envy_free_basic(recommendations, policies, expec_rewards, epsilon=0.05, gamma=0.5, lamb=0.5, relax_criterion=False):
+def envy_free_basic(recommendations, policies, expec_rewards, preferences, epsilon=0.05, gamma=0.5, lamb=0.5, relax_criterion=False):
     """
     Checks whether a system is envy-free according to the basic definition.
 
@@ -54,7 +54,7 @@ def envy_free_basic(recommendations, policies, expec_rewards, epsilon=0.05, gamm
     # <envy_free> temporarily None
     return {"envy_free": None, "avg_envy_user": average_envy_per_user, "prop_envious_users": proportion_envious_users}
 
-def determine_envy_freeness(recommendations, policies, rewards, expec_rewards, mode_envy="basis"):
+def determine_envy_freeness(recommendations, policies, rewards, expec_rewards, preferences, mode_envy="basis"):
     """
     Determines envy-freeness in a system according to different methods
 
@@ -67,7 +67,7 @@ def determine_envy_freeness(recommendations, policies, rewards, expec_rewards, m
     """
     # Basic definition of envy-freeness
     if mode_envy == "basic":
-        envy_results = envy_free_basic(recommendations, policies, expec_rewards)
+        envy_results = envy_free_basic(recommendations, policies, expec_rewards, preferences)
     # Algorithm 1: OCEF (Online Certification of Envy-Freeness) algorithm
     elif mode_envy == "OCEF":
         # TO DO
@@ -78,7 +78,7 @@ def determine_envy_freeness(recommendations, policies, rewards, expec_rewards, m
         exit()
     # Default is basic envy-freeness
     else:
-        envy_results = envy_free_basic(recommendations, policies, expec_rewards)
+        envy_results = envy_free_basic(recommendations, policies, expec_rewards, preferences)
     
     print(envy_results)
     return envy_results

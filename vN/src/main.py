@@ -17,7 +17,7 @@ import constant
 def preferences_to_policies(latent_factor, model, ground_truth, algorithm):
     preference_estimates = recommender.recommendation_estimation(model, ground_truth, algorithm)
     recommendation_policies = recommender.create_recommendation_policies(preference_estimates)
-    return {"latent_factor": latent_factor, "recommendation_policies": {"recommendations": recommendation_policies["recommendations"], "policies": recommendation_policies["policies"]}}
+    return {"latent_factor": latent_factor, "recommendation_policies": {"preferences": preference_estimates, "recommendations": recommendation_policies["recommendations"], "policies": recommendation_policies["policies"]}}
 
 if __name__ == "__main__":
     # To save the experiment results
@@ -106,7 +106,7 @@ if __name__ == "__main__":
         ##########################
 
         # Hyperparameter spaces
-        latent_factors = [1, 2, 4, 8, 16, 32, 64, 128, 256]
+        latent_factors = [0, 1, 2, 4, 8, 16, 32, 64, 128, 256]
         regularization = [0.001, 0.01, 0.1, 1.0]
         confidence_weighting = [0.1, 1.0, 10.0, 100.0]
         
@@ -258,10 +258,11 @@ if __name__ == "__main__":
                     print("<latent_factor>", latent_factor)
                     model = best_recommendation_est_system[latent_factor]
                     
+                    preferences = recommendation_policies[latent_factor]["preferences"]
                     recommendations = recommendation_policies[latent_factor]["recommendations"]
                     policies = recommendation_policies[latent_factor]["policies"]
                         
-                    envy_results = envy.determine_envy_freeness(recommendations, policies, rewards, expec_rewards)
+                    envy_results = envy.determine_envy_freeness(recommendations, policies, rewards, expec_rewards, preferences)
                     envy_free[latent_factor] = envy_results["envy_free"]
                     avg_envy_user[latent_factor] = envy_results["avg_envy_user"]
                     prop_envious_users[latent_factor] = envy_results["prop_envious_users"]

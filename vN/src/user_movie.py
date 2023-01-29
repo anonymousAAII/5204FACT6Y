@@ -62,7 +62,8 @@ def train_model(R_coo, configurations, seed):
 
         # Benchmark model performance using validation set
         ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
-        print("NDCG@{}".format(constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        
+        print("Seed {}: NDCG@{}".format((seed + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
 
         # When current model outperforms previous one update tracking states
         if ndcg > ndcg_base:

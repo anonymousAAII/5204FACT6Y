@@ -17,7 +17,7 @@ class Recommender(object):
         self.model_type = model_type
         self.params = params
         self.ground_truth = ground_truth
-        self.preference_est = preference_est
+        self.preferences = preference_est
         self.pred_perf = pred_perf
         self.pred_metric = pred_metric
         self.recommendations = recommendations
