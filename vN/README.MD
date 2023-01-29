@@ -18,22 +18,22 @@ The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a
 #### Last.fm
 | Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
-| Generating ground truth model                 | ground\_truth\_model                |-|397.39|  
-| Generating ground truth                       | ground\_truth                       |0.09|-| 
-| Generating recommender preference est. models | recommendation\_system_est\_models  |(SVD) 5658.18|(SVD) 3331.07 <br> (ALS) 1360.55| 
-| Generating recommendation policies            | recommendation\_policies            |-|4.60|                                                   
-| Generating rewards and its expectation        | rewards & expec\_rewards            |33.08|-| 
-| Experiment 5.1                                |  5.1/                               ||| 
+| Generating ground truth model                 | ground\_truth\_model                |-|(ALS) 159.60 <br> (LFM) 448.00 |  
+| Predicting ground truth                       | ground\_truth                       |0.15|-| 
+| Generating recommender preference est. models | recommendation\_system_est\_models  |(SVD) 5658.18|(SVD) 3331.07 <br> (ALS) 1347.32| 
+| Constructing recommendation policies            | recommendation\_policies            |-|6.22|                                                   
+| Generating rewards and its expectation        | rewards & expec\_rewards            |32.71|-| 
+| Experiment 5.1                                |  5.1/                               |6.21|-| 
 
 #### MovieLens
 | Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
-| Generating ground truth model                 | ground\_truth\_model                |-|407.63| 
-| Generating ground truth                       | ground\_truth                       |0.12|-| 
-| Generating recommender preference est. models | recommendation\_system_est\_models  ||| 
-| Generating recommendation policies            | recommendation\_policies            |||                                                   
-| Generating rewards and its expectation        | rewards & expec\_rewards            ||| 
-| Experiment 5.1                                | 5.1/                                ||| 
+| Generating ground truth model                 | ground\_truth\_model                |-|(ALS) 402.65| 
+| Generating ground truth                       | ground\_truth                       |0.09|-| 
+| Generating recommender preference est. models | recommendation\_system_est\_models  |-|(ALS) 1412.13| 
+| Constructing recommendation policies            | recommendation\_policies            |-|4.47|                                                   
+| Generating rewards and its expectation        | rewards & expec\_rewards            |30.98|-| 
+| Experiment 5.1                                | 5.1/                                |5.71|-| 
 
 These values are an arbitraty pick from the log files which stores the wall clock execution times each time the code is ran and the pipeline stage has to be (re)build from scratch, i.e. the object file/folder does not yet exist.
 ```
