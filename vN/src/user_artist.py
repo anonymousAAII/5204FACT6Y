@@ -46,6 +46,11 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
     train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7)
     validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3)
 
+    # # For retrieving original state of the data sets
+    # train_tmp = train.copy()
+    # validation_tmp = validation.copy()
+    # test_tmp = test.copy()    
+
     # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
     performance_per_configuration = {}
 
@@ -60,10 +65,15 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
 
         # Initialize model
         if built_in_LMF:
+            print("Logistic Matrix Factorization (LMF)...")
             # Notice you can't specify the confidence weighing parameter alpha here so it is applied below
             model = LogisticMatrixFactorization(factors=hyperparameters["latent_factor"], 
                                                 regularization=hyperparameters["reg"])
+            # train = hyperparameters["alpha"] * train_tmp
+            # validation = hyperparameters["alpha"] * validation_tmp
+            # test = hyperparameters["alpha"] * test_tmp
         else:
+            print("Alternating Least Squares (ALS)...")
             model = AlternatingLeastSquares(factors=hyperparameters["latent_factor"], 
                                             regularization=hyperparameters["reg"],
                                             alpha=hyperparameters["alpha"])
