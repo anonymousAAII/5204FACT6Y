@@ -66,11 +66,11 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
     """
     t = 0 # timestep
     K = len(other_policies) # number of other policies
-    omega = 0.99 # see lemma 4
+    omega = 0.01 # see lemma 4
     sigma = 0.5 # see lemma 4
     A = 0 # number of times arm other than baseline was selected
     r = 0 # sum of rewards from times arm other than baseline was selected
-    theta = np.log(1 + omega) * math.pow((omega * delta) / (2 * (2 * omega)),
+    theta = np.log(1 + omega) * math.pow((omega * delta) / (2 * (2 + omega)),
                                          1 / (1 + omega)) # see lemma 4
     # Bound size at start, for N = 0, beta must be bigger than for N = 1
     beta_start = bound_size(1, K, theta, omega, sigma) + 1e-08
@@ -89,7 +89,8 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
     while S:
         t += 1
         explore = True
-        policy_dict = np.random.choice(S) # Choose policy to explore
+        policy_index = np.random.choice(len(S))
+        policy_dict = S[policy_index] # Choose policy to explore
         if conservative_estimate(target_dict, S, policy_dict, alpha, delta, sigma,
                                  A, r, t) < 0 or target_dict['beta'] > beta_min:
             # Pull baseline, do not explore
@@ -116,7 +117,7 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
                 return envy, t, cost
             if policy_dict['mu'] + policy_dict['beta'] <= target_low:
                 # Upper bound smaller than target lower bound: remove policy from list
-                S.remove(policy_dict)
+                del S[policy_index]
         else: # If we pulled the baseline
             temp_list = []
             for other_dict in S:
@@ -137,14 +138,37 @@ def OCEF(target_policy, other_policies, reward_func, delta, alpha, epsilon):
     return envy, t, cost
 
 def AUDIT(policies, reward_func, delta, alpha, epsilon, gamma, lambda_):
+    """
+    Implements the AUDIT algorithm to audit whether a system is has envy or is
+    envy-free with probabilistic relaxations.
+    Inputs:
+        policies - Policies where the entry represents the probability of an
+                   item (column) being recommended to a user (row)
+        reward_func - Function that takes a policy and a user index and returns
+                      a reward for that user based on an item picked by the
+                      policy.
+        delta - Confidence parameter
+        alpha - Conservative exploration parameter
+        epsilon - Envy parameter
+        gamma - Envy parameter
+        lambda_ - Envy parameter
+    """
     M = math.ceil(np.log(3 / delta) / lambda_)
     S_indices = np.random.choice(len(policies), size=M, replace=False)
-    S = policies[S_indices]
+    K = math.ceil(np.log(3 * M / delta) / np.log(1 / (1 - gamma)))
+    avg_duration = 0
+    avg_cost = 0
     for S_index in S_indices:
-        K = math.ceil(np.log(3 * M / delta) / np.log(1 / (1 - gamma)))
-        arms = policies[:S_index] + policies[S_index + 1:] # TODO: use concat
+        arms = np.concatenate((policies[:S_index], policies[S_index + 1:]))
         arms = arms[np.random.choice(len(arms), size=K, replace=False)]
         f_reward = lambda x: reward_func(x, S_index)
-        if OCEF(S[S_index], arms, f_reward, delta, alpha, epsilon)[0]:
-            return True
-    return False
+        envy, duration, cost = OCEF(policies[S_index], arms, f_reward, delta,
+                                    alpha, epsilon)
+        if envy:
+            return envy, duration, cost
+        avg_duration += duration
+        avg_cost += cost
+    envy = False
+    avg_duration /= K
+    avg_cost /= K
+    return envy, avg_duration, avg_cost
