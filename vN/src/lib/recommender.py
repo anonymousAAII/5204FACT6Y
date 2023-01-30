@@ -268,9 +268,11 @@ def select_best_recommendation_est_system(recommendation_system_est_model, selec
     Given a dictionary of models finds the best models either the overal best model or the best model per <latent_factor>.
     Default is selecting the best model for each <latent_factor>
 
-    :recommendation_system_est_model:   dictionary containing the models on which a best performance selection should be performed
-    :select_mode:                       modus of selecting the models either "all" or "latent"
-    :returns:                           dictionary containing the best models to simulate a recommendation system's preference estimations
+    Inputs:
+        recommendation_system_est_model         - dictionary containing the models on which a best performance selection should be performed
+        select_mode                             - modus of selecting the models either "all" or "latent"
+    Outputs:
+        dictionary                              - dictionary containing the best models to simulate a recommender system's preference estimations
     """
     best_recommendation_est_systems = {}
     # Selects the best model within each possible <latent_factor> -> one select/pick per unique <latent_factor>
@@ -296,16 +298,23 @@ def select_best_recommendation_est_system(recommendation_system_est_model, selec
 
 def recommendation_estimation(recommendation_est_system_model, ground_truth, algorithm):
     """
-    :recommendation_est_system_model:   model object that simulates a recommender system's preference estimations
-    :returns:                           estimated preference scores
+    
+    Inputs:
+        recommendation_est_system_model         - model object that simulates a recommender system's preferences estimation
+        ground_truth                            - matrix containing the user-item true relevance scores
+        algorithm                               - algorithm of the recommender model e.g. ALS or Funky SVD
+    Outputs:
+        matrix                                  - matrix containing the recommender model's predictions, i.e. estimated preference scores
     """
     print("Estimating preferences...")
     
+    # Funky SVD
     if algorithm == "svd":
         row, col = ground_truth.shape
         u_id = np.repeat(np.arange(0, row), col)
         i_id = np.tile(np.arange(0, col), row)
         
+        # Construct all user-item pairs for the recommender system model
         df = pd.DataFrame({"u_id": u_id, "i_id": i_id})
         
         # Calculate estimated preference scores
@@ -322,9 +331,11 @@ def create_recommendation_policies(preference_estimates, temperature=1/5):
     The recommendation policies we consider are softmax distributions over the predicted scores with fixed inverse temperature. 
     These policies recommend a single item, drawn from the softmax distribution.
 
-    :preference_estimates:  estimated preference scores
-    :temperature:           controls the softness of the probability distributions
-    :returns:               the picked policy (i.e. recommended item) -> recommendation, the probability of recommending an item to a user -> user policies
+    Inputs:    
+        preference_estimates        - estimated preference scores
+        temperature                 - controls the softness of the probability distributions
+    Outputs:
+        dictionary                  - containing the picked policy (i.e. recommended item) and the recommendation policy both in user-item matrix format
     """
     print("Generating recommendation policies...")
 
@@ -335,8 +346,8 @@ def create_recommendation_policies(preference_estimates, temperature=1/5):
     # Compute the softmax transformation along the second axis (i.e., the rows)
     policies = scipy.special.softmax(preference_estimates, axis=1)
 
-    # According to a given probability distribution 
-    # select a policy by drawing from this distribution -> is the recommendation
+    # According to a given policy i.e. a probability distribution 
+    # select an item by drawing from this distribution -> is the recommendation
     def select_policy(distribution, indices):
         i_drawn_policy = np.random.choice(indices, 1, p=distribution)
         recommendation = np.zeros(len(indices))
@@ -352,9 +363,11 @@ def create_rewards(ground_truth, normalize=False):
     """
     Generates the rewards by a Bernoulli distribution per item and the expectation of the Bernoulli distribution
 
-    :ground_truth:  ground truth 
-    :normalize:     whether to normalize the <ground_truth>
-    :returns:       binary rewards, expecation of the binary rewards
+    Inputs:
+        ground_truth        - ground truth 
+        normalize           - whether to normalize the <ground_truth> using min-max normalization
+    Outputs:
+        tuple               - tuple containing the binary rewards and expecation of the binary rewards in user-item matrix format
     """
     print("Generating binary rewards...")
     

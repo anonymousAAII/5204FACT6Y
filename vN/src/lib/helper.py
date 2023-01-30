@@ -11,11 +11,13 @@ def merge_duplicates(df, col_duplicate, col_merge_value, mode_operation="sum"):
     """
     Checks for duplicate entries and according to the given mode performs an operation on the specified column's value.
 
-    :df:                dataframe used
-    :col_duplicate:     name of column to be checked for duplicates
-    :col_merge_value:   name of column which value to perform an operation on when it concerns a duplicate
-    :mode_operation:    name which determines which operation is performed, default is 'sum' which takes the cummulative value
-    :return:            dataframe which contains the unique entries and the operation's resulting column value
+    Input:
+        df                  - dataframe to be used
+        col_duplicate       - name of column to be checked for duplicates
+        col_merge_value     - name of column which value to perform an operation on when it concerns a duplicate
+        mode_operation      - name which determines which operation is performed, default is 'sum' which takes the cummulative value
+    Outputs:
+        data frame          - dataframe which contains the unique entries and the operation's resulting column value
     """ 
     if mode_operation == "sum":
         return df.groupby(col_duplicate, as_index = False)[col_merge_value].sum()
@@ -27,10 +29,12 @@ def generate_hyperparameter_configurations(regularization, latent_factors, confi
     """
     Given the hyperparameter spaces generates all possible combinations for grid search
 
-    :regularization:        contains lambda the regularization factor
-    :confidence_weighting:  contains alpha the confidence weight factor
-    :latent_factors:        contains the number of latent factors
-    :returns:               dictionary in the format {<id>: {<hyperparameter_1 name>: <value>, ..., {<hyperparameter_N name>: <value>}}
+    Inputs:
+        regularization          - contains lambda the regularization factor
+        confidence_weighting    - contains alpha the confidence weight factor
+        latent_factors          - contains the number of latent factors
+    Outputs:
+        dictionary              - in the format {<id>: {<hyperparameter_1 name>: <value>, ..., {<hyperparameter_N name>: <value>}}
     """
     configurations = {}
 
@@ -53,14 +57,19 @@ def generate_hyperparameter_configurations(regularization, latent_factors, confi
 
 def get_index_best_model(model_train_results, mode="max"):
     """
-    Returns the index in <model_train_results> corresponding with the highest performance <p_test>.
+    Returns the index in <model_train_results> corresponding with the highest performance
 
-    :model_train_results:   results of training the models in format:
-                            [[<p_test>, {"seed": <seed>, "model": <model_best>, "hyperparameters": <hyperparams_optimal>, "precision_test": <p_test>}]]
+    Inputs:
+        model_train_results         - results of training the models in format:
+                                        [[<performance>, {"seed": <seed>, "model": <model_best>, "hyperparameters": <hyperparams_optimal>, "performance": <performance>}]]
+    Outputs:
+        integer                     - index
     """
     performance_models = [item[0] for item in model_train_results]
+    # When maximization problem
     if mode == "max":
         return performance_models.index(max(performance_models))
+    # When minimization problem
     else:
         return performance_models.index(min(performance_models))
 
@@ -78,22 +87,4 @@ def get_current_datetime():
     now = datetime.now()
     # dd/mm/YY H:M:S
     return now.strftime("%d/%m/%Y %H:%M:%S")
-
-def normalize_matrix(matrix):
-    def x_norm(x, x_min, x_max):
-        # RuntimeWarning: invalid value encountered in divide
-        # Handles division by zero since row is zero
-        if((x_max - x_min) == 0):
-            return 0
-        return (x - x_min) / (x_max - x_min)
-
-    normalize_x = np.vectorize(x_norm)
-    
-    # Given a row of values normalize each value
-    def normalize(row):
-        x_min, x_max = np.amin(row), np.amax(row)
-        return normalize_x(row, x_min, x_max)
-
-    # Normalize matrix
-    return np.apply_along_axis(normalize, 1, matrix)
 

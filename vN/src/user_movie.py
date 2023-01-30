@@ -12,7 +12,6 @@
 ###
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
 import scipy
 from scipy import sparse
 import os
@@ -177,9 +176,6 @@ if __name__ == "__main__":
     item_cat = CategoricalDtype(categories=sorted(items), ordered=True)
     user_index = user_item["userID"].astype(user_cat).cat.codes
     item_index = user_item["movieID"].astype(item_cat).cat.codes
-
-    # print(user_index)
-    # exit()
 
     # Conversion via COO matrix to the whole user-item observation/interaction matrix R
     R_coo = sparse.coo_matrix((user_item["rating"], (user_index, item_index)), shape=shape)

@@ -58,6 +58,7 @@ if __name__ == "__main__":
     # To select experiments
     print("**EXPERIMENTS: Please specify which experiments to run**")
     experiment_choice = pyip.inputMenu(list(constant.EXPERIMENT_RUN_OPTIONS.keys()))
+    print("\n")
 
     # Data sets on which the experiments can be performed
     data_sets = {"all": {"name": "all"},
@@ -110,8 +111,8 @@ if __name__ == "__main__":
         if not path.exists(folder1):
             os.mkdir(folder1)
 
-        for algorithm in constant.ALGORITHM:
-            folder = folder1 + "/" + algorithm.lower() + "/"
+        for algorithm in constant.ALGORITHM.values():
+            folder = folder1 + "/" + algorithm + "/"
             if not path.exists(folder):
                 os.mkdir(folder)
 
@@ -136,9 +137,9 @@ if __name__ == "__main__":
             VAR_EXT = constant.VAR_EXT["movie"]
 
         # Possibility for saving different recommender model algorithms   
-        if not path.exists(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE.upper() + "/"):
-            print("Creating variables directory for {} recommender model...".format(ALGORITHM_CHOICE.upper()))
-            os.mkdir(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE.upper() + "/")
+        if not path.exists(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE + "/"):
+            print("Creating variables directory for {} recommender model...".format(ALGORITHM_CHOICE))
+            os.mkdir(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE + "/")
 
         # Generate ground truth matrix of user-item relevance scores
         exec(compile(open(data_set["filename"], "rb").read(), data_set["filename"], "exec"))

@@ -14,7 +14,6 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from sklearn.model_selection import train_test_split
 import scipy
 from scipy import sparse
 import os
@@ -109,12 +108,10 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
     # Evaluate TRUE performance of best model on test set for model selection later on
     if performance_metric == "ndcg":
         ndcg_test = ndcg_at_k(model_best, train, test, K=K, show_progress=False)  
-        # ndcg_test = ndcg_at_k(model_best, train.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), test.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)  
     elif performance_metric == "precision":
         ndcg_test = precision_at_k(model_best, train, test, K=K, show_progress=False)  
     else:
         ndcg_test = AUC_at_k(model_best, train, test, K=K, show_progress=False)  
-        # ndcg_test = AUC_at_k(model_best, train.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), test.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)  
 
     return [ndcg_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "ndcg_test": ndcg_test}]
 
