@@ -20,6 +20,17 @@ from lib import plot
 import constant
 
 def preferences_to_policies(latent_factor, model, ground_truth, algorithm):
+    """
+    Given the ground truth matrix of the user-item relevance scores we estimate preference scores and from that derive recommendation policies
+
+    Inputs:
+        latent_factor   - the number of latent factors with which the model was constructed
+        model           - the recommender system model
+        ground_truth    - user-item matrix containing the true relevance scores
+        algorithm       - which algorithm the model applies (e.g. ALS or Funky SVD) to predict user preferences
+    Outputs:
+        dictionary      - containing the <latent_factor>, the preference estimates, the recommendations and the recommendation policies.  
+    """
     preference_estimates = recommender.recommendation_estimation(model, ground_truth, algorithm)
     recommendation_policies = recommender.create_recommendation_policies(preference_estimates)
     return {"latent_factor": latent_factor, "recommendation_policies": {"preferences": preference_estimates, "recommendations": recommendation_policies["recommendations"], "policies": recommendation_policies["policies"]}}
@@ -30,12 +41,14 @@ if __name__ == "__main__":
     #                 [-1,7,1],
     #                 [0,-10,2]])
 
+    # pos_mask = (test > 0)
     # pos = test * (test > 0)
     # neg = test * (test < 0)
 
     # print(pos)
     # print(neg)
     # print(pos + neg) 
+    # print( * test)
     # exit()
 
     # # exit()
@@ -73,36 +86,38 @@ if __name__ == "__main__":
     # Select data set(s)
     print("**DATA SETS: Please specify for which (recommender system) data set**")
     data_set_choice = pyip.inputMenu(list(data_sets.keys()))
+    print("\n")
 
     # For the ground truth model
     print("**GROUND TRUTH: Which <performance metric>@K would you like for the ground truth generating?***")
     constant.PERFORMANCE_METRIC = pyip.inputMenu(list(constant.PERFORMANCE_METRIC_VARS["ground truth"].keys()))
-    # print("{}@{}".format(constant.PERFORMANCE_METRIC, constant.PERFORMANCE_METRIC_VARS[constant.PERFORMANCE_METRIC]["K"]))
+    print("{}@{}\n".format(constant.PERFORMANCE_METRIC, constant.PERFORMANCE_METRIC_VARS["ground truth"][constant.PERFORMANCE_METRIC]["K"]))
     
     # For recommender system
     print("**RECOMMENDER SYSTEM: Which algorithm would you like for the recommender system to use to estimate user preferences?**")
     ALGORITHM_CHOICE = pyip.inputMenu(list(constant.ALGORITHM.keys()))
     ALGORITHM_CHOICE = constant.ALGORITHM[ALGORITHM_CHOICE]
+    print("\n")
 
     # For recommender system
     print("**RECOMMENDER SYSTEM: With which <performance metric>@K would you like for the recommender system?***")
     constant.PERFORMANCE_METRIC_REC = pyip.inputMenu(list(constant.PERFORMANCE_METRIC_VARS["recommender system"][ALGORITHM_CHOICE].keys()))
-    print("{}@{}".format(constant.PERFORMANCE_METRIC_REC, constant.PERFORMANCE_METRIC_VARS["recommender system"][ALGORITHM_CHOICE][constant.PERFORMANCE_METRIC_REC]["K"]))
+    print("{}@{}\n".format(constant.PERFORMANCE_METRIC_REC, constant.PERFORMANCE_METRIC_VARS["recommender system"][ALGORITHM_CHOICE][constant.PERFORMANCE_METRIC_REC]["K"]))
 
-    # To save figures/plots
+    # To save plot figures: /results/<data_set>/<algorithm>/
     for data_set in data_sets.values():
         folder1 = constant.RESULTS_FOLDER + data_set["name"]
         if not path.exists(folder1):
             os.mkdir(folder1)
 
         for algorithm in constant.ALGORITHM:
-            folder = folder1 + "/" + algorithm + "/"
+            folder = folder1 + "/" + algorithm.lower() + "/"
             if not path.exists(folder):
                 os.mkdir(folder)
 
     my_globals = globals()
 
-    # For all datas sets simulate recommendation system and run experiments
+    # For all datas sets requested by user simulate recommender system and run experiments
     for key, data_set in data_sets.items(): 
         # Only execute code for requested data sets by user input
         if key == "all" or (data_set_choice != "all" and key != data_set_choice):
@@ -125,7 +140,7 @@ if __name__ == "__main__":
             print("Creating variables directory for {} recommender model...".format(ALGORITHM_CHOICE.upper()))
             os.mkdir(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE.upper() + "/")
 
-        # Generate ground truth of user-item preferences
+        # Generate ground truth matrix of user-item relevance scores
         exec(compile(open(data_set["filename"], "rb").read(), data_set["filename"], "exec"))
         
         ## LOAD: Load ground truth
@@ -140,21 +155,24 @@ if __name__ == "__main__":
 
         data_set["vars"]["ground_truth"] = ground_truth
 
+        # Whether to normalize the relevance scores to range [0, 1]
         min_max_scaling = True
 
         # Normalize to range [0, 1]
         if min_max_scaling: 
-            # Leave out negative values for scaling
-            pos_values = ground_truth * (ground_truth >= 0)
-            neg_values = ground_truth * (ground_truth < 0)
+            # Indices masks of negative and positive values
+            pos_mask = ground_truth >= 0
+            neg_mask = ground_truth < 0
 
-            # scale features
+            # Scale relevance scores
             scaler = MinMaxScaler()
-            model = scaler.fit(pos_values)
-            ground_truth_norm = model.transform(pos_values)
+            model = scaler.fit(ground_truth)
+            ground_truth_norm = model.transform(ground_truth)
 
-            # Put back negative values. TO DO ONLY FOR ALS?     
-            ground_truth = ground_truth + neg_values
+            # Take only the normalized values of values that were originally > 0
+            tmp_gt = pos_mask * ground_truth_norm
+            # Add back original negative values for Implicit ALS model algorithm
+            ground_truth = (neg_mask * ground_truth) + tmp_gt
 
         # exit()
 
@@ -168,28 +186,28 @@ if __name__ == "__main__":
         ##########################
 
         # Hyperparameter spaces
-        latent_factors = [0, 1, 2, 4, 8, 16, 32, 64, 128, 256]
+        latent_factors = [1, 2, 4, 8, 16, 32, 64, 128, 256]
         regularization = [0.001, 0.01, 0.1, 1.0]
-        confidence_weighting = [0.1, 1.0, 10.0, 100.0] if ALGORITHM_CHOICE != "svd" else None
+        # Funky SVD does not seem to provide us with the possibility of defining confidence weighting
+        confidence_weighting = [0.1, 1.0, 10.0, 100.0] if ALGORITHM_CHOICE != "svd" else None 
                 
         configurations = helper.generate_hyperparameter_configurations(regularization, latent_factors, confidence_weighting)
 
-        # Generate models to simulate a recommender system's preference estimation
         recommendation_system_est_models_file = "recommendation_system_est_models" 
         recommendation_system_est_models_file_path = IO_PATH + recommendation_system_est_models_file
         recommendation_system_est_models_var_name = recommendation_system_est_models_file + VAR_EXT 
 
-        # Only when not yet generated
+        # Generate models to simulate the recommender system's preference estimation
         if not path.exists(recommendation_system_est_models_file_path):
             start = time.time()
             recommendation_system_est_models = recommender.create_recommendation_est_system(ground_truth, configurations, ALGORITHM_CHOICE, split={"train": 0.7, "validation": 0.1})
 
-            ## SAVE: Save models that can estimate preferences as a recommender system would
+            ## SAVE: Save recommender models that can estimate preferences
             io.save(IO_INFIX + recommendation_system_est_models_file, (recommendation_system_est_models_var_name, recommendation_system_est_models))
             end = time.time() - start
             io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "Generating " + recommendation_system_est_models_file + "  " + str(end) + "\n")
 
-        ## LOAD: Load models that can estimate preferences
+        ## LOAD: Load recommender models that can estimate preferences
         io.load(IO_INFIX + recommendation_system_est_models_file, my_globals)
         
         if data_set["name"] == "fm":
@@ -208,7 +226,7 @@ if __name__ == "__main__":
         #                       {<latent_factor>: {<precision>: {"i_params": <index hyperparams config>, "params": <hyperparams config>, "p_val": <validation precision>, "model": <model>}}}}
         ##########################
 
-        # Get the recommender preference estimation models with best performances
+        # Get the recommender models with best performances
         best_recommendation_est_system = recommender.select_best_recommendation_est_system(recommendation_system_est_models, select_mode="latent")
         
         recommendation_policies = {}
@@ -217,6 +235,7 @@ if __name__ == "__main__":
         recommendation_policies_file_path = IO_PATH + recommendation_policies_file
         recommendation_policies_var_name = recommendation_policies_file + VAR_EXT
 
+        # Generate recommendations and recommendation policies    
         if not path.exists(recommendation_policies_file_path):
             start = time.time()
 

@@ -26,6 +26,22 @@ from lib import helper
 import constant
 
 def train_SVD_model(hyperparameter_configurations, batch, train, validation, test, performance_metric, min_rating, max_rating, normalize=True):
+    """
+    Trains a recommender model using Funky SVD for a batch of hyper parameter combinations returning the model and its performance
+
+    Inputs:
+        hyperparameter_configurations       - list/batch containing different hyperparameter combinations
+        batch                               - 'id' of batch being processed
+        train                               - train set data frame with the columns <u_id>, <i_id> and <rating>
+        validation                          - validation set data frame with again the user, item and rating data
+        test                                - test set
+        performance_metric                  - which performance metric to use to measure the model's performance
+        min_rating                          - the minimum value a rating can have, i.e. can occur in the user-item matrix  
+        max_rating                          - the maximum value a rating can have
+        normalize                           - whether the normalize the rating values to a different scale range 
+    Outputs:
+
+    """
     results = {}
     
     print("Processing batch {}...SVD".format((batch + 1)))
@@ -41,15 +57,19 @@ def train_SVD_model(hyperparameter_configurations, batch, train, validation, tes
     #     test["rating"] = min_rating + (((test["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
     
     test = test.sort_values(by=["u_id"], ascending=True)
+    # Get how many ratings a user has given
     test["rating_count"] = np.full(len(test), 1)
     test_rating_count = helper.merge_duplicates(test, "u_id", "rating_count")
     rating_count_per_user = np.array(test_rating_count["rating_count"])
 
-    # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995) using SVD
+    # Train Funky SVD model for different hyperparameter configurations
     for i, params in enumerate(hyperparameter_configurations):
         svd = SVD(lr=0.001, reg=params["reg"], n_epochs=100, n_factors=params["latent_factor"], early_stopping=True, shuffle=False, min_rating=min_rating, max_rating=max_rating)
 
+        # Fit model
         svd.fit(X=train, X_val=validation)
+
+        # Measure performance on test set
         pred = svd.predict(test)
 
         y_true = np.array(test["rating"])
@@ -64,6 +84,7 @@ def train_SVD_model(hyperparameter_configurations, batch, train, validation, tes
         
         ndcg = np.array([])
 
+        # Measure prediction performance per user
         for (y1, y2) in zip(y_true_per_user, y_pred_per_user):
             if performance_metric == "ndcg":
                 ndcg = np.append(ndcg, ndcg_score(np.asarray([y1]), np.asarray([y2]), k=K))
@@ -81,12 +102,24 @@ def train_SVD_model(hyperparameter_configurations, batch, train, validation, tes
     return results
 
 def train_ALS_model(hyperparameter_configurations, batch, train, validation, performance_metric):
+    """
+    Trains a recommender model using ALS for a batch of hyper parameter combinations returning the model and its performance
+
+    Inputs:
+        hyperparameter_configurations       - list/batch containing different hyperparameter combinations
+        batch                               - 'id' of batch being processed
+        train                               - train set in sparse coo_matrix format 
+        validation                          - validation set in sparse coo_matrix format
+        performance_metric                  - which performance metric to use to measure the model's performance
+    Outputs:
+
+    """
     results = {}
     
     print("Processing batch {}...ALS".format((batch + 1)))
     K = constant.PERFORMANCE_METRIC_VARS["recommender system"]["als"][performance_metric]["K"]
 
-    # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995)
+    # Train ALS model for different hyperparameter configurations
     for i, params in enumerate(hyperparameter_configurations):
         # Create model
         model = AlternatingLeastSquares(factors=params["latent_factor"],
@@ -110,48 +143,48 @@ def train_ALS_model(hyperparameter_configurations, batch, train, validation, per
 
     return results
 
-# Create a recommendation system's preference estimation model using the given "ground truth"
 def create_recommendation_est_system(ground_truth, hyperparameter_configurations, algorithm, split={"train": 0.7, "validation": 0.1}, multiprocessing=True):
     """
-    Generates models that simulate a recommender system's estimation of preferences using low-rank matrix completion (Bell and Sejnowski 1995)
+    Create a recommender system model according to the specified algorithm using the given "ground truth" i.e. true relevance scores
 
-    :ground_truth:                  matrix containing estimated relevance scores serving as the ground truth preference
-    :hyperparameter_configurions:   dictionary containing the hyperparameter spaces i.e. all possible hyperparameter combinations for grid search
-    :algorithm:                     which algorithm to use for low-rank matrix completiong either SVD or ALS
-    :split:                         specifies the ratio in which the train/validation/test split should be applied
-    :returns:                       all models found during grid search indexed by <latent_factor> with corresponding validation performance in terms of precision
-                                    {<latent_factor>: 
-                                        {<precision>: 
-                                            {"i_params": <index hyperparams config>, 
-                                            "params": <hyperparams config>, 
-                                            "p_val": <validation precision>, 
-                                            "model": <model>}
-                                        }
-                                    }
-                                    for each model
+    Inputs:
+        ground_truth                        - matrix containing estimated relevance scores serving as the ground truth preference
+        hyperparameter_configurions         - dictionary containing the hyperparameter spaces i.e. all possible hyperparameter combinations for grid search
+        algorithm                           - which algorithm to use to construct the recommender model either SVD or ALS
+        split                               - specifies the fractions in which the train/validation/test split should be applied
+    Outputs:
+        dictionary                          - all models found during grid search indexed by <latent_factor> with corresponding validation performance
+                                                {<latent_factor>: 
+                                                    {<performance>: 
+                                                        {"i_params": <index hyperparams config>, 
+                                                        "params": <hyperparams config>, 
+                                                        "performance": <performance>, 
+                                                        "model": <model>}
+                                                    }
+                                                }
+                                                for each model
     """
     R_coo = sparse.coo_matrix(ground_truth)
     R_min, R_max = R_coo.min(), R_coo.max()
     print(R_min, R_max)
-    # exit()
 
     # Create keys from <latent_factors>
-    df_hp = pd.DataFrame.from_dict(hyperparameter_configurations)
-    keys = np.array(df_hp.loc["latent_factor"].drop_duplicates())
+    df_params = pd.DataFrame.from_dict(hyperparameter_configurations)
+    keys = np.array(df_params.loc["latent_factor"].drop_duplicates())
 
     # Data struct containing models in the form:
-    # {<latent_factor>: {<precision>: {"i_params": <index hyperparams config>, "params": <hyperparams config>, "p_val": <validation precision>, "model": <model>}}}
+    # {<latent_factor>: {<performance>: {"i_params": <index hyperparams config>, "params": <hyperparams config>, "performance": <performance>, "model": <model>}}}
     # for each latent factor
     models = {key: {} for key in keys}
 
-    # FunkySVD 
+    # Funky SVD 
     if algorithm == "svd":
         row, col = ground_truth.shape
         values = ground_truth.flatten()
         u_id = np.repeat(np.arange(0, row), col)
         i_id = np.tile(np.arange(0, col), row)
 
-        # Create whole user-item data frame
+        # Create whole user-item relevance scores data frame
         df = pd.DataFrame({"u_id": u_id, "i_id": i_id, "rating": values})
  
         # Create data splits
@@ -160,9 +193,9 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
         validation = df.drop(train.index.tolist()).sample(frac=validation_size)
         test = df.drop(train.index.tolist()).drop(validation.index.tolist())
 
-        print(train.shape)
-        print(validation.shape)
-        print(test.shape)
+        # print(train.shape)
+        # print(validation.shape)
+        # print(test.shape)
         
         # Drop such that we compute latent factors only using the values we know
         train = train.drop(train[train.rating < 0].index)
