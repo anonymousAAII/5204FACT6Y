@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import numpy.ma as ma
 from os import path
 import matplotlib.pyplot as plt
 import time
@@ -8,6 +9,7 @@ import multiprocessing as mp
 from funk_svd.dataset import fetch_ml_ratings
 from funk_svd import SVD
 from sklearn.metrics import ndcg_score, dcg_score, mean_absolute_error, mean_squared_error
+from sklearn.preprocessing import MinMaxScaler
 
 # 1st party imports
 from lib import io
@@ -23,13 +25,28 @@ def preferences_to_policies(latent_factor, model, ground_truth, algorithm):
     return {"latent_factor": latent_factor, "recommendation_policies": {"preferences": preference_estimates, "recommendations": recommendation_policies["recommendations"], "policies": recommendation_policies["policies"]}}
 
 if __name__ == "__main__":
+
+    # test = np.array([[1,2,-5],
+    #                 [-1,7,1],
+    #                 [0,-10,2]])
+
+    # pos = test * (test > 0)
+    # neg = test * (test < 0)
+
+    # print(pos)
+    # print(neg)
+    # print(pos + neg) 
+    # exit()
+
+    # # exit()
     # To save the experiment results
     experiment_results = {k: {} for k in constant.EXPERIMENT_RUN_OPTIONS.keys() if k not in {"all"}}
 
-    print("**Please specify which experiments to run**")
+    # To select experiments
+    print("**EXPERIMENTS: Please specify which experiments to run**")
     experiment_choice = pyip.inputMenu(list(constant.EXPERIMENT_RUN_OPTIONS.keys()))
 
-    # Data sets to perform experiments on
+    # Data sets on which the experiments can be performed
     data_sets = {"all": {"name": "all"},
                 "movie": {"name": "mv",
                         "filename": "user_movie.py",
@@ -53,22 +70,24 @@ if __name__ == "__main__":
                     },
                 }
 
-    print("**Please specify for which (recommender system) data set**")
+    # Select data set(s)
+    print("**DATA SETS: Please specify for which (recommender system) data set**")
     data_set_choice = pyip.inputMenu(list(data_sets.keys()))
 
-    print("**Which <performance metric>@K would you like for the ground truth generating?***")
+    # For the ground truth model
+    print("**GROUND TRUTH: Which <performance metric>@K would you like for the ground truth generating?***")
     constant.PERFORMANCE_METRIC = pyip.inputMenu(list(constant.PERFORMANCE_METRIC_VARS["ground truth"].keys()))
     # print("{}@{}".format(constant.PERFORMANCE_METRIC, constant.PERFORMANCE_METRIC_VARS[constant.PERFORMANCE_METRIC]["K"]))
     
-    print("**Which algorithm would you like for the recommender system to use to estimate user preferences?**")
+    # For recommender system
+    print("**RECOMMENDER SYSTEM: Which algorithm would you like for the recommender system to use to estimate user preferences?**")
     ALGORITHM_CHOICE = pyip.inputMenu(list(constant.ALGORITHM.keys()))
     ALGORITHM_CHOICE = constant.ALGORITHM[ALGORITHM_CHOICE]
 
-    print("**With which <performance metric>@K would you like the recommender system to be trained, validated and selected?***")
-
-    # Special case since FunkySVD is in progress
-    constant.PERFORMANCE_METRIC_SVD = pyip.inputMenu(list(constant.PERFORMANCE_METRIC_VARS["recommender system"][ALGORITHM_CHOICE].keys()))
-    print("{}@{}".format(constant.PERFORMANCE_METRIC_SVD, constant.PERFORMANCE_METRIC_VARS["recommender system"][ALGORITHM_CHOICE][constant.PERFORMANCE_METRIC_SVD]["K"]))
+    # For recommender system
+    print("**RECOMMENDER SYSTEM: With which <performance metric>@K would you like for the recommender system?***")
+    constant.PERFORMANCE_METRIC_REC = pyip.inputMenu(list(constant.PERFORMANCE_METRIC_VARS["recommender system"][ALGORITHM_CHOICE].keys()))
+    print("{}@{}".format(constant.PERFORMANCE_METRIC_REC, constant.PERFORMANCE_METRIC_VARS["recommender system"][ALGORITHM_CHOICE][constant.PERFORMANCE_METRIC_REC]["K"]))
 
     # To save figures/plots
     for data_set in data_sets.values():
@@ -101,7 +120,7 @@ if __name__ == "__main__":
             IO_INFIX = constant.VAR_SUB_FOLDER["movie"]
             VAR_EXT = constant.VAR_EXT["movie"]
 
-        # Possibility for different recommender model algorithms   
+        # Possibility for saving different recommender model algorithms   
         if not path.exists(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE.upper() + "/"):
             print("Creating variables directory for {} recommender model...".format(ALGORITHM_CHOICE.upper()))
             os.mkdir(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE.upper() + "/")
@@ -120,6 +139,24 @@ if __name__ == "__main__":
             ground_truth = ground_truth_mv
 
         data_set["vars"]["ground_truth"] = ground_truth
+
+        min_max_scaling = True
+
+        # Normalize to range [0, 1]
+        if min_max_scaling: 
+            # Leave out negative values for scaling
+            pos_values = ground_truth * (ground_truth >= 0)
+            neg_values = ground_truth * (ground_truth < 0)
+
+            # scale features
+            scaler = MinMaxScaler()
+            model = scaler.fit(pos_values)
+            ground_truth_norm = model.transform(pos_values)
+
+            # Put back negative values. TO DO ONLY FOR ALS?     
+            ground_truth = ground_truth + neg_values
+
+        # exit()
 
         IO_INFIX = IO_INFIX + ALGORITHM_CHOICE + "/"
 

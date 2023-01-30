@@ -25,8 +25,10 @@ PERFORMANCE_METRIC_VARS = {"ground truth": {
                                                 }
                         }
                         
+# Default performance metric for the ground truth model
 PERFORMANCE_METRIC = None
-PERFORMANCE_METRIC_SVD = None
+# Performance metric for the recommender system
+PERFORMANCE_METRIC_REC = None
 
 # Folder to save time performances
 TIMING_FOLDER = "results/execution times/"

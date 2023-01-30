@@ -25,11 +25,11 @@ from lib import istarmap
 from lib import helper
 import constant
 
-def train_SVD_model(hyperparameter_configurations, batch, train, validation, test, min_rating, max_rating, normalize=True):
+def train_SVD_model(hyperparameter_configurations, batch, train, validation, test, performance_metric, min_rating, max_rating, normalize=True):
     results = {}
     
     print("Processing batch {}...SVD".format((batch + 1)))
-    K = constant.PERFORMANCE_METRIC_VARS["recommender system"]["svd"][constant.PERFORMANCE_METRIC_SVD]["K"]
+    K = constant.PERFORMANCE_METRIC_VARS["recommender system"]["svd"][performance_metric]["K"]
     
     # # Normalize between range [1, 5] for Funky SVD to work
     # if normalize == True:
@@ -65,7 +65,7 @@ def train_SVD_model(hyperparameter_configurations, batch, train, validation, tes
         ndcg = np.array([])
 
         for (y1, y2) in zip(y_true_per_user, y_pred_per_user):
-            if constant.PERFORMANCE_METRIC_SVD == "ndcg":
+            if performance_metric == "ndcg":
                 ndcg = np.append(ndcg, ndcg_score(np.asarray([y1]), np.asarray([y2]), k=K))
                 # ndcg = ndcg_score(np.asarray([y1]), np.asarray([y2]), k=K)
             else:
@@ -76,7 +76,7 @@ def train_SVD_model(hyperparameter_configurations, batch, train, validation, tes
 
         results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": svd, "params": params}} 
         
-        print("Batch {}: {}@{} {}".format((batch + 1), constant.PERFORMANCE_METRIC_SVD, K, ndcg))
+        print("Batch {}: {}@{} {}".format((batch + 1), performance_metric, K, ndcg))
 
     return results
 
@@ -104,7 +104,7 @@ def train_ALS_model(hyperparameter_configurations, batch, train, validation, per
         else:
             ndcg = AUC_at_k(model, train, validation, K=K, show_progress=False)
         
-        print("Batch {}: {}@{}".format((batch + 1), performance_metric, K, ndcg))
+        print("Batch {}: {}@{} {}".format((batch + 1), performance_metric, K, ndcg))
 
         results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": model, "params": params}} 
 
@@ -183,7 +183,7 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
             # Create and configure the process pool
             with mp.Pool(mp.cpu_count()) as pool:
                 # Prepare arguments
-                items = [(batch, i, train, validation, test, 0, R_max) for i, batch in configurations_batches.items()]
+                items = [(batch, i, train, validation, test, constant.PERFORMANCE_METRIC_REC, 0, R_max) for i, batch in configurations_batches.items()]
                 # Execute tasks and process results in order
                 for result in pool.starmap(train_SVD_model, items):
                     print(f'GOT RESULT: {result}', flush=True)
@@ -195,7 +195,7 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
             print("Generating recommender preference estimation models...SEQUENTIAL")
             print("Processing batch {}...".format(1))
             
-            result = train_SVD_model(list(hyperparameter_configurations.values()), 1, min_score, max_score, train, validation, test)
+            result = train_SVD_model(list(hyperparameter_configurations.values()), train, validation, test, constant.PERFORMANCE_METRIC_REC, 0, R_max)
             print(result)
             for train_result in result.values():
                 models[train_result["latent_factor"]][train_result["result"]["ndcg"]] = train_result["result"] 
@@ -214,7 +214,7 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
             # Create and configure the process pool
             with mp.Pool(mp.cpu_count()) as pool:
                 # Prepare arguments
-                items = [(batch, i, train, validation, constant.PERFORMANCE_METRIC) for i, batch in configurations_batches.items()]
+                items = [(batch, i, train, validation, constant.PERFORMANCE_METRIC_REC) for i, batch in configurations_batches.items()]
                 # Execute tasks and process results in order
                 for result in tqdm(pool.istarmap(train_ALS_model, items), total=len(items)):
                     for train_result in result.values():
@@ -224,7 +224,7 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
             print("Generating recommender preference estimation models...SEQUENTIAL")
             print("Processing batch {}...".format(1))
 
-            result = train_ALS_model(list(hyperparameter_configurations.values()), 1, train, validation, constant.PERFORMANCE_METRIC)
+            result = train_ALS_model(list(hyperparameter_configurations.values()), 1, train, validation, constant.PERFORMANCE_METRIC_REC)
             for train_result in result.values():
                 models[train_result["latent_factor"]][train_result["result"]["ndcg"]] = train_result["result"] 
                 
@@ -315,7 +315,7 @@ def create_recommendation_policies(preference_estimates, temperature=1/5):
     recommendation = np.apply_along_axis(select_policy, 1, policies, indices)
     return {"recommendations": recommendation, "policies": policies}
 
-def create_rewards(ground_truth, normalize=True):
+def create_rewards(ground_truth, normalize=False):
     """
     Generates the rewards by a Bernoulli distribution per item and the expectation of the Bernoulli distribution
 

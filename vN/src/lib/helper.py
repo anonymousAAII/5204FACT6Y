@@ -78,3 +78,22 @@ def get_current_datetime():
     now = datetime.now()
     # dd/mm/YY H:M:S
     return now.strftime("%d/%m/%Y %H:%M:%S")
+
+def normalize_matrix(matrix):
+    def x_norm(x, x_min, x_max):
+        # RuntimeWarning: invalid value encountered in divide
+        # Handles division by zero since row is zero
+        if((x_max - x_min) == 0):
+            return 0
+        return (x - x_min) / (x_max - x_min)
+
+    normalize_x = np.vectorize(x_norm)
+    
+    # Given a row of values normalize each value
+    def normalize(row):
+        x_min, x_max = np.amin(row), np.amax(row)
+        return normalize_x(row, x_min, x_max)
+
+    # Normalize matrix
+    return np.apply_along_axis(normalize, 1, matrix)
+
