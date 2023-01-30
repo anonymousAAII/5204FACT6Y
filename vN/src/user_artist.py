@@ -45,10 +45,11 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
     train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7)
     validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3)
 
-    # # For retrieving original state of the data sets
-    # train_tmp = train.copy()
-    # validation_tmp = validation.copy()
-    # test_tmp = test.copy()    
+    if built_in_LMF:
+        # For retrieving original state of the data sets
+        train_tmp = train.copy()
+        validation_tmp = validation.copy()
+        test_tmp = test.copy()    
 
     # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
     performance_per_configuration = {}
@@ -66,12 +67,12 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
         # Initialize model
         if built_in_LMF:
             print("Logistic Matrix Factorization (LMF)...")
-            # Notice you can't specify the confidence weighing parameter alpha here so it is applied below
+            # Notice you can't specify the confidence weighing parameter alpha here so it is applied to the data sets below
             model = LogisticMatrixFactorization(factors=hyperparameters["latent_factor"], 
                                                 regularization=hyperparameters["reg"])
-            # train = hyperparameters["alpha"] * train_tmp
-            # validation = hyperparameters["alpha"] * validation_tmp
-            # test = hyperparameters["alpha"] * test_tmp
+            train = hyperparameters["alpha"] * train_tmp
+            validation = hyperparameters["alpha"] * validation_tmp
+            test = hyperparameters["alpha"] * test_tmp
         else:
             print("Alternating Least Squares (ALS)...")
             model = AlternatingLeastSquares(factors=hyperparameters["latent_factor"], 
@@ -92,7 +93,7 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
             ndcg = AUC_at_k(model, train, validation, K=K)
             # ndcg = AUC_at_k(model, train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), validation.multiply(hyperparameters["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
         
-        print("Seed {}: {}@{}".format((seed + 1), K, ndcg))
+        print("Seed {}: {}@{} {}".format((seed + 1), performance_metric, K, ndcg))
 
         # When current model outperforms previous one update tracking states
         if ndcg > ndcg_base:
@@ -196,7 +197,7 @@ if __name__ == "__main__":
         confidence_weighting = [0.1, 1.0, 10.0, 100.0]
         
         # Get model's hyperparameters to be tuned 
-        configurations = helper.generate_hyperparameter_configurations(regularization, confidence_weighting, latent_factors)
+        configurations = helper.generate_hyperparameter_configurations(regularization, latent_factors, confidence_weighting)
 
         # Cross-validation
         print("Training for", num_random_seeds, "models...MULTIPROCESSING")

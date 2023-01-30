@@ -29,7 +29,7 @@ from lib import helper
 from lib import io
 import constant
 
-def train_model(R_coo, configurations, seed, performance_metric="ndcg"):
+def train_model(R_coo, configurations, seed, performance_metric):
     """
     For a random seed trains a model on a sparse matrix for all given hyperparameter combinations.
 
@@ -44,6 +44,7 @@ def train_model(R_coo, configurations, seed, performance_metric="ndcg"):
     # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
     performance_per_configuration = {}
 
+    K = constant.PERFORMANCE_METRIC_VARS["ground truth"][performance_metric]["K"]
     ndcg_base = 0
     model_best = None
 
@@ -61,13 +62,13 @@ def train_model(R_coo, configurations, seed, performance_metric="ndcg"):
 
         # Benchmark model performance using validation set
         if performance_metric == "ndcg":
-            ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            ndcg = ndcg_at_k(model, train, validation, K=K, show_progress=False)
         elif performance_metric == "precision":
-            ndcg = precision_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            ndcg = precision_at_k(model, train, validation, K=K, show_progress=False)
         else:
-            ndcg = AUC_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            ndcg = AUC_at_k(model, train, validation, K=K, show_progress=False)
         
-        print("Seed {}: {}@{}".format((seed + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"]), ndcg)
+        print("Seed {}: {}@{} {}".format((seed + 1), performance_metric, K, ndcg))
 
         # When current model outperforms previous one update tracking states
         if ndcg > ndcg_base:
@@ -82,11 +83,11 @@ def train_model(R_coo, configurations, seed, performance_metric="ndcg"):
 
     # Evaluate TRUE performance of best model on test set for model selection later on
     if performance_metric == "ndcg":
-        ndcg_test = ndcg_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS["ndcg"]["K"], show_progress=False)  
+        ndcg_test = ndcg_at_k(model_best, train, test, K=K, show_progress=False)  
     elif performance_metric == "precision":
-        ndcg_test = precision_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS["precision"]["K"], show_progress=False)  
+        ndcg_test = precision_at_k(model_best, train, test, K=K, show_progress=False)  
     else:
-        ndcg_test = AUC_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS["auc"]["K"], show_progress=False)  
+        ndcg_test = AUC_at_k(model_best, train, test, K=K, show_progress=False)  
 
     return [ndcg_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "ndcg_test": ndcg_test}]
 
@@ -202,7 +203,7 @@ if __name__ == "__main__":
         confidence_weighting = [0.1, 1.0, 10.0, 100.0]
         
         # Get model's hyperparameters to be tuned 
-        configurations = helper.generate_hyperparameter_configurations(regularization, confidence_weighting, latent_factors)
+        configurations = helper.generate_hyperparameter_configurations(regularization, latent_factors, confidence_weighting)
 
         # Cross-validation
         print("Training for", num_random_seeds, "models...MULTIPROCESSING")

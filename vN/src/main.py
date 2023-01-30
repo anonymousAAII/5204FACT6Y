@@ -161,6 +161,7 @@ if __name__ == "__main__":
 
         # Normalize to range [0, 1]
         if min_max_scaling: 
+            print("Min-max scaling ground truth relevance scores...")
             # Indices masks of negative and positive values
             pos_mask = ground_truth >= 0
             neg_mask = ground_truth < 0
@@ -175,7 +176,6 @@ if __name__ == "__main__":
             # Add back original negative values for Implicit ALS model algorithm
             ground_truth = (neg_mask * ground_truth) + tmp_gt
 
-        # exit()
 
         IO_INFIX = IO_INFIX + ALGORITHM_CHOICE + "/"
 

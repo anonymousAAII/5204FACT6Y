@@ -14,15 +14,13 @@ ALGORITHM = {"SVD": "svd", "ALS": "als"}
 # Possible performance metrics to construct the ground truth and recommender model
 PERFORMANCE_METRIC_VARS = {"ground truth": {
                                         "ndcg": {"K": 40},
-                                        "precision": {"K": 40},
-                                        "auc": {"K": 40}
+                                        "precision": {"K": 40}
                                         },
                         "recommender system": {
                                                 "svd": {"ndcg": {"K": 40},
                                                         "dcg": {"K": 40}},
                                                 "als": {"ndcg": {"K": 40},
-                                                        "precision": {"K": 40},
-                                                        "auc": {"K": 40}}
+                                                        "precision": {"K": 40}}
                                                 }
                         }
                         
