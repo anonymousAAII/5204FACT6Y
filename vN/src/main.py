@@ -23,35 +23,6 @@ def preferences_to_policies(latent_factor, model, ground_truth, algorithm):
     return {"latent_factor": latent_factor, "recommendation_policies": {"preferences": preference_estimates, "recommendations": recommendation_policies["recommendations"], "policies": recommendation_policies["policies"]}}
 
 if __name__ == "__main__":
-    
-    # true_relevance = np.asarray([[10, 0, 0, 1, 5]])
-    # # we predict scores for the answers
-    # scores = np.asarray([[.1, .2, .3, 4, 70]])
-    # print(dcg_score(true_relevance, scores))
-    # exit()
-
-    # df = fetch_ml_ratings(variant='100k')
-    # print(df)
-    # train = df.sample(frac=0.8, random_state=7)
-    # val = df.drop(train.index.tolist()).sample(frac=0.5, random_state=8)
-    # test = df.drop(train.index.tolist()).drop(val.index.tolist())
-
-    # svd = SVD(lr=0.001, reg=0.005, n_epochs=100, n_factors=15,
-    #           early_stopping=True, shuffle=False, min_rating=1, max_rating=5)
-
-    # svd.fit(X=train, X_val=val)
-
-    # pred = svd.predict(test)
-    # mae = mean_absolute_error(test['rating'], pred)
-
-    # print(test)
-    # # print(test.index.tolist())
-    # # print(test.shape)
-    # # users = test["u_id"].unique()
-    # # items = test["i_id"].unique()
-    # print(len(pred))
-    
-    # exit()
     # To save the experiment results
     experiment_results = {k: {} for k in constant.EXPERIMENT_RUN_OPTIONS.keys() if k not in {"all"}}
 

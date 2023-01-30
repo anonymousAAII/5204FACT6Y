@@ -25,24 +25,26 @@ from lib import istarmap
 from lib import helper
 import constant
 
-def train_SVD_model(hyperparameter_configurations, batch, train, validation, test, min_rating=1, max_rating=5, normalize=True):
+def train_SVD_model(hyperparameter_configurations, batch, train, validation, test, min_rating, max_rating, normalize=True):
     results = {}
     
     print("Processing batch {}...SVD".format((batch + 1)))
     K = constant.PERFORMANCE_METRIC_VARS["recommender system"]["svd"][constant.PERFORMANCE_METRIC_SVD]["K"]
     
-    # Normalize between range [1, 5] for Funky SVD to work
-    if normalize == True:
-        min_value = min(min(train["rating"].min(), validation["rating"].min()), test["rating"].min()) 
-        max_value = max(max(train["rating"].max(), validation["rating"].max()), test["rating"].max())
+    # # Normalize between range [1, 5] for Funky SVD to work
+    # if normalize == True:
+    #     min_value = min(min(train["rating"].min(), validation["rating"].min()), test["rating"].min()) 
+    #     max_value = max(max(train["rating"].max(), validation["rating"].max()), test["rating"].max())
 
-        train["rating"] = min_rating + (((train["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
-        validation["rating"] = min_rating + (((validation["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
-        test["rating"] = min_rating + (((test["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
+    #     train["rating"] = min_rating + (((train["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
+    #     validation["rating"] = min_rating + (((validation["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
+    #     test["rating"] = min_rating + (((test["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
     
-    num_entries, _ = test.shape
-    num_items = len(test["i_id"].unique())
-   
+    test = test.sort_values(by=["u_id"], ascending=True)
+    test["rating_count"] = np.full(len(test), 1)
+    test_rating_count = helper.merge_duplicates(test, "u_id", "rating_count")
+    rating_count_per_user = np.array(test_rating_count["rating_count"])
+
     # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995) using SVD
     for i, params in enumerate(hyperparameter_configurations):
         svd = SVD(lr=0.001, reg=params["reg"], n_epochs=100, n_factors=params["latent_factor"], early_stopping=True, shuffle=False, min_rating=min_rating, max_rating=max_rating)
@@ -50,23 +52,28 @@ def train_SVD_model(hyperparameter_configurations, batch, train, validation, tes
         svd.fit(X=train, X_val=validation)
         pred = svd.predict(test)
 
-        test["pred"] = pred
- 
-        num_users = num_entries / num_items
-        shape = (int(num_users), int(num_items))
+        y_true = np.array(test["rating"])
+        y_pred = np.array(pred)
+    
+        y_true_per_user = np.split(y_true, np.cumsum(rating_count_per_user))
+        y_pred_per_user = np.split(y_pred, np.cumsum(rating_count_per_user))
 
-        y_true = np.reshape(np.array(test["rating"]), shape)
-        y_score = np.reshape(np.array(test["pred"]), shape)
-            
-        print(y_true)
-        print(y_score)
+        # Last element of split function is empty list so remove
+        y_pred_per_user.pop()
+        y_true_per_user.pop()
+        
+        ndcg = np.array([])
 
-        # exit()
+        for (y1, y2) in zip(y_true_per_user, y_pred_per_user):
+            if constant.PERFORMANCE_METRIC_SVD == "ndcg":
+                ndcg = np.append(ndcg, ndcg_score(np.asarray([y1]), np.asarray([y2]), k=K))
+                # ndcg = ndcg_score(np.asarray([y1]), np.asarray([y2]), k=K)
+            else:
+                ndcg = np.append(ndcg, dcg_score(np.asarray([y1]), np.asarray([y2]), k=K))
+                # ndcg = dcg_score(np.asarray([y1]), np.asarray([y2]), k=K)
+        
+        ndcg = np.mean(ndcg)
 
-        if constant.PERFORMANCE_METRIC_SVD == "ndcg":
-            ndcg = ndcg_score(np.asarray(y_true), np.asarray(y_score), k=K)
-        else:
-            ndcg = dcg_score(np.asarray(y_true), np.asarray(y_score), k=K)
         results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": svd, "params": params}} 
         
         print("Batch {}: {}@{} {}".format((batch + 1), constant.PERFORMANCE_METRIC_SVD, K, ndcg))
@@ -124,7 +131,10 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
                                     for each model
     """
     R_coo = sparse.coo_matrix(ground_truth)
-    
+    R_min, R_max = R_coo.min(), R_coo.max()
+    print(R_min, R_max)
+    # exit()
+
     # Create keys from <latent_factors>
     df_hp = pd.DataFrame.from_dict(hyperparameter_configurations)
     keys = np.array(df_hp.loc["latent_factor"].drop_duplicates())
@@ -143,7 +153,7 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
 
         # Create whole user-item data frame
         df = pd.DataFrame({"u_id": u_id, "i_id": i_id, "rating": values})
-   
+ 
         # Create data splits
         train = df.sample(frac=split["train"])
         validation_size = split["validation"] / (1 - split["train"])
@@ -153,6 +163,16 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
         print(train.shape)
         print(validation.shape)
         print(test.shape)
+        
+        # Drop such that we compute latent factors only using the values we know
+        train = train.drop(train[train.rating < 0].index)
+        validation = validation.drop(validation[validation.rating < 0].index)
+        test = test.drop(test[test.rating < 0].index)
+        
+        # # Set to zero such that we compute latent factors only using the values we know
+        # train["rating"].mask(train["rating"] < 0 , 0, inplace=True)
+        # validation["rating"].mask(validation["rating"] < 0 , 0, inplace=True)
+        # test["rating"].mask(test["rating"] < 0 , 0, inplace=True)
 
         # Multiprocessing: assign a batch of models to a processor
         if multiprocessing:
@@ -163,7 +183,7 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
             # Create and configure the process pool
             with mp.Pool(mp.cpu_count()) as pool:
                 # Prepare arguments
-                items = [(batch, i, train, validation, test) for i, batch in configurations_batches.items()]
+                items = [(batch, i, train, validation, test, 0, R_max) for i, batch in configurations_batches.items()]
                 # Execute tasks and process results in order
                 for result in pool.starmap(train_SVD_model, items):
                     print(f'GOT RESULT: {result}', flush=True)
@@ -250,11 +270,10 @@ def recommendation_estimation(recommendation_est_system_model, ground_truth, alg
     
     if algorithm == "svd":
         row, col = ground_truth.shape
-        values = ground_truth.flatten()
         u_id = np.repeat(np.arange(0, row), col)
         i_id = np.tile(np.arange(0, col), row)
         
-        df = pd.DataFrame({"u_id": u_id, "i_id": i_id, "rating": values})
+        df = pd.DataFrame({"u_id": u_id, "i_id": i_id})
         
         # Calculate estimated preference scores
         pred = recommendation_est_system_model.predict(df)
