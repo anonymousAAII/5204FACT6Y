@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import time
 import pyinputplus as pyip
 import multiprocessing as mp
+from funk_svd.dataset import fetch_ml_ratings
+from funk_svd import SVD
+from sklearn.metrics import ndcg_score, dcg_score, mean_absolute_error, mean_squared_error
 
 # 1st party imports
 from lib import io
@@ -20,6 +23,35 @@ def preferences_to_policies(latent_factor, model, ground_truth, algorithm):
     return {"latent_factor": latent_factor, "recommendation_policies": {"preferences": preference_estimates, "recommendations": recommendation_policies["recommendations"], "policies": recommendation_policies["policies"]}}
 
 if __name__ == "__main__":
+    
+    # true_relevance = np.asarray([[10, 0, 0, 1, 5]])
+    # # we predict scores for the answers
+    # scores = np.asarray([[.1, .2, .3, 4, 70]])
+    # print(dcg_score(true_relevance, scores))
+    # exit()
+
+    # df = fetch_ml_ratings(variant='100k')
+    # print(df)
+    # train = df.sample(frac=0.8, random_state=7)
+    # val = df.drop(train.index.tolist()).sample(frac=0.5, random_state=8)
+    # test = df.drop(train.index.tolist()).drop(val.index.tolist())
+
+    # svd = SVD(lr=0.001, reg=0.005, n_epochs=100, n_factors=15,
+    #           early_stopping=True, shuffle=False, min_rating=1, max_rating=5)
+
+    # svd.fit(X=train, X_val=val)
+
+    # pred = svd.predict(test)
+    # mae = mean_absolute_error(test['rating'], pred)
+
+    # print(test)
+    # # print(test.index.tolist())
+    # # print(test.shape)
+    # # users = test["u_id"].unique()
+    # # items = test["i_id"].unique()
+    # print(len(pred))
+    
+    # exit()
     # To save the experiment results
     experiment_results = {k: {} for k in constant.EXPERIMENT_RUN_OPTIONS.keys() if k not in {"all"}}
 
@@ -52,13 +84,20 @@ if __name__ == "__main__":
 
     print("**Please specify for which (recommender system) data set**")
     data_set_choice = pyip.inputMenu(list(data_sets.keys()))
+
+    print("**Which <performance metric>@K would you like for the ground truth generating?***")
+    constant.PERFORMANCE_METRIC = pyip.inputMenu(list(constant.PERFORMANCE_METRIC_VARS["ground truth"].keys()))
+    # print("{}@{}".format(constant.PERFORMANCE_METRIC, constant.PERFORMANCE_METRIC_VARS[constant.PERFORMANCE_METRIC]["K"]))
     
-    print("**Which algorithm would you like the recommender system to use to estimate user preferences?**")
-    ALGORITHM_CHOICE = pyip.inputMenu(constant.ALGORITHM)
+    print("**Which algorithm would you like for the recommender system to use to estimate user preferences?**")
+    ALGORITHM_CHOICE = pyip.inputMenu(list(constant.ALGORITHM.keys()))
+    ALGORITHM_CHOICE = constant.ALGORITHM[ALGORITHM_CHOICE]
 
     print("**With which <performance metric>@K would you like the recommender system to be trained, validated and selected?***")
-    constant.PERFORMANCE_METRIC = pyip.inputMenu(list(constant.PERFORMANCE_METRIC_VARS.keys()))
-    print("{}@{}".format(constant.PERFORMANCE_METRIC, constant.PERFORMANCE_METRIC_VARS[constant.PERFORMANCE_METRIC]["K"]))
+
+    # Special case since FunkySVD is in progress
+    constant.PERFORMANCE_METRIC_SVD = pyip.inputMenu(list(constant.PERFORMANCE_METRIC_VARS["recommender system"][ALGORITHM_CHOICE].keys()))
+    print("{}@{}".format(constant.PERFORMANCE_METRIC_SVD, constant.PERFORMANCE_METRIC_VARS["recommender system"][ALGORITHM_CHOICE][constant.PERFORMANCE_METRIC_SVD]["K"]))
 
     # To save figures/plots
     for data_set in data_sets.values():
@@ -92,9 +131,9 @@ if __name__ == "__main__":
             VAR_EXT = constant.VAR_EXT["movie"]
 
         # Possibility for different recommender model algorithms   
-        if not path.exists(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE + "/"):
-            print("Creating variables directory for {} recommender model...".format(ALGORITHM_CHOICE))
-            os.mkdir(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE + "/")
+        if not path.exists(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE.upper() + "/"):
+            print("Creating variables directory for {} recommender model...".format(ALGORITHM_CHOICE.upper()))
+            os.mkdir(constant.VARIABLES_FOLDER + IO_INFIX + ALGORITHM_CHOICE.upper() + "/")
 
         # Generate ground truth of user-item preferences
         exec(compile(open(data_set["filename"], "rb").read(), data_set["filename"], "exec"))
@@ -123,9 +162,9 @@ if __name__ == "__main__":
         # Hyperparameter spaces
         latent_factors = [0, 1, 2, 4, 8, 16, 32, 64, 128, 256]
         regularization = [0.001, 0.01, 0.1, 1.0]
-        confidence_weighting = [0.1, 1.0, 10.0, 100.0]
-        
-        configurations = helper.generate_hyperparameter_configurations(regularization, confidence_weighting, latent_factors)
+        confidence_weighting = [0.1, 1.0, 10.0, 100.0] if ALGORITHM_CHOICE != "svd" else None
+                
+        configurations = helper.generate_hyperparameter_configurations(regularization, latent_factors, confidence_weighting)
 
         # Generate models to simulate a recommender system's preference estimation
         recommendation_system_est_models_file = "recommendation_system_est_models" 

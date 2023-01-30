@@ -8,13 +8,25 @@ EXPERIMENT_RUN_OPTIONS = {"all": {"id": "all"},
                                 "experiment_dir": "5.1/"}}
 
 # Algorithm of recommender system's preference estimates
-ALGORITHM = ["SVD", "ALS"]
+ALGORITHM = {"SVD": "svd", "ALS": "als"}
 
 # Parameter values for the performance metrics
-PERFORMANCE_METRIC_VARS = {"ndcg": {"K": 40},
-                        "precision": {"K": 40},
-                        "auc": {"K": 40}}
+PERFORMANCE_METRIC_VARS = {"ground truth": {
+                                        "ndcg": {"K": 40},
+                                        "precision": {"K": 40},
+                                        "auc": {"K": 40}
+                                        },
+                        "recommender system": {
+                                                "svd": {"ndcg": {"K": 40},
+                                                        "dcg": {"K": 40}},
+                                                "als": {"ndcg": {"K": 40},
+                                                        "precision": {"K": 40},
+                                                        "auc": {"K": 40}}
+                                                }
+                        }
+                        
 PERFORMANCE_METRIC = None
+PERFORMANCE_METRIC_SVD = None
 
 # Folder to save time performances
 TIMING_FOLDER = "results/execution times/"

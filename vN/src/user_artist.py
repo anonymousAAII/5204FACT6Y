@@ -54,6 +54,7 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
     # To safe performance per hyperparameter combination as {<precision>: <hyperparameter_id>}
     performance_per_configuration = {}
 
+    K = constant.PERFORMANCE_METRIC_VARS["ground truth"][performance_metric]["K"]
     ndcg_base = 0
     model_best = None
 
@@ -84,15 +85,15 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
 
         # Benchmark model performance using validation set
         if performance_metric == "ndcg":
-            ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            ndcg = ndcg_at_k(model, train, validation, K=K, show_progress=False)
             # ndcg = ndcg_at_k(model, train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), validation.multiply(hyperparameters["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
         elif performance_metric == "precision":
-            ndcg = precision_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            ndcg = precision_at_k(model, train, validation, K=K)
         else:
-            ndcg = AUC_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            ndcg = AUC_at_k(model, train, validation, K=K)
             # ndcg = AUC_at_k(model, train.multiply(hyperparameters["alpha"] if built_in_LMF else 1), validation.multiply(hyperparameters["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)
         
-        print("Seed {}: {}@{}".format((seed + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"]), ndcg)
+        print("Seed {}: {}@{}".format((seed + 1), K, ndcg))
 
         # When current model outperforms previous one update tracking states
         if ndcg > ndcg_base:
@@ -107,12 +108,12 @@ def train_model(R_coo, configurations, seed, built_in_LMF, performance_metric):
 
     # Evaluate TRUE performance of best model on test set for model selection later on
     if performance_metric == "ndcg":
-        ndcg_test = ndcg_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)  
+        ndcg_test = ndcg_at_k(model_best, train, test, K=K, show_progress=False)  
         # ndcg_test = ndcg_at_k(model_best, train.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), test.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)  
     elif performance_metric == "precision":
-        ndcg_test = precision_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)  
+        ndcg_test = precision_at_k(model_best, train, test, K=K, show_progress=False)  
     else:
-        ndcg_test = AUC_at_k(model_best, train, test, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)  
+        ndcg_test = AUC_at_k(model_best, train, test, K=K, show_progress=False)  
         # ndcg_test = AUC_at_k(model_best, train.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), test.multiply(hyperparams_optimal["alpha"] if built_in_LMF else 1), K=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"], show_progress=False)  
 
     return [ndcg_test, {"seed": seed, "model": model_best, "hyperparameters": hyperparams_optimal, "ndcg_test": ndcg_test}]

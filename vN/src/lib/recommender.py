@@ -16,66 +16,68 @@ from tqdm import tqdm
 import multiprocessing as mp
 import time
 import sys
-
+from funk_svd.dataset import fetch_ml_ratings
 from funk_svd import SVD
-from sklearn.metrics import ndcg_score
+from sklearn.metrics import ndcg_score, dcg_score, mean_absolute_error, mean_squared_error
 
 # 1st party imports
 from lib import istarmap
 from lib import helper
 import constant
 
-def train_SVD_model(hyperparameter_configurations, batch, min_rating, max_rating, train, validation, test, normalize=True):
+def train_SVD_model(hyperparameter_configurations, batch, train, validation, test, min_rating=1, max_rating=5, normalize=True):
     results = {}
     
-    print("Processing batch {}...".format((batch + 1)))
+    print("Processing batch {}...SVD".format((batch + 1)))
+    K = constant.PERFORMANCE_METRIC_VARS["recommender system"]["svd"][constant.PERFORMANCE_METRIC_SVD]["K"]
+    
+    # Normalize between range [1, 5] for Funky SVD to work
+    if normalize == True:
+        min_value = min(min(train["rating"].min(), validation["rating"].min()), test["rating"].min()) 
+        max_value = max(max(train["rating"].max(), validation["rating"].max()), test["rating"].max())
 
+        train["rating"] = min_rating + (((train["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
+        validation["rating"] = min_rating + (((validation["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
+        test["rating"] = min_rating + (((test["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
+    
+    num_entries, _ = test.shape
+    num_items = len(test["i_id"].unique())
+   
     # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995) using SVD
     for i, params in enumerate(hyperparameter_configurations):
-        # Get deep copy of original data sets
-        train_tmp = train.copy(deep=True)
-        validation_tmp = validation.copy(deep=True)
-        test_tmp = test.copy(deep=True)
-
-        train_tmp["rating"] = train_tmp["rating"].apply(lambda x: params["alpha"]*x)
-        validation_tmp["rating"] = validation_tmp["rating"].apply(lambda x: params["alpha"]*x)
-        test_tmp["rating"] = test_tmp["rating"].apply(lambda x: params["alpha"]*x)
-
         svd = SVD(lr=0.001, reg=params["reg"], n_epochs=100, n_factors=params["latent_factor"], early_stopping=True, shuffle=False, min_rating=min_rating, max_rating=max_rating)
 
-        svd.fit(X=train_tmp, X_val=validation_tmp)
-        pred = svd.predict(test_tmp)
+        svd.fit(X=train, X_val=validation)
+        pred = svd.predict(test)
 
-        # To prevent NDCG to be unbounded
-        test_tmp["pred"] = pred
-        # Remove rows with any values that are not finite
-        test_tmp = test_tmp[np.isfinite(test_tmp).all(1)] 
+        test["pred"] = pred
+ 
+        num_users = num_entries / num_items
+        shape = (int(num_users), int(num_items))
 
-        if test_tmp.empty:
-            ndcg = 0
-        else:
-            # Because ndcg_score might fail for negative scores: https://github.com/scikit-learn/scikit-learn/issues/17639
-            if normalize:
-                test_tmp["rating"] = (test_tmp["rating"] - test_tmp["rating"].min()) / (test_tmp["rating"].max() - test_tmp["rating"].min())
-                test_tmp["pred"] = (test_tmp["pred"] - test_tmp["pred"].min()) / (test_tmp["pred"].max() - test_tmp["pred"].min())
-
-            y_true = np.array(test_tmp["rating"])
-            y_score = np.array(test_tmp["pred"])
+        y_true = np.reshape(np.array(test["rating"]), shape)
+        y_score = np.reshape(np.array(test["pred"]), shape)
             
-            print(y_true)
-            print(y_score)
+        print(y_true)
+        print(y_score)
 
-            ndcg = ndcg_score(np.asarray([y_true]), np.asarray([y_score]), k=constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"])
-            results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": svd, "params": params}} 
+        # exit()
+
+        if constant.PERFORMANCE_METRIC_SVD == "ndcg":
+            ndcg = ndcg_score(np.asarray(y_true), np.asarray(y_score), k=K)
+        else:
+            ndcg = dcg_score(np.asarray(y_true), np.asarray(y_score), k=K)
+        results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": svd, "params": params}} 
         
-        print("Batch {}: ndcg NDCG@{}".format((batch + 1), constant.PERFORMANCE_METRIC_VARS["NDCG"]["K"]), ndcg)
+        print("Batch {}: {}@{} {}".format((batch + 1), constant.PERFORMANCE_METRIC_SVD, K, ndcg))
 
     return results
 
 def train_ALS_model(hyperparameter_configurations, batch, train, validation, performance_metric):
     results = {}
     
-    print("Processing batch {}...".format((batch + 1)))
+    print("Processing batch {}...ALS".format((batch + 1)))
+    K = constant.PERFORMANCE_METRIC_VARS["recommender system"]["als"][performance_metric]["K"]
 
     # Train low-rank matrix completion algorithm (Bell and Sejnowski 1995)
     for i, params in enumerate(hyperparameter_configurations):
@@ -89,13 +91,13 @@ def train_ALS_model(hyperparameter_configurations, batch, train, validation, per
 
         # Validate model
         if performance_metric == "ndcg":
-            ndcg = ndcg_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            ndcg = ndcg_at_k(model, train, validation, K=K, show_progress=False)
         elif performance_metric == "precision":
-            ndcg = precision_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            ndcg = precision_at_k(model, train, validation, K=K, show_progress=False)
         else:
-            ndcg = AUC_at_k(model, train, validation, K=constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"], show_progress=False)
+            ndcg = AUC_at_k(model, train, validation, K=K, show_progress=False)
         
-        print("Batch {}: {}@{}".format((batch + 1), performance_metric, constant.PERFORMANCE_METRIC_VARS[performance_metric]["K"]), ndcg)
+        print("Batch {}: {}@{}".format((batch + 1), performance_metric, K, ndcg))
 
         results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": model, "params": params}} 
 
@@ -124,8 +126,8 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
     R_coo = sparse.coo_matrix(ground_truth)
     
     # Create keys from <latent_factors>
-    df = pd.DataFrame.from_dict(hyperparameter_configurations)
-    keys = np.array(df.loc["latent_factor"].drop_duplicates())
+    df_hp = pd.DataFrame.from_dict(hyperparameter_configurations)
+    keys = np.array(df_hp.loc["latent_factor"].drop_duplicates())
 
     # Data struct containing models in the form:
     # {<latent_factor>: {<precision>: {"i_params": <index hyperparams config>, "params": <hyperparams config>, "p_val": <validation precision>, "model": <model>}}}
@@ -133,15 +135,24 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
     models = {key: {} for key in keys}
 
     # FunkySVD 
-    if algorithm == "SVD":
-        min_score, max_score = R_coo.min(), R_coo.max()
+    if algorithm == "svd":
+        row, col = ground_truth.shape
+        values = ground_truth.flatten()
+        u_id = np.repeat(np.arange(0, row), col)
+        i_id = np.tile(np.arange(0, col), row)
 
-        # Access `row`, `col` and `data` properties of coo matrix.
-        df = pd.DataFrame({"u_id": list(R_coo.row), "i_id": list(R_coo.col), "rating": list(R_coo.data)})
-
+        # Create whole user-item data frame
+        df = pd.DataFrame({"u_id": u_id, "i_id": i_id, "rating": values})
+   
+        # Create data splits
         train = df.sample(frac=split["train"])
-        validation = df.drop(train.index.tolist()).sample(frac=split["validation"])
+        validation_size = split["validation"] / (1 - split["train"])
+        validation = df.drop(train.index.tolist()).sample(frac=validation_size)
         test = df.drop(train.index.tolist()).drop(validation.index.tolist())
+
+        print(train.shape)
+        print(validation.shape)
+        print(test.shape)
 
         # Multiprocessing: assign a batch of models to a processor
         if multiprocessing:
@@ -152,7 +163,7 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
             # Create and configure the process pool
             with mp.Pool(mp.cpu_count()) as pool:
                 # Prepare arguments
-                items = [(batch, i, min_score, max_score, train, validation, test) for i, batch in configurations_batches.items()]
+                items = [(batch, i, train, validation, test) for i, batch in configurations_batches.items()]
                 # Execute tasks and process results in order
                 for result in pool.starmap(train_SVD_model, items):
                     print(f'GOT RESULT: {result}', flush=True)
@@ -237,24 +248,16 @@ def recommendation_estimation(recommendation_est_system_model, ground_truth, alg
     """
     print("Estimating preferences...")
     
-    if algorithm == "SVD":
-        R_coo = sparse.coo_matrix(ground_truth)
+    if algorithm == "svd":
+        row, col = ground_truth.shape
+        values = ground_truth.flatten()
+        u_id = np.repeat(np.arange(0, row), col)
+        i_id = np.tile(np.arange(0, col), row)
         
-        # Access `row`, `col` and `data` properties of coo matrix.
-        df = pd.DataFrame({"u_id": R_coo.row, "i_id": R_coo.col, "rating": R_coo.data})
+        df = pd.DataFrame({"u_id": u_id, "i_id": i_id, "rating": values})
         
         # Calculate estimated preference scores
         pred = recommendation_est_system_model.predict(df)
-
-        # print(df)
-        # print(R_coo.shape)
-        # print(len(R_coo.row))
-        # print(len(R_coo.col))
-        # print(len(R_coo.data))
-        # print(len(pred))
-        # print(ground_truth.shape)
-        
-        # exit()
 
         return np.array(pred).reshape(ground_truth.shape)
     # ALS

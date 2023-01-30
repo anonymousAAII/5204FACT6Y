@@ -23,7 +23,7 @@ def merge_duplicates(df, col_duplicate, col_merge_value, mode_operation="sum"):
     else:
         return df.groupby(col_duplicate, as_index = False)[col_merge_value].sum()
 
-def generate_hyperparameter_configurations(regularization, confidence_weighting, latent_factors):
+def generate_hyperparameter_configurations(regularization, latent_factors, confidence_weighting=None):
     """
     Given the hyperparameter spaces generates all possible combinations for grid search
 
@@ -37,12 +37,18 @@ def generate_hyperparameter_configurations(regularization, confidence_weighting,
     # Initialize with all possible hyperparameter combinations
     i = 0
 
-    for latent_factor in latent_factors:
-        for reg in regularization:
-            for alpha in confidence_weighting:
-                configurations[i] = {"latent_factor": latent_factor, "reg": reg, "alpha": alpha}
+    if confidence_weighting is not None:
+        for latent_factor in latent_factors:
+            for reg in regularization:
+                for alpha in confidence_weighting:
+                    configurations[i] = {"latent_factor": latent_factor, "reg": reg, "alpha": alpha}
+                    i+=1
+    else:
+        for latent_factor in latent_factors:
+            for reg in regularization:
+                configurations[i] = {"latent_factor": latent_factor, "reg": reg}
                 i+=1
-                           
+                            
     return configurations
 
 def get_index_best_model(model_train_results, mode="max"):
