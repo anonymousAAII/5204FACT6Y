@@ -345,6 +345,8 @@ def create_recommendation_policies(preference_estimates, temperature=1/5):
     # Since stationary policies pick a policy for an user only once
     indices = np.arange(len(policies[0]))
     recommendation = np.apply_along_axis(select_policy, 1, policies, indices)
+    # print(recommendation)
+    # print(policies)
     return {"recommendations": recommendation, "policies": policies}
 
 def create_rewards(ground_truth):

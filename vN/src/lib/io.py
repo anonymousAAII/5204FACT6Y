@@ -16,15 +16,16 @@ def save(filename, *args):
 	Saves variables in a file such that afterwards they can be (re)loaded and utilized in other scripts
 
 	:filename:		filename to store the variables
-	:*args:         variables to store must be in format (<variable name>, <variable)
+	:*args:         variables to store must be in format (<variable name>, <variable>)
 	"""
 	d = {}
 
 	for item in args:
 		# Copy over desired values
 		d[item[0]] = item[1]
+
 	with open(constant.VARIABLES_FOLDER + filename, 'wb') as f:
-		# Put them in the file 
+		# Put them in the file 			
 		pickle.dump(d, f)
 
 # Source: https://stackoverflow.com/questions/66271284/saving-and-reloading-variables-in-python-preserving-names

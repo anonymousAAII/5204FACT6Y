@@ -33,6 +33,8 @@ def preferences_to_policies(latent_factor, model, ground_truth, algorithm):
     """
     preference_estimates = recommender.recommendation_estimation(model, ground_truth, algorithm)
     recommendation_policies = recommender.create_recommendation_policies(preference_estimates)
+    # print(latent_factor)
+    # print(recommendation_policies)
     return {"latent_factor": latent_factor, "recommendation_policies": {"preferences": preference_estimates, "recommendations": recommendation_policies["recommendations"], "policies": recommendation_policies["policies"]}}
 
 if __name__ == "__main__":
@@ -156,7 +158,7 @@ if __name__ == "__main__":
 
         data_set["vars"]["ground_truth"] = ground_truth
 
-        # Becaus the (N)DCG metric doesn't work well with negative scores   
+        # Because the (N)DCG metric doesn't work well with negative scores   
         if constant.PERFORMANCE_METRIC_REC == "ndcg" or constant.PERFORMANCE_METRIC_REC == "dcg":
             # Whether to normalize the relevance scores to range [0, 1]
             min_max_scaling = True
@@ -181,6 +183,8 @@ if __name__ == "__main__":
             # # Add back original negative values for Implicit ALS model algorithm
             # ground_truth = (neg_mask * ground_truth) + tmp_gt
 
+        # print(ground_truth)
+        # exit()
 
         IO_INFIX = IO_INFIX + ALGORITHM_CHOICE + "/"
 
@@ -217,10 +221,10 @@ if __name__ == "__main__":
         io.load(IO_INFIX + recommendation_system_est_models_file, my_globals)
         
         if data_set["name"] == "fm":
-            print("Loading recommender preference estimation models FM...{}".format(IO_INFIX + recommendation_system_est_models_file, my_globals))
+            print("Loading recommender preference estimation models FM...{}".format(IO_INFIX + recommendation_system_est_models_file))
             recommendation_system_est_models = recommendation_system_est_models_fm
         else:
-            print("Loading recommender preference estimation models MOVIE...{}".format(IO_INFIX + recommendation_system_est_models_file, my_globals))
+            print("Loading recommender preference estimation models MOVIE...{}".format(IO_INFIX + recommendation_system_est_models_file))
             recommendation_system_est_models = recommendation_system_est_models_mv
 
         data_set["vars"]["recommendation_system_est_models"] = recommendation_system_est_models
@@ -252,22 +256,23 @@ if __name__ == "__main__":
                 # Execute tasks and process results in order
                 for result in pool.starmap(preferences_to_policies, items):
                     recommendation_policies[result["latent_factor"]] = result["recommendation_policies"]
-                    # print(f'Got result: {result}', flush=True)
+                    print(f'Got result: {result}', flush=True)
             # Process pool is closed automatically
-
+            
             end = time.time() - start            
             io.save(IO_INFIX + recommendation_policies_file, (recommendation_policies_var_name, recommendation_policies))
+            print(recommendation_policies)
             io.write_to_file(constant.TIMING_FOLDER + constant.TIMING_FILE[data_set["name"]], "Construct recommendation_policies   " + str(end) + "\n")
 
         # LOAD: Load recommendation policies
         io.load(IO_INFIX + recommendation_policies_file, my_globals)
 
         if data_set["name"] == "fm":
-            print("Loading recommendation policies FM...{}".format(IO_INFIX + recommendation_policies_file, my_globals))
-            recommendation_policies = recommendation_policies_fm
+            print("Loading recommendation policies FM...{}".format(IO_INFIX + recommendation_policies_file))
+            # recommendation_policies = recommendation_policies_fm
         else:
-            print("Loading recommendation policies rewards...{}".format(IO_INFIX + recommendation_policies_file, my_globals))
-            recommendation_policies = recommendation_policies_mv
+            print("Loading recommendation policies rewards...{}".format(IO_INFIX + recommendation_policies_file))
+            # recommendation_policies = recommendation_policies_mv
 
         data_set["vars"]["recommendation_policies"] = recommendation_policies
 
@@ -298,13 +303,13 @@ if __name__ == "__main__":
         io.load(IO_INFIX + expec_rewards_file, my_globals)
 
         if data_set["name"] == "fm":
-            print("Loading rewards FM...{}".format(IO_INFIX + rewards_file, my_globals))
-            print("Loading expectations rewards...{}".format(IO_INFIX + expec_rewards_file, my_globals))
+            print("Loading rewards FM...{}".format(IO_INFIX + rewards_file))
+            print("Loading expectations rewards...{}".format(IO_INFIX + expec_rewards_file))
             rewards = rewards_fm
             expec_rewards = expec_rewards_fm
         else:
-            print("Loading rewards MOVIE...{}".format(IO_INFIX + rewards_file, my_globals))
-            print("Loading expectations rewards...{}".format(IO_INFIX + expec_rewards_file, my_globals))
+            print("Loading rewards MOVIE...{}".format(IO_INFIX + rewards_file))
+            print("Loading expectations rewards...{}".format(IO_INFIX + expec_rewards_file))
             rewards = rewards_mv
             expec_rewards = expec_rewards_mv
 
