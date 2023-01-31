@@ -56,11 +56,8 @@ def train_SVD_model(hyperparameter_configurations, batch, train, validation, tes
     #     validation["rating"] = min_rating + (((validation["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
     #     test["rating"] = min_rating + (((test["rating"]  - min_value) * (max_rating - min_rating)) / (max_value - min_value))
     
-    test = test.sort_values(by=["u_id"], ascending=True)
-    # Get how many ratings a user has given
-    test["rating_count"] = np.full(len(test), 1)
-    test_rating_count = helper.merge_duplicates(test, "u_id", "rating_count")
-    rating_count_per_user = np.array(test_rating_count["rating_count"])
+    num_entries, _ = test.shape
+    num_items = len(test["i_id"].unique())
 
     # Train Funky SVD model for different hyperparameter configurations
     for i, params in enumerate(hyperparameter_configurations):
@@ -72,28 +69,19 @@ def train_SVD_model(hyperparameter_configurations, batch, train, validation, tes
         # Measure performance on test set
         pred = svd.predict(test)
 
-        y_true = np.array(test["rating"])
-        y_pred = np.array(pred)
-    
-        y_true_per_user = np.split(y_true, np.cumsum(rating_count_per_user))
-        y_pred_per_user = np.split(y_pred, np.cumsum(rating_count_per_user))
+        num_users = num_entries / num_items
+        shape = (int(num_users), int(num_items))
 
-        # Last element of split function is empty list so remove
-        y_pred_per_user.pop()
-        y_true_per_user.pop()
-        
-        ndcg = np.array([])
+        y_true = np.reshape(np.array(test["rating"]), shape)
+        y_score = np.reshape(np.array(pred), shape)
 
-        # Measure prediction performance per user
-        for (y1, y2) in zip(y_true_per_user, y_pred_per_user):
-            if performance_metric == "ndcg":
-                ndcg = np.append(ndcg, ndcg_score(np.asarray([y1]), np.asarray([y2]), k=K))
-                # ndcg = ndcg_score(np.asarray([y1]), np.asarray([y2]), k=K)
-            else:
-                ndcg = np.append(ndcg, dcg_score(np.asarray([y1]), np.asarray([y2]), k=K))
-                # ndcg = dcg_score(np.asarray([y1]), np.asarray([y2]), k=K)
+        # print(y_true)
+        # print(y_score)
         
-        ndcg = np.mean(ndcg)
+        if performance_metric == "ndcg":
+            ndcg = ndcg_score(np.asarray(y_true), np.asarray(y_score), k=K)
+        else:
+            ndcg = dcg_score(np.asarray(y_true), np.asarray(y_score), k=K)
 
         results[i] = {"latent_factor": params["latent_factor"], "result": {"ndcg": ndcg, "model": svd, "params": params}} 
         
@@ -197,10 +185,10 @@ def create_recommendation_est_system(ground_truth, hyperparameter_configurations
         # print(validation.shape)
         # print(test.shape)
         
-        # Drop such that we compute latent factors only using the values we know
-        train = train.drop(train[train.rating < 0].index)
-        validation = validation.drop(validation[validation.rating < 0].index)
-        test = test.drop(test[test.rating < 0].index)
+        # # Drop such that we compute latent factors only using the values we know
+        # train = train.drop(train[train.rating < 0].index)
+        # validation = validation.drop(validation[validation.rating < 0].index)
+        # test = test.drop(test[test.rating < 0].index)
         
         # # Set to zero such that we compute latent factors only using the values we know
         # train["rating"].mask(train["rating"] < 0 , 0, inplace=True)
@@ -359,38 +347,18 @@ def create_recommendation_policies(preference_estimates, temperature=1/5):
     recommendation = np.apply_along_axis(select_policy, 1, policies, indices)
     return {"recommendations": recommendation, "policies": policies}
 
-def create_rewards(ground_truth, normalize=False):
+def create_rewards(ground_truth):
     """
     Generates the rewards by a Bernoulli distribution per item and the expectation of the Bernoulli distribution
 
     Inputs:
         ground_truth        - ground truth 
-        normalize           - whether to normalize the <ground_truth> using min-max normalization
     Outputs:
         tuple               - tuple containing the binary rewards and expecation of the binary rewards in user-item matrix format
     """
     print("Generating binary rewards...")
-    
-    def x_norm(x, x_min, x_max):
-        # RuntimeWarning: invalid value encountered in divide
-        # Handles division by zero since row is zero
-        if((x_max - x_min) == 0):
-            return 0
-        return (x - x_min) / (x_max - x_min)
-
-    normalize_x = np.vectorize(x_norm)
-    
-    # Given a row of values normalize each value
-    def normalize(row):
-        x_min, x_max = np.amin(row), np.amax(row)
-        return normalize_x(row, x_min, x_max)
-
-    # Create expectation of the Bernoulli distribution
-    if normalize:
-        # Normalize ground truth such that it can represent the expectation of the Bernoulli distribution
-        expectation = np.apply_along_axis(normalize, 1, ground_truth)
-    else:
-        expectation = np.copy(ground_truth)
+        
+    expectation = np.copy(ground_truth)
 
     rewards = np.zeros(ground_truth.shape)
 

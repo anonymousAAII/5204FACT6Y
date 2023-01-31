@@ -156,8 +156,12 @@ if __name__ == "__main__":
 
         data_set["vars"]["ground_truth"] = ground_truth
 
-        # Whether to normalize the relevance scores to range [0, 1]
-        min_max_scaling = True
+        # Becaus the (N)DCG metric doesn't work well with negative scores   
+        if constant.PERFORMANCE_METRIC_REC == "ndcg" or constant.PERFORMANCE_METRIC_REC == "dcg":
+            # Whether to normalize the relevance scores to range [0, 1]
+            min_max_scaling = True
+        else:
+            min_max_scaling = False
 
         # Normalize to range [0, 1]
         if min_max_scaling: 
@@ -173,8 +177,9 @@ if __name__ == "__main__":
 
             # Take only the normalized values of values that were originally > 0
             tmp_gt = pos_mask * ground_truth_norm
-            # Add back original negative values for Implicit ALS model algorithm
-            ground_truth = (neg_mask * ground_truth) + tmp_gt
+            ground_truth = tmp_gt
+            # # Add back original negative values for Implicit ALS model algorithm
+            # ground_truth = (neg_mask * ground_truth) + tmp_gt
 
 
         IO_INFIX = IO_INFIX + ALGORITHM_CHOICE + "/"

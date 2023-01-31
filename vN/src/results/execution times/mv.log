@@ -76,3 +76,26 @@ Construct recommendation_policies   4.136383295059204
 Generate rewards (expectation)   29.443773984909058
 Experiment 5.1   5.1642796993255615
 -------------------------------------------------------
+30/01/2023 23:46:42
+Generating recommendation_system_est_models  1330.6870329380035
+Construct recommendation_policies   3.9075188636779785
+Generate rewards (expectation)   30.140486240386963
+Experiment 5.1   4.821287631988525
+-------------------------------------------------------
+31/01/2023 00:38:29
+31/01/2023 00:39:36
+Generating recommendation_system_est_models  777.2254478931427
+Construct recommendation_policies   99.68906760215759
+Generate rewards (expectation)   35.3615517616272
+Experiment 5.1   6.079217195510864
+-------------------------------------------------------
+31/01/2023 01:18:07
+31/01/2023 01:30:53
+31/01/2023 01:34:40
+31/01/2023 01:41:40
+Construct recommendation_policies   3.665119171142578
+Generate rewards (expectation)   14.177684783935547
+Experiment 5.1   4.787294626235962
+-------------------------------------------------------
+31/01/2023 01:58:54
+-------------------------------------------------------

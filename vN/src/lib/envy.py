@@ -6,9 +6,6 @@
 import numpy as np
 from tqdm import tqdm
 
-# def utility(m, n, probability_policies, expec_rewards):
-#     return np.sum(probability_policies[n] * expec_rewards[m])
-
 # Basic definition of envy-freeness in a system (see 3.1 paper)
 def envy_free_basic(recommendations, policies, expec_rewards, preferences, epsilon=0.05, gamma=0.5, lamb=0.5, relax_criterion=False):
     """
