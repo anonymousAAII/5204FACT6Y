@@ -28,8 +28,7 @@ def bandit_experiment(arms, N, delta, alpha, epsilon):
         else:
             return 0
     for _ in range(N):
-        _, duration, cost = OCEF(arms[0], arms[1:], reward_func,
-                              delta, alpha, epsilon)
+        _, duration, cost = OCEF(arms, reward_func, delta, alpha, epsilon)
         total_duration += duration
         total_cost += cost
     mean_duration = total_duration / N
@@ -45,16 +44,15 @@ if __name__ == '__main__':
     N = 100
     # Create bandit scenarios
     scenarios = []
-    scenarios.append([0.6, 0.3])
-    scenarios.append([0.3, 0.6])
-    scenarios.append([0.7 - 0.7 * (0 / 10) ** 0.6, 0.7 - 0.7 * (1 / 10) ** 0.6])
-    scenarios.append([0.7 - 0.7 * (1 / 10) ** 0.6, 0.7 - 0.7 * (0 / 10) ** 0.6])
+    scenarios.append(np.full(10, 0.3))
+    scenarios[0][0] = 0.6
+    scenarios.append(np.full(10, 0.3))
+    scenarios[1][1] = 0.6
+    scenarios.append(np.fromfunction(lambda k: 0.7 - 0.7 * (k / 10) ** 0.6, (10,)))
+    scenarios.append(np.fromfunction(lambda k: 0.7 - 0.7 * (k / 10) ** 0.6, (10,)))
+    scenarios[3][0] = scenarios[2][1]
+    scenarios[3][1] = scenarios[2][0]
     scenario_dicts = []
-    for k in range(2, 10):
-        scenarios[0].append(0.3)
-        scenarios[1].append(0.3)
-        scenarios[2].append(0.7 - 0.7 * (k / 10) ** 0.6)
-        scenarios[3].append(0.7 - 0.7 * (k / 10) ** 0.6)
     
     # Run scenarios
     for i, scenario in enumerate(scenarios):
