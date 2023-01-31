@@ -4,5 +4,6 @@
 /vJ/src/__pycache__/
 
 # But not these files...
-!/vN/src/variables/ground_truth_fm_coordinates
+!/data/hetrec2011-lastfm-2k.zip
+!/data/ml-1m.zip
 

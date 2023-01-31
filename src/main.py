@@ -248,16 +248,20 @@ if __name__ == "__main__":
         # Generate recommendations and recommendation policies    
         if not path.exists(recommendation_policies_file_path):
             start = time.time()
-
-            # Create and configure the process pool
-            with mp.Pool(mp.cpu_count()) as pool:
-                # Prepare arguments
-                items = [(latent_factor, data["model"], ground_truth, ALGORITHM_CHOICE) for latent_factor, data in best_recommendation_est_system.items()]
-                # Execute tasks and process results in order
-                for result in pool.starmap(preferences_to_policies, items):
-                    recommendation_policies[result["latent_factor"]] = result["recommendation_policies"]
-                    print(f'Got result: {result}', flush=True)
-            # Process pool is closed automatically
+            
+            for latent_factor, data in best_recommendation_est_system.items():
+                result = preferences_to_policies(latent_factor, data["model"], ground_truth, ALGORITHM_CHOICE)
+                recommendation_policies[result["latent_factor"]] = result["recommendation_policies"]
+            
+            # # Create and configure the process pool
+            # with mp.Pool(mp.cpu_count()) as pool:
+            #     # Prepare arguments
+            #     items = [(latent_factor, data["model"], ground_truth, ALGORITHM_CHOICE) for latent_factor, data in best_recommendation_est_system.items()]
+            #     # Execute tasks and process results in order
+            #     for result in pool.starmap(preferences_to_policies, items):
+            #         recommendation_policies[result["latent_factor"]] = result["recommendation_policies"]
+            #         # print(f'Got result: {result}', flush=True)
+            # # Process pool is closed automatically
             
             end = time.time() - start            
             io.save(IO_INFIX + recommendation_policies_file, (recommendation_policies_var_name, recommendation_policies))
