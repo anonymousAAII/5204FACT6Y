@@ -10,32 +10,6 @@ from scipy import interpolate
 # 1st party imports
 import constant
 
-def generate_plot_data(data_sets_chosen, data_sets, experiment_key, results_key, file_name):
-    lines = []  
-    labels = []
-    linestyles = [] 
-    colors = []
-    
-    ds = []
-
-    for label, name in data_sets_chosen.items(): 
-        data_set = data_sets[name]
-        experiment = data_set["experiment"]
-        results = experiment.experiment_results[experiment_key] 
-
-        plot_style = data_set["plot_style"]
-        lines.append(results[results_key])
-        labels.append(plot_style["label"])  
-        linestyles.append(plot_style["linestyle"])
-        colors.append(plot_style["color"])    
-        ds.append(label + experiment.recommenders[0].model_type)   
-
-    "_".join(ds)
-
-    file_name = file_name + "_" + str(ds)
-    return {"lines": lines, "labels": labels, "linestyles": linestyles, "colors": colors, "file_name": file_name}
-
-
 def plot_experiment_line(data, y_label, x_label, labels, linestyles, colors, file_name, x_upper_bound = None, sci_x=False, window=1, linewidth=2.5, smoothing=175):
     """
     Makes a line plot given a list of data containing the x, y data of each line in a dictionary in the format {x_1: y_1, ..., x_N: y_N}

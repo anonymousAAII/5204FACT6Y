@@ -227,70 +227,68 @@ if __name__ == "__main__":
     ##########################
     # AUDITING EXPERIMENTS
     ##########################
-    # Option "all" experiments is not yet supported
-    if experiment_choice == "5.1": 
-        # EXPERIMENT 5.1: sources of envy
-        for label, name in data_sets_chosen.items():
-            data_set = data_sets[name]
-            recommenders = os.listdir(constant.MODELS_FOLDER + data_set["var_folder"])    
-            recommenders = [helper.get_recommender(data_set, file_name, my_globals) for file_name in recommenders]
-        
-            experiments = Experiment(helper.get_log_path(data_set), experiment_choice, recommenders)
-            experiments.exp_5_1()
-            data_set["experiment"] = experiments
+
+    # EXPERIMENT 5.1: sources of envy
+    for label, name in data_sets_chosen.items():
+        data_set = data_sets[name]
+        recommenders = os.listdir(constant.MODELS_FOLDER + data_set["var_folder"])    
+        recommenders = [helper.get_recommender(data_set, file_name, my_globals) for file_name in recommenders]
+       
+        experiments = Experiment(helper.get_log_path(data_set), experiment_choice, recommenders)
+        experiments.exp_5_1()
+        data_set["experiment"] = experiments
 
 
-        ##########################
-        # RESULTS: Plot and save results of experiments
-        ##########################
-        # Average envy plotted together
-        # lines = []  
-        # labels = []
-        # linestyles = [] 
-        # colors = []
-        
-        # ds = []
+    ##########################
+    # RESULTS: Plot and save results of experiments
+    ##########################
+    # Average envy plotted together
+    lines = []  
+    labels = []
+    linestyles = [] 
+    colors = []
+    
+    ds = []
 
-        # for label, name in data_sets_chosen.items(): 
-        #     data_set = data_sets[name]
-        #     experiment = data_set["experiment"]
-        #     results = experiment.experiment_results["5.1"] 
+    for label, name in data_sets_chosen.items(): 
+        data_set = data_sets[name]
+        experiment = data_set["experiment"]
+        results = experiment.experiment_results["5.1"] 
 
-        #     plot_style = data_set["plot_style"]
-        #     lines.append(results["avg_envy_users"])
-        #     labels.append(plot_style["label"])  
-        #     linestyles.append(plot_style["linestyle"])
-        #     colors.append(plot_style["color"])    
-        #     ds.append(label + experiment.recommenders[0].model_type)   
+        plot_style = data_set["plot_style"]
+        lines.append(results["avg_envy_users"])
+        labels.append(plot_style["label"])  
+        linestyles.append(plot_style["linestyle"])
+        colors.append(plot_style["color"])    
+        ds.append(label + experiment.recommenders[0].model_type)   
 
-        # "_".join(ds)
-        data = plot.generate_plot_data(data_sets_chosen, data_sets, "5.1", "avg_envy_users", "5.1_average_envy")
-        plot.plot_experiment_line(data["lines"], "average envy", "number of factors", data["labels"], data["linestyles"], data["colors"], data["file_name"], x_upper_bound=128)
+    "_".join(ds)
+    plot.plot_experiment_line(lines, "average envy", "number of factors", labels, linestyles, colors, "5.1_average_envy_{}".format(ds), x_upper_bound=128)
 
-        # Proportion of envious users plotted together
-        lines = []  
-        labels = []
-        linestyles = [] 
-        colors = []
+    # Proportion of envious users plotted together
+    lines = []  
+    labels = []
+    linestyles = [] 
+    colors = []
 
-        ds = []
-        epsilon = None
+    ds = []
+    epsilon = None
 
-        for label, name in data_sets_chosen.items(): 
-            data_set = data_sets[name]
-            experiment = data_set["experiment"]
-            results = experiment.experiment_results["5.1"] 
-            epsilon = experiment.audits[0].params["basic"]["epsilon"]
-        
-            plot_style = data_set["plot_style"]
-            lines.append(results["prop_envious_users"])
-            labels.append(plot_style["label"])  
-            linestyles.append(plot_style["linestyle"])
-            colors.append(plot_style["color"])    
-            ds.append(label + experiment.recommenders[0].model_type)   
+    for label, name in data_sets_chosen.items(): 
+        data_set = data_sets[name]
+        experiment = data_set["experiment"]
+        results = experiment.experiment_results["5.1"] 
+        epsilon = experiment.audits[0].params["basic"]["epsilon"]
+    
+        plot_style = data_set["plot_style"]
+        lines.append(results["prop_envious_users"])
+        labels.append(plot_style["label"])  
+        linestyles.append(plot_style["linestyle"])
+        colors.append(plot_style["color"])    
+        ds.append(label + experiment.recommenders[0].model_type)   
 
-        "_".join(ds)
-        plot.plot_experiment_line(lines, "prop of envious users (epsilon = {})".format(epsilon), "number of factors", labels, linestyles, colors, "prop_envy_users_{}".format(ds), x_upper_bound=128)
+    "_".join(ds)
+    plot.plot_experiment_line(lines, "prop of envious users (epsilon = {})".format(epsilon), "number of factors", labels, linestyles, colors, "prop_envy_users_{}".format(ds), x_upper_bound=128)
 
     # # # Try algorithm for one model
     # # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)

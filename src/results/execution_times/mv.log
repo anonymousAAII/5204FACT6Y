@@ -90,12 +90,6 @@ Generating recommender_model 345.7224917411804
 Performing experiment 5.1...mv als 4.878801107406616
 01-02-2023_11:23:12
 {"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}}
-Generating ground_truth_model 424.97581148147583
-
-Predicting ground_truth 0.0860130786895752
-
-Generating recommender_model 1378.1479477882385
-
-Initializing 9 recommenders 77.99535512924194
-
-Performing experiment 5.1...mv als 5.351199626922607
+01-02-2023_12:45:05
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}}
+Performing experiment 5.1...mv als 6.64044713973999

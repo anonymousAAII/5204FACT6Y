@@ -1,6 +1,6 @@
 /data/*
 /src/models/*
-/src/variables/*
+src/variables/*
 
 /vJ/src/__pycache__/
 

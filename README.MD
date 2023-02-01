@@ -3,8 +3,13 @@
 Auditing for envy in recommender systems[^1]
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
+<<<<<<< HEAD:README.MD
 This requires for the code to generate a recommender system with recommender policies for users.
 To achieve this a pipeline is build that completes sparse user data and which generates a recommender system.
+=======
+This requires for the code to generate a recommender system with its recommender policies for users.
+To achieve this a pipeline is build that completes sparse user data on which it generates a recommender system. Which can then be audited for fairness using the definition of envy-freeness as given by the original paper[^1]. The experiments implemented can provide a novel formal analysis of envy-free recommender systems.  
+>>>>>>> 79f82a0bdace33fd038560cb8bbab923a735c1fb:vN/README.MD
 The pipeline is build in a rather modular manner to save computation time.
 For each step in the pipeline intermediate states are stored such that they only have to be created once and can effortlessly be retrieved. The pipeline modular objects are stored as:
 
@@ -29,18 +34,34 @@ The infix subfolders ```/fm``` and ```/mv``` represent the data set which is use
 #### Last.fm
 | Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
+<<<<<<< HEAD:README.MD
 | Generating ground truth model                 | ground\_truth\_model                |||  
 | Predicting ground truth                       | ground\_truth                       ||-| 
 | Generating recommender models                 | recommender\_model                  |||
 | Experiment 5.1                                |  x                               ||-| 
+=======
+| Generating ground truth model                 | ground\_truth\_model                |-|43.97|  
+| Predicting ground truth                       | ground\_truth                       |0.03|-| 
+| Generating 9 recommender models                 | recommender\_model                  |-|364.428|
+| Initializing 9 recommenders                   | models/<data_set>/*|-|106.27| 
+| Experiment 5.1                                |  x                               |4.42|-|
+>>>>>>> 79f82a0bdace33fd038560cb8bbab923a735c1fb:vN/README.MD
 
 #### MovieLens
 | Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
+<<<<<<< HEAD:README.MD
 | Generating ground truth model                 | ground\_truth\_model                |-|| 
 | Generating ground truth                       | ground\_truth                       ||-| 
 | Generating recommender models | recommender\_model |-|| 
 | Experiment 5.1                                | x                                ||-| 
+=======
+| Generating ground truth model                 | ground\_truth\_model                |-|424.97| 
+| Predicting ground truth                       | ground\_truth                       |0.08|-| 
+| Generating 9 recommender models | recommender\_model |-|345.72| 
+| Initializing 9 recommenders                   | models/<data_set>/*|-|106.27| 
+| Experiment 5.1                                | x                                |5.03|-| 
+>>>>>>> 79f82a0bdace33fd038560cb8bbab923a735c1fb:vN/README.MD
 
 These values are an arbitraty pick from the log files which stores the wall clock execution times each time the code is ran and the pipeline stage has to be (re)build from scratch, i.e. the object file/folder does not yet exist.
 ```
@@ -59,9 +80,13 @@ The program will *ask which experiment* you would like to execute. The following
 #### Experiments legenda
 | Experiment       | Description                          | Corresponding fig. in *original* paper[^5] | 
 | :-               |    :----:                            |                                       ---: |
-| 5.1              | average envy / number of factors & prop.of envious users / number of factors | Figure 2                                   |
+| 5.1              | **Sources of envy**: average envy / number of factors & prop.of envious users / number of factors | Figure 2                                   |
 
-
+#### Implemented possible models per pipe line stage
+|  Data set    | Ground truth model | Recommender model | 
+|  :-           |    :----:       |              ---: |
+| LastFM        |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
+| MovieLens     |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
 ### Credits
 Meta AI:
 virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.com
