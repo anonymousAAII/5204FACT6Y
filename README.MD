@@ -10,14 +10,13 @@ For each step in the pipeline intermediate states are stored such that they only
 
 ```
 src/variables/<data_set_label>/ground_truth/<model_type>/ground_truth_model
-src/variables/<data_set_label>/ground_truth/<model_type>/ground_truth \\
+src/variables/<data_set_label>/ground_truth/<model_type>/ground_truth 
 ```
 Where ```<data_set_label>``` is the data set used to model .e.g. fm for the Last.fm dataset. ```<model_type>``` the model type used e.g. als for AlternatingLeastSquares. So you get:
 
 
 ```
 src/variables/fm/ground_truth/als/ground_truth_model
-
 ```
 
 When one likes to redo running a stage of the pipeline that's possible by **manually deleting** the created intermediate object file. 
@@ -25,28 +24,26 @@ Note however that some computations determine the computations of the subsequent
 For changes in the deleted component to work through all the way through the pipeline **subsequent objects files ought to also be deleted**. 
 To make carefull decisions which object files to delete taking computation time into consideration the following info is included:
 
-The intermediate stages object files are stored in the ```/src/variables``` folder.
-The subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). The following table shows the pipeline in sequential order, the corresponding object files and a random pick of duration of each stage:
+The intermediate stages object files are stored in the ```/src/variables/...``` path.
+The infix subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). And the infix ```<model_type>``` specifies which sorf of model is applied. The following table shows the pipeline in sequential order, a random pick of duration of each stage and wheter a corresponding object file is created:
 
 #### Last.fm
-| Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
+| Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
-| Generating ground truth model                 | ground\_truth\_model                |-|(ALS) 159.60 <br> (LFM) 448.00 |  
-| Predicting ground truth                       | ground\_truth                       |0.15|-| 
-| Generating recommender preference est. models | recommendation\_system_est\_models  |(SVD) 5658.18|(SVD) 3331.07 <br> (ALS) 1347.32| 
-| Constructing recommendation policies            | recommendation\_policies            |-|6.22|                                                   
-| Generating rewards and its expectation        | rewards & expec\_rewards            |32.71|-| 
-| Experiment 5.1                                |  5.1/                               |6.21|-| 
+| Generating ground truth model                 | ground\_truth\_model                |||  
+| Predicting ground truth                       | ground\_truth                       ||-| 
+| Generating recommender models                 | recommender\_model                  |||
+
+| Generating rewards and its expectation        | rewards & expec\_rewards            ||-| 
+| Experiment 5.1                                |  5.1/                               ||-| 
 
 #### MovieLens
-| Pipeline stage                                | Object file/folder created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
+| Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
-| Generating ground truth model                 | ground\_truth\_model                |-|(ALS) 402.65| 
-| Generating ground truth                       | ground\_truth                       |0.09|-| 
-| Generating recommender preference est. models | recommendation\_system_est\_models  |-|(ALS) 1412.13| 
-| Constructing recommendation policies            | recommendation\_policies            |-|4.47|                                                   
-| Generating rewards and its expectation        | rewards & expec\_rewards            |30.98|-| 
-| Experiment 5.1                                | 5.1/                                |5.71|-| 
+| Generating ground truth model                 | ground\_truth\_model                |-|| 
+| Generating ground truth                       | ground\_truth                       ||-| 
+| Generating recommender models | recommender\_model |-|| 
+| Experiment 5.1                                | 5.1/                                ||-| 
 
 These values are an arbitraty pick from the log files which stores the wall clock execution times each time the code is ran and the pipeline stage has to be (re)build from scratch, i.e. the object file/folder does not yet exist.
 ```
