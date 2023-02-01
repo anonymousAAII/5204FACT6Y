@@ -1,0 +1,257 @@
+31/01/2023 19:47:57
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 19:53:58
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 19:54:20
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 19:55:06
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 21:14:37
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 21:43:15
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 21:44:14
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 22:18:57
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 22:19:24
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 22:28:07
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 22:32:48
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 22:37:28
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}Generating ground_truth_model  167.9010729789734
+31/01/2023 22:41:45
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 22:43:14
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 22:45:07
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}31/01/2023 22:46:36
+{"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}Predicting ground_truth  0.08677124977111816
+31/01/2023 23:05:13
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}31/01/2023 23:17:14
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}31/01/2023 23:19:44
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}31/01/2023 23:21:34
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}31/01/2023 23:57:49
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}31/01/2023 23:58:25
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}31/01/2023 23:59:59
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}01/02/2023 00:00:25
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}01/02/2023 00:16:19
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}01/02/2023 00:30:02
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}Generating recommender 732.1099362373352
+01/02/2023 00:43:29
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}01/02/2023 00:46:30
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}01/02/2023 00:49:21
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}01/02/2023 00:50:45
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}01/02/2023 01:00:41
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}01/02/2023 01:00:57
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}Generating recommender 1055.6532754898071
+01/02/2023 01:24:40
+01/02/2023 01:25:13
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Generating recommender 255.5399181842804
+
+01/02/2023 01:30:11
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:31:05
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:32:29
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:34:17
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:34:54
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:36:07
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:42:11
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:42:34
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:44:04
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:44:52
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:46:02
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:46:56
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01/02/2023 01:55:51
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Generating recommender_model 208.61320567131042
+
+01/02/2023 02:01:56
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Generating recommender_model 814.3700613975525
+
+01-02-2023_02:42:51
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_02:54:22
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_02:59:42
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Initializing 9 recommenders 180.7091407775879
+
+01-02-2023_03:06:15
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Initializing 9 recommenders 333.29121351242065
+
+01-02-2023_03:36:50
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_03:37:32
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_03:37:56
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_03:39:24
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_03:41:52
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_03:42:12
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_03:53:50
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_03:54:13
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_03:54:30
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_03:55:00
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:00:01
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:00:59
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:06:21
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:10:39
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:15:18
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:15:37
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:15:53
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:22:53
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:23:21
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:31:27
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:33:55
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:37:22
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:40:48
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_04:48:35
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:00:01
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:03:18
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:10:00
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:13:27
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:28:22
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:29:13
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:29:46
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:31:16
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:32:02
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+01-02-2023_05:32:37
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 5.842923164367676
+01-02-2023_05:33:23
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.944284915924072
+01-02-2023_05:35:35
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.991073131561279
+01-02-2023_05:36:12
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.961321830749512
+01-02-2023_05:37:37
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.9577248096466064
+01-02-2023_05:42:32
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 5.6755530834198
+01-02-2023_05:46:19
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 6.117528438568115
+01-02-2023_05:49:51
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.969941139221191
+01-02-2023_05:59:23
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 5.070092678070068
+01-02-2023_05:59:49
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.978288412094116
+01-02-2023_06:01:06
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "svd", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.933874845504761
+01-02-2023_06:04:51
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 5.5712974071502686
+01-02-2023_06:07:55
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.972898006439209
+01-02-2023_06:12:03
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 5.496549367904663
+01-02-2023_06:15:44
+{"fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Generating recommender_model 243.27521443367004
+
+Performing experiment 5.1...fm svd 6.494981288909912
+01-02-2023_07:07:16
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01-02-2023_08:19:36
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+01-02-2023_08:28:30
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.4280266761779785
+01-02-2023_08:29:58
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.604527711868286
+01-02-2023_08:34:55
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 5.046685218811035
+01-02-2023_08:37:56
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Performing experiment 5.1...fm svd 4.371338844299316
+01-02-2023_09:20:00
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg"}}}
+Generating ground_truth_model 43.468406677246094
+
+Predicting ground_truth 0.08096599578857422
+
+Generating recommender_model 200.42616486549377
+
+Initializing 9 recommenders 71.73179292678833
+
+Performing experiment 5.1...fm als 4.434994220733643
+01-02-2023_10:02:07
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg", "normalize": false}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, "recommender": {"ALGORITHM": "als", "METRIC": "ndcg", "normalize": false}}}
+Generating recommender_model 408.67864537239075
+
+Initializing 9 recommenders 83.49717664718628
+
+Performing experiment 5.1...fm als 4.550287246704102
+01-02-2023_10:50:13
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}}
+Generating ground_truth_model 43.97581195831299
+
+Predicting ground_truth 0.03767848014831543
+
+Generating recommender_model 364.4289619922638
+
+Initializing 9 recommenders 106.27077770233154
+
+Performing experiment 5.1...fm als 4.423762798309326
+01-02-2023_11:10:23
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}}
+Performing experiment 5.1...fm als 4.540520668029785
+01-02-2023_11:54:42
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}}
+Generating ground_truth_model 179.01051115989685
+
+Predicting ground_truth 0.06905317306518555
+
+Generating recommender_model 1461.0526127815247
+
+Initializing 9 recommenders 71.13144207000732
+
+Performing experiment 5.1...fm als 4.3952977657318115
