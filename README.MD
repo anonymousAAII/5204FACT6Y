@@ -1,10 +1,11 @@
 # Reproduced paper framework 
 ### Online Certification of Preference-Based Fairness for Personalized Recommender Systems
-Auditing for envy in recommender systems[^1]
+*Auditing for envy in recommender systems*. This framework is build based on reproducing the paper: "Online Certification of Preference-Based Fairness for Personalized Recommender Systems."[^1][^5]. With this framework we aimed to construct a reasonable setting in which the paper could be reproduced. For this we took into consideration runtime performance, reusability and scalibilty. For now the framework has only been applied to the two data sets Last.fm[^2] or MovieLens[^3] and for a set of 4 models, however, it can be easily be extended to run for other data sets on which we wish to perform to reproduce the claims of the original paper.  
+
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
 This requires for the code to generate a recommender system with its recommender policies for users.
-To achieve this a pipeline is build that completes sparse user data to synthesize true user preferences and which generates a recommender system based on this ground truth. Which can then be audited for fairness using the definition of envy-freeness as given by the original paper[^1]. The experiments implemented can provide a novel formal analysis of envy-free recommender systems.  
+To achieve this a pipeline is build that completes sparse read in user data to synthesize true user preferences which we use to generate a recommender system. Based on this ground truth we can then audit the recommender system for fairness using the definition of envy-freeness as given by the original paper[^1]. The experiments implemented can provide a novel formal analysis of envy-free recommender systems.  
 
 The pipeline is build in a rather modular manner to save computation time.
 For each step in the pipeline intermediate states are stored such that they only have to be created once and can effortlessly be retrieved. The pipeline modular objects are stored as:
@@ -45,7 +46,7 @@ The infix subfolders ```/fm``` and ```/mv``` represent the data set which is use
 | Initializing 9 recommenders                   | models/<data_set>/*|-|106.27| 
 | Experiment 5.1                                | x                                |5.03|-| 
 
-These values are an arbitraty pick from the log files which stores the wall clock execution times each time the code is ran and the pipeline stage has to be (re)build from scratch, i.e. the object file/folder does not yet exist.
+These values are an arbitraty pick from the log files which store the wall clock execution times each time the code is ran and the pipeline stage has to be (re)build from scratch, i.e. the object file/folder does not yet exist.
 ```
 /src/results/execution times/<data_set>.log
 ```
@@ -92,6 +93,9 @@ DUMMY_EXPERIMENT_CHOICE = "5.1"
 |  :-           |    :----:       |              ---: |
 | LastFM        |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
 | MovieLens     |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
+
+Since all models are saved as objects in a file these models can be reused at any later time. Data storage however is not optimal and is open to improvement.
+
 ### Credits
 Meta AI:
 virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.com
