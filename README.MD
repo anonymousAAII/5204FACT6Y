@@ -59,7 +59,7 @@ The program will *ask which experiment* you would like to execute. The following
 #### Experiments legenda
 | Experiment       | Description                          | Corresponding fig. in *original* paper[^5] | 
 | :-               |    :----:                            |                                       ---: |
-| 5.1              | average envy / number of factors & prop.of envious users / number of factors | Figure 2                                   |
+| 5.1              | **Sources of envy**: average envy / number of factors & prop.of envious users / number of factors | Figure 2                                   |
 
 
 ### Credits
