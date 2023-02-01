@@ -1,6 +1,6 @@
 # Reproduced paper framework 
 ### Online Certification of Preference-Based Fairness for Personalized Recommender Systems
-*Auditing for envy in recommender systems*. This framework is build based on reproducing the paper: "Online Certification of Preference-Based Fairness for Personalized Recommender Systems."[^1][^5]. With this framework we aimed to construct a reasonable environment in which the paper could be reproduced in a controlled and structured experimental setting. For this we took into consideration runtime performance, reusability and scalibilty. For now the framework has only been applied to the two data sets Last.fm[^2] or MovieLens[^3], for a set of 3 models (ALS, LMF, Funky SVD) and a selection of performance metrics (precision@k, ndcg@k, dcg@k), however, it can be easily be extended to run for other data sets on which we wish to perform to reproduce the claims of the original paper.  
+*Auditing for envy in recommender systems*. This framework is build based on reproducing the paper: "Online Certification of Preference-Based Fairness for Personalized Recommender Systems."[^1][^5]. With this framework we aimed to construct a reasonable environment in which the paper could be reproduced in a controlled and structured experimental setting. For this we took into consideration runtime performance, reusability and scalibilty. For now the framework has only been applied to the two data sets Last.fm[^2] or MovieLens[^3], for a set of 3 models (ALS[^8], LMF[^7], Funky SVD[^6]) and a selection of performance metrics (precision@k, ndcg@k, dcg@k), however, it can be easily be extended to run for other data sets on which we wish to perform to reproduce the claims of the original paper.  
 
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
@@ -109,3 +109,6 @@ virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.
 [^3]: https://grouplens.org/datasets/movielens/1m/
 [^4]: A batch of models is assigned to a CPU core.
 [^5]: https://arxiv.org/abs/2104.14527
+[^6]: https://github.com/gbolmier/funk-svd
+[^7]: https://benfred.github.io/implicit/api/models/cpu/lmf.html#
+[^8]: https://benfred.github.io/implicit/api/models/cpu/als.html
