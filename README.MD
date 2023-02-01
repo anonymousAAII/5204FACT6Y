@@ -64,8 +64,8 @@ The program will *ask which experiment* you would like to execute. The following
 | 5.1              | **Sources of envy**: average envy / number of factors & prop.of envious users / number of factors | Figure 2                                   |
 
 #### Implemented possible models per pipe line stage
-|    :-    | Ground truth model | Recommender model | 
-|   Data set         |    :----:       |              ---: |
+|  Data set    | Ground truth model | Recommender model | 
+|  :-           |    :----:       |              ---: |
 | LastFM        |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
 | MovieLens     |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
 ### Credits
