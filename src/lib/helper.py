@@ -77,7 +77,7 @@ def get_current_datetime():
     # datetime object containing current date and time
     now = datetime.now()
     # dd/mm/YY H:M:S
-    return now.strftime("%d-%m-%Y_%H:%M:%S")
+    return now.strftime("%d/%m/%Y_%H:%M:%S")
 
 def merge_duplicates(df, col_duplicate, col_merge_value, mode_operation="sum"):
     """

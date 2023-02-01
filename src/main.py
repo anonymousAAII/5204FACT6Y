@@ -112,6 +112,9 @@ if __name__ == "__main__":
     constant.MODELS_CHOSEN = model_choice
     my_globals = globals()
 
+    # Whether these pipeline modules are rebuild from scratch again
+    new_build = {"gt": False, "recommender": False}
+
     # For all datas sets requested by user generate recommender systems
     for label, name in data_sets_chosen.items(): 
         set_name = name.upper()
@@ -132,8 +135,10 @@ if __name__ == "__main__":
         log_path = helper.get_log_path(data_set)
 
         io.initialize_empty_file(log_path)
-        io.write_to_file(log_path, model_choice, mode="json")
         
+        if not path.exists(var_path_gt + constant.FILE_NAMES["gt"]):
+            new_build["gt"] = True
+
         # Generate ground truth matrix of user-item relevance scores
         exec(compile(open(data_set["filename"], "rb").read(), data_set["filename"], "exec"))
         
@@ -178,6 +183,7 @@ if __name__ == "__main__":
 
         # Generate models to simulate the recommender system's preference estimation
         if not path.exists(recommender_models_file_path):
+            new_build["recommender"] = True
             start = time.time()
             recommender_models = rec_generator.create_recommender_model(ground_truth, configurations, 
                                                                     rec_settings["ALGORITHM"], rec_settings["METRIC"], 
@@ -229,8 +235,9 @@ if __name__ == "__main__":
     # AUDITING EXPERIMENTS
     ##########################
     # Running option "all" experiments not yet supported
+        
+    # EXPERIMENT 5.1: sources of envy
     if experiment_choice == "5.1":
-        # EXPERIMENT 5.1: sources of envy
         for label, name in data_sets_chosen.items():
             data_set = data_sets[name]
             recommenders = os.listdir(constant.MODELS_FOLDER + data_set["var_folder"])    
@@ -251,7 +258,21 @@ if __name__ == "__main__":
         # Proportion of envious users plotted together
         # experiment.audits[0].params["basic"]["epsilon"]
         data = plot.gerenate_plot_data(data_sets_chosen, data_sets, "5.1", "prop_envious_users", "5.1_prop_envy_users")
-        plot.plot_experiment_line(data["lines"], "prop of envious users (epsilon = {})".format(0.5), "number of factors", data["labels"], data["linestyles"], data["colors"], data["file_name"], x_upper_bound=128)
+        plot.plot_experiment_line(data["lines"], "prop of envious users (epsilon = {})".format(0.05), "number of factors", data["labels"], data["linestyles"], data["colors"], data["file_name"], x_upper_bound=128)
 
-    # # # Try algorithm for one model
-    # # envy.OCEF(policies_fm[latent_factor], rewards_fm, 0, 3, 1, 1, 0)
+
+
+    # End of logging
+    for label, name in data_sets_chosen.items():
+        data_set = data_sets[name]
+        log_path = helper.get_log_path(data_set)
+
+        if new_build["gt"]:
+            io.write_to_file(log_path, "ground_truth_model")
+            io.write_to_file(log_path, model_choice[label]["ground_truth"], mode="json")
+        
+        if new_build["recommender"]:
+            io.write_to_file(log_path, "recommender_model")
+            io.write_to_file(log_path, model_choice[label]["recommender"], mode="json")
+        
+        io.write_to_file(log_path, "-------------------END---------------------")

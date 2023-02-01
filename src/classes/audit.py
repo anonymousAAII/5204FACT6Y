@@ -12,7 +12,7 @@ class Audit(object):
 
         self.params = {
                 "basic": {
-                    "epsilon": 0.5
+                    "epsilon": 0.05
                 }
             }
 

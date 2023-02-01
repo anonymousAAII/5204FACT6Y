@@ -28,10 +28,12 @@ class Experiment(object):
             recommender = self.recommenders[i]
             audit = Audit(recommender)
             envy_per_user = audit.audit_envy(audit_mode="basic")
-            
+
+            # Average envy per user 
             latent_factor = recommender.params["latent_factor"]
             avg_envy_users[latent_factor] = np.mean(envy_per_user)
 
+            # Proportion envious users
             epsilon = audit.params["basic"]["epsilon"]
             prop_envious_users[latent_factor] = np.mean(envy_per_user > epsilon)
 
