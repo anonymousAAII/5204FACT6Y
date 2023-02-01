@@ -14,7 +14,6 @@ src/variables/<data_set_label>/ground_truth/<model_type>/ground_truth
 ```
 Where ```<data_set_label>``` is the data set used to model .e.g. fm for the Last.fm dataset. ```<model_type>``` the model type used e.g. als for AlternatingLeastSquares. So you get:
 
-
 ```
 src/variables/fm/ground_truth/als/ground_truth_model
 ```
@@ -33,9 +32,7 @@ The infix subfolders ```/fm``` and ```/mv``` represent the data set which is use
 | Generating ground truth model                 | ground\_truth\_model                |||  
 | Predicting ground truth                       | ground\_truth                       ||-| 
 | Generating recommender models                 | recommender\_model                  |||
-
-| Generating rewards and its expectation        | rewards & expec\_rewards            ||-| 
-| Experiment 5.1                                |  5.1/                               ||-| 
+| Experiment 5.1                                |  x                               ||-| 
 
 #### MovieLens
 | Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
@@ -43,7 +40,7 @@ The infix subfolders ```/fm``` and ```/mv``` represent the data set which is use
 | Generating ground truth model                 | ground\_truth\_model                |-|| 
 | Generating ground truth                       | ground\_truth                       ||-| 
 | Generating recommender models | recommender\_model |-|| 
-| Experiment 5.1                                | 5.1/                                ||-| 
+| Experiment 5.1                                | x                                ||-| 
 
 These values are an arbitraty pick from the log files which stores the wall clock execution times each time the code is ran and the pipeline stage has to be (re)build from scratch, i.e. the object file/folder does not yet exist.
 ```
