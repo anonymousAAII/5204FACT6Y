@@ -3,13 +3,9 @@
 Auditing for envy in recommender systems[^1]
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
-<<<<<<< HEAD:README.MD
-This requires for the code to generate a recommender system with recommender policies for users.
-To achieve this a pipeline is build that completes sparse user data and which generates a recommender system.
-=======
 This requires for the code to generate a recommender system with its recommender policies for users.
-To achieve this a pipeline is build that completes sparse user data on which it generates a recommender system. Which can then be audited for fairness using the definition of envy-freeness as given by the original paper[^1]. The experiments implemented can provide a novel formal analysis of envy-free recommender systems.  
->>>>>>> 79f82a0bdace33fd038560cb8bbab923a735c1fb:vN/README.MD
+To achieve this a pipeline is build that completes sparse user data to synthesize true user preferences and which generates a recommender system based on this ground truth. Which can then be audited for fairness using the definition of envy-freeness as given by the original paper[^1]. The experiments implemented can provide a novel formal analysis of envy-free recommender systems.  
+
 The pipeline is build in a rather modular manner to save computation time.
 For each step in the pipeline intermediate states are stored such that they only have to be created once and can effortlessly be retrieved. The pipeline modular objects are stored as:
 
