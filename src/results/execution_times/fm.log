@@ -1,0 +1,39 @@
+01/02/2023_19:43:36
+Generating ground_truth_model 355.74550008773804
+
+Predicting ground_truth 0.07254576683044434
+
+Generating recommender_model 234.0497851371765
+
+Initializing 9 recommenders 68.49978065490723
+
+Performing experiment 5.1...fm als 4.286924362182617
+ground_truth_model
+{"ALGORITHM": "lmf", "METRIC": "ndcg"}
+recommender_model
+{"ALGORITHM": "als", "METRIC": "ndcg", "normalize": true}
+-------------------END---------------------
+01/02/2023_20:28:47
+Generating ground_truth_model 398.676127910614
+
+Predicting ground_truth 0.07232522964477539
+
+Generating recommender_model 258.93177795410156
+
+Initializing 9 recommenders 77.22294855117798
+
+Performing experiment 5.1...fm als 7.522476673126221
+ground_truth_model
+{"ALGORITHM": "lmf", "METRIC": "ndcg"}
+recommender_model
+{"ALGORITHM": "als", "METRIC": "ndcg", "normalize": true}
+-------------------END---------------------
+01/02/2023_21:14:15
+Generating ground_truth_model 169.98064041137695
+
+Predicting ground_truth 0.04936718940734863
+
+Generating recommender_model 806.6996624469757
+
+Initializing 9 recommenders 79.27617502212524
+

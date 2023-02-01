@@ -6,8 +6,14 @@
 # Debug modus
 DEBUG = True
 DUMMY_DATA_SET_CHOICE = "all"
-DUMMY_MODEL_CHOICE = {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, 
-                        "recommender": {"ALGORITHM": "als", "METRIC": "ndcg", "normalize": True}} 
+DUMMY_MODEL_CHOICE = {"fm": 
+                        {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, 
+                        "recommender": {"ALGORITHM": "als", "METRIC": "ndcg", "normalize": True}},
+                "mv": 
+                        {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, 
+                        "recommender": {"ALGORITHM": "als", "METRIC": "ndcg", "normalize": True}}
+                }
+
 DUMMY_EXPERIMENT_CHOICE = "5.1"
 
 
@@ -21,10 +27,6 @@ DATA_SETS = {"movie": {"label": "mv",
                 # Extension of variable name
                 "var_ext": "_mv",
                 "var_folder": "mv/",
-                "vars": {
-                        "ground_truth": None,
-                        "recommender_models": None,
-                        },
                 # Plotting lay-out
                 "plot_style": {
                         "label": "MovieLens",
@@ -41,10 +43,6 @@ DATA_SETS = {"movie": {"label": "mv",
                 "var_ext": "_fm",
                 # Variable path infix depending on the data set
                 "var_folder": "fm/", 
-                "vars": {
-                        "ground_truth": None,
-                        "recommender_models": None,
-                },
                 # Plotting lay-out
                 "plot_style": {
                         "label": "Last.fm",

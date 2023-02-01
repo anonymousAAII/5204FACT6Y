@@ -34,11 +34,14 @@ import constant
 
 def train_model(R_coo, configurations, seed, metric, model_type):
     """
-    For a random seed trains a model on a sparse matrix for all given hyperparameter combinations.
+    For a random seed trains a model on a sparse user-item matrix for all given hyperparameter combinations.
 
-    :R_coo:             sparse matrix
-    :configurations:    hyperparameters' space
-    :seed:              seed (counter)
+    Inputs:
+        R_coo                   - sparse user-item matrix
+        configurations          - hyperparameters' space [{<latent_factor>: "reg": <regularization>, "alpha": <confidence weighing>}]
+        seed                    - seed (counter)
+        metric                  - which performance metric to use when validating and testing the model e.g. NDCG@K
+        model_type              - selected algorithm of model
     """
     # Create 70%/10%/20% train/validation/test data split of the user-item top 2500 listening counts
     train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7)
@@ -208,6 +211,7 @@ if __name__ == "__main__":
         # Cross-validation
         print("Training for", num_random_seeds, "models...MULTIPROCESSING")
 
+        # Apply worker pool with the available CPU cores for computatational optimization
         pool = mp.Pool(mp.cpu_count())
         results = pool.starmap(train_model, [(R_coo, configurations, seed, METRIC, ALGORITHM) for seed in range(num_random_seeds)])
         pool.close()

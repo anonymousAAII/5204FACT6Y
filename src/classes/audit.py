@@ -3,13 +3,21 @@ from tqdm import tqdm
 
 class Audit(object):
     def __init__(self, recommender):
+        """
+        Audit object can perform an audit for envy-ness in its given recommender system
+
+        Inputs:
+            recommender     - recommender system object
+        """
         self.recommender = recommender   
+        # Envy results of audit peforming different audit methods
         self.envy = {
                 "basic": None,
                 "prob": None,
                 "OCEF": None
             }
 
+        # Used parameters during audit for different audit methods
         self.params = {
                 "basic": {
                     "epsilon": 0.05
@@ -43,5 +51,8 @@ class Audit(object):
         return delta_envy.flatten()
 
     def audit_envy(self, audit_mode="basic"):
+        """
+        Audit function
+        """
         if audit_mode=="basic":
             return self.__envy_free_basic()

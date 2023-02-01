@@ -131,10 +131,11 @@ def create_recommender_model(ground_truth, hyperparameter_configurations, algori
     Create a recommender system model according to the specified algorithm using the given "ground truth" i.e. true relevance scores
 
     Inputs:
-        ground_truth                        - matrix containing estimated relevance scores serving as the ground truth preference
+        ground_truth                        - matrix containing estimated user-item relevance scores serving as the ground truth preferences
         hyperparameter_configurions         - dictionary containing the hyperparameter spaces i.e. all possible hyperparameter combinations for grid search
-        algorithm                           - which algorithm to use to construct the recommender model either SVD or ALS
+        algorithm                           - which algorithm to use to construct the recommender model either Funky SVD or ALS
         split                               - specifies the fractions in which the train/validation/test split should be applied
+        multiprocessing                     - whether to apply multiprocessing for computational efficiency
     Outputs:
         dictionary                          - all models found during grid search indexed by <latent_factor> with corresponding validation performance
                                                 {<latent_factor>: 
@@ -155,7 +156,7 @@ def create_recommender_model(ground_truth, hyperparameter_configurations, algori
     df_params = pd.DataFrame.from_dict(hyperparameter_configurations)
     keys = np.array(df_params.loc["latent_factor"].drop_duplicates())
 
-    # Data struct containing models in the form:
+    # Data struct that will contain the found models in the form:
     # {<latent_factor>: {<performance>: {"i_params": <index hyperparams config>, "params": <hyperparams config>, "performance": <performance>, "model": <model>}}}
     # for each latent factor
     models = {key: {} for key in keys}

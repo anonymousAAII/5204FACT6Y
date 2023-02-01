@@ -11,6 +11,9 @@ from scipy import interpolate
 import constant
 
 def gerenate_plot_data(data_sets_chosen, data_sets, experiment_key, result_key, file_name):
+    """
+    Generate plot data according to the given data set, experiment key and result key
+    """
     lines = []  
     labels = []
     linestyles = [] 
@@ -28,7 +31,7 @@ def gerenate_plot_data(data_sets_chosen, data_sets, experiment_key, result_key, 
         labels.append(plot_style["label"])  
         linestyles.append(plot_style["linestyle"])
         colors.append(plot_style["color"])    
-        ds.append(label + experiment.recommenders[0].model_type)   
+        ds.append(label + "_" + experiment.recommenders[0].model_type)   
 
     "_".join(ds)
     file_name = file_name + str(ds)

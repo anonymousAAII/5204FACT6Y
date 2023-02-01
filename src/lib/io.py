@@ -16,8 +16,9 @@ def save(filename, *args):
 	"""
 	Saves variables in a file such that afterwards they can be (re)loaded and utilized in other scripts
 
-	:filename:		filename to store the variables
-	:*args:         variables to store must be in format (<variable name>, <variable>)
+	Input:
+		filename		- filename to store the variables
+		*args:			- variables to store must be in format (<variable name>, <variable>)
 	"""
 	d = {}
 
@@ -34,8 +35,9 @@ def load(filename, globals):
 	"""
 	Loads variables from a file into globals() such that they can be utilized
 
-	:filename:		filename to load variables from
-	:globals:		globals() 
+	Inputs:
+		filename:		- filename to load variables from
+		globals			- globals() object containing the global variables
 	"""
 	with open(filename, 'rb') as f:
 		for name, v in pickle.load(f).items():
@@ -46,7 +48,8 @@ def initialize_empty_file(file_path):
 	"""
 	Initilizes an empty file given by its file path with the current date time
 
-	:file_path:		path of file to initialize	 
+	Inputs:
+		file_path		- path of file to initialize	 
 	""" 
 	with open(file_path, "a" if path.exists(file_path) else "w") as file: 
 		file.write(helper.get_current_datetime() + "\n")
@@ -56,8 +59,10 @@ def write_to_file(file_path, string, mode="txt"):
 	"""
 	Writes the given string to a file given by its file path
 
-	:file_path:		path of file to write to
-	:string:		string to write
+	Input:
+		file_path		- path of file to write to
+		string			- string to write
+		mode			- what input type e.g. json needs to be written
 	"""
 	if mode == "json":
 		with open(file_path, "a") as file:

@@ -15,6 +15,9 @@ import constant
 from lib import io
 
 def init_directories():
+    """
+    Construct required framework directory structure to be able to construct the pipeline
+    """
     # Folder to save intermediate variables of the pipeline
     var_folder1 = constant.VARIABLES_FOLDER
     if not path.exists(var_folder1):
@@ -68,12 +71,21 @@ def init_directories():
                 os.mkdir(constant.MODELS_FOLDER + data_set["var_folder"])
 
 def get_var_path(data_set, model_folder, model_settings):
+    """
+        Construct the relative path of where to store and retrieve variables
+    """
     return constant.VARIABLES_FOLDER + data_set["var_folder"] + model_folder + model_settings["ALGORITHM"] + "/"
 
 def get_log_path(data_set):
+    """
+        Construct the relative pathe of where to log info
+    """
     return constant.TIMING_FOLDER + data_set["log_file"]
 
 def get_current_datetime():
+    """
+        Returns system's datetime
+    """
     # datetime object containing current date and time
     now = datetime.now()
     # dd/mm/YY H:M:S
@@ -103,7 +115,7 @@ def generate_hyperparameter_configurations(regularization, latent_factors, confi
 
     Inputs:
         regularization          - contains lambda the regularization factor
-        confidence_weighting    - contains alpha the confidence weight factor
+        confidence_weighting    - contains alpha the confidence weigh factor
         latent_factors          - contains the number of latent factors
     Outputs:
         dictionary              - in the format {<id>: {<hyperparameter_1 name>: <value>, ..., {<hyperparameter_N name>: <value>}}
@@ -122,6 +134,17 @@ def generate_hyperparameter_configurations(regularization, latent_factors, confi
     return configurations
 
 def get_dictionary_subsets(dictionary, n, random=True):
+    """
+    Given a dictionary makes a split into subset dictionaries
+
+    Inputs:
+        dictionary      - dictionary to split
+        n               - number of chunks to split the dictionary into
+        random          - whether to perform a random split
+    Outputs:
+        list            - containing the resulting subset dictionaries
+    """
+
     keys = np.array(list(dictionary.keys()))
 
     if random:
@@ -151,6 +174,9 @@ def get_index_best_model(model_train_results, mode="max"):
         return performance_models.index(min(performance_models))
 
 def save_recommender(recommender):
+    """"
+    Saves recommender object locally
+    """
     path = constant.MODELS_FOLDER + recommender.data_set["var_folder"]
 
     params = recommender.params
@@ -165,6 +191,9 @@ def save_recommender(recommender):
     return file_name
 
 def get_recommender(data_set, file_name, my_globals):
+    """
+    Retrieves recommender object locally
+    """
     file_path = constant.MODELS_FOLDER + data_set["var_folder"] + file_name
     
     if not path.exists(file_path):
