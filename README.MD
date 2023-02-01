@@ -51,8 +51,18 @@ These values are an arbitraty pick from the log files which stores the wall cloc
 ```
 In these files the chosen models are also logged as:
 ```
-{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}}
-Performing experiment 5.1...fm als 5.10915994644165
+{"mv": 
+  {"ground_truth": 
+    {"ALGORITHM": "als", "METRIC": "precision"}, 
+   "recommender": 
+    {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}
+  }, 
+"fm": {"ground_truth": 
+        {"ALGORITHM": "als", "METRIC": "precision"}, 
+    "recommender": 
+      {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}
+   }
+ }
 ```
 Note however that this only involves when the models are constructed not when they are loaded in.
 
