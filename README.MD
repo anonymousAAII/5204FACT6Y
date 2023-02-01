@@ -31,7 +31,7 @@ The infix subfolders ```/fm``` and ```/mv``` represent the data set which is use
 #### Last.fm
 | Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
-| Generating ground truth model                 | ground\_truth\_model                |-|43.97|  
+| Generating ground truth model                 | ground\_truth\_model                |-|385.29|  
 | Predicting ground truth                       | ground\_truth                       |0.03|-| 
 | Generating 9 recommender models                 | recommender\_model                  |-|364.428 (ALS) <br> 2348.44 (Funky SVD)|
 | Initializing 9 recommenders                   | models/<data_set>/*|-|106.27| 
@@ -40,9 +40,9 @@ The infix subfolders ```/fm``` and ```/mv``` represent the data set which is use
 #### MovieLens
 | Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
-| Generating ground truth model                 | ground\_truth\_model                |-|424.97 (ALS) <br> 2296.97 (Funky SVD)| 
+| Generating ground truth model                 | ground\_truth\_model                |-|384.16| 
 | Predicting ground truth                       | ground\_truth                       |0.08|-| 
-| Generating 9 recommender models | recommender\_model |-|345.72| 
+| Generating 9 recommender models | recommender\_model |-|345.72 (ALS) <br> 2296.97 (Funky SVD| 
 | Initializing 9 recommenders                   | models/<data_set>/*|-|106.27| 
 | Experiment 5.1                                | x                                |5.03|-| 
 
