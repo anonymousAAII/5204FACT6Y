@@ -73,8 +73,15 @@ Please run the code through the terminal by going to the ```src/``` folder and r
 OPENBLAS_NUM_THREADS=1 python main.py
 ```
 
-The program will *ask which experiment* you would like to execute. The following legenda describes the numbering: 
-
+The program will *ask which experiment* you would like to execute. The legenda below describes the numbering. However, if you are not a fan of **CLI** usage a quick hack would be to use the code in *debug mode* the following way and setting the values you desire.
+```
+# File location: src/constant.py
+DEBUG = True
+DUMMY_DATA_SET_CHOICE = "all"
+DUMMY_MODEL_CHOICE = {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, 
+                        "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": False}} 
+DUMMY_EXPERIMENT_CHOICE = "5.1"
+```
 #### Experiments legenda
 | Experiment       | Description                          | Corresponding fig. in *original* paper[^5] | 
 | :-               |    :----:                            |                                       ---: |
