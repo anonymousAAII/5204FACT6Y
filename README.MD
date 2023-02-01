@@ -25,7 +25,7 @@ For changes in the deleted component to work through all the way through the pip
 To make carefull decisions which object files to delete taking computation time into consideration the following info is included:
 
 The intermediate stages object files are stored in the ```/src/variables/...``` path.
-The infix subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). And the infix ```<model_type>``` specifies which sorf of model is applied. The following table shows the pipeline in sequential order, a random pick of duration of each stage and wheter a corresponding object file is created:
+The infix subfolders ```/fm``` and ```/mv``` represent the data set which is used as a recommender system (Last.fm[^2] or MovieLens[^3] in this case). And the infix ```<model_type>``` specifies which sorf of model is applied. The following table shows the pipeline in sequential order, a random pick of duration of each stage and whether a corresponding object file is created:
 
 #### Last.fm
 | Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
