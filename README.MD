@@ -1,6 +1,6 @@
 # Reproduced paper framework 
 ### Online Certification of Preference-Based Fairness for Personalized Recommender Systems
-*Auditing for envy in recommender systems*. This framework is build based on reproducing the paper: "Online Certification of Preference-Based Fairness for Personalized Recommender Systems."[^1][^5]. With this framework we aimed to construct a reasonable setting in which the paper could be reproduced. For this we took into consideration runtime performance, reusability and scalibilty. For now the framework has only been applied to the two data sets Last.fm[^2] or MovieLens[^3] and for a set of 4 models, however, it can be easily be extended to run for other data sets on which we wish to perform to reproduce the claims of the original paper.  
+*Auditing for envy in recommender systems*. This framework is build based on reproducing the paper: "Online Certification of Preference-Based Fairness for Personalized Recommender Systems."[^1][^5]. With this framework we aimed to construct a reasonable setting in which the paper could be reproduced. For this we took into consideration runtime performance, reusability and scalibilty. For now the framework has only been applied to the two data sets Last.fm[^2] or MovieLens[^3], for a set of 4 models and a selection of performance metrics, however, it can be easily be extended to run for other data sets on which we wish to perform to reproduce the claims of the original paper.  
 
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
