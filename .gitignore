@@ -1,8 +1,9 @@
-/data/
+/data/*
+/src/models/*
+src/variables/*
 
 /vJ/src/__pycache__/
 
 # But not these files...
 !/data/hetrec2011-lastfm-2k.zip
 !/data/ml-1m.zip
-
