@@ -107,7 +107,7 @@ virginie.do@dauphine.eu, scd@fb.com, jamal.atif@lamsade.dauphine.fr, usunier@fb.
 [^1]: Virginie Do, Sam Corbett-Davies, Jamal Atif, Nicolas Usunier; LAMSADE, Université PSL, Université Paris Dauphine, CNRS, France
 [^2]: https://grouplens.org/datasets/hetrec-2011/
 [^3]: https://grouplens.org/datasets/movielens/1m/
-[^4]: A batch of models is assigned to a CPU core.
+[^4]: A random batch of models is assigned to a CPU core.
 [^5]: https://arxiv.org/abs/2104.14527
 [^6]: https://github.com/gbolmier/funk-svd
 [^7]: https://benfred.github.io/implicit/api/models/cpu/lmf.html#
