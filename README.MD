@@ -30,39 +30,31 @@ The infix subfolders ```/fm``` and ```/mv``` represent the data set which is use
 #### Last.fm
 | Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
-<<<<<<< HEAD:README.MD
-| Generating ground truth model                 | ground\_truth\_model                |||  
-| Predicting ground truth                       | ground\_truth                       ||-| 
-| Generating recommender models                 | recommender\_model                  |||
-| Experiment 5.1                                |  x                               ||-| 
-=======
 | Generating ground truth model                 | ground\_truth\_model                |-|43.97|  
 | Predicting ground truth                       | ground\_truth                       |0.03|-| 
 | Generating 9 recommender models                 | recommender\_model                  |-|364.428|
 | Initializing 9 recommenders                   | models/<data_set>/*|-|106.27| 
 | Experiment 5.1                                |  x                               |4.42|-|
->>>>>>> 79f82a0bdace33fd038560cb8bbab923a735c1fb:vN/README.MD
 
 #### MovieLens
 | Pipeline stage                                | Object file created          | Duration sequental (sec - min)  |  Duration multiprocessing batch[^4] |
 | :---                                          |    :----:                           |    :----:                           |       ---: |
-<<<<<<< HEAD:README.MD
-| Generating ground truth model                 | ground\_truth\_model                |-|| 
-| Generating ground truth                       | ground\_truth                       ||-| 
-| Generating recommender models | recommender\_model |-|| 
-| Experiment 5.1                                | x                                ||-| 
-=======
 | Generating ground truth model                 | ground\_truth\_model                |-|424.97| 
 | Predicting ground truth                       | ground\_truth                       |0.08|-| 
 | Generating 9 recommender models | recommender\_model |-|345.72| 
 | Initializing 9 recommenders                   | models/<data_set>/*|-|106.27| 
 | Experiment 5.1                                | x                                |5.03|-| 
->>>>>>> 79f82a0bdace33fd038560cb8bbab923a735c1fb:vN/README.MD
 
 These values are an arbitraty pick from the log files which stores the wall clock execution times each time the code is ran and the pipeline stage has to be (re)build from scratch, i.e. the object file/folder does not yet exist.
 ```
 /src/results/execution times/<data_set>.log
 ```
+In these files the chosen models are also logged as:
+```
+{"mv": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}, "fm": {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": false}}}
+Performing experiment 5.1...fm als 5.10915994644165
+```
+Note however that this only involves when the models are constructed not when they are loaded in.
 
 Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
