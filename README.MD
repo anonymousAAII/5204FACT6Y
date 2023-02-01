@@ -14,7 +14,7 @@ For each step in the pipeline intermediate states are stored such that they only
 src/variables/<data_set_label>/ground_truth/<model_type>/ground_truth_model
 src/variables/<data_set_label>/ground_truth/<model_type>/ground_truth 
 ```
-Where ```<data_set_label>``` is the data set used to model .e.g. fm for the Last.fm dataset. ```<model_type>``` the model type used e.g. als for AlternatingLeastSquares. So you get:
+Where ```<data_set_label>``` is the data set used to model .e.g. *fm* for the Last.fm dataset. ```<model_type>``` the model type used e.g. *als* for AlternatingLeastSquares. So you get:
 
 ```
 src/variables/fm/ground_truth/als/ground_truth_model
@@ -94,7 +94,7 @@ DUMMY_EXPERIMENT_CHOICE = "5.1"
 | LastFM        |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
 | MovieLens     |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
 
-Since all models are saved as objects in a file these models can be reused at any later time. Data storage however is not optimal and is open to improvement.
+Since all models are saved as objects in a file these models can be reused at any later time. Data storage design however is not optimal and is open to improvement.
 
 ### Credits
 Meta AI:
