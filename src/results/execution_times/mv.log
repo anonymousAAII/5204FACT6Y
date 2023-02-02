@@ -97,3 +97,18 @@ Initializing 9 recommenders 77.33113241195679
 
 Performing experiment 5.1...mv als 0.6433877944946289
 -------------------END---------------------
+02/02/2023_04:26:16
+Generating ground_truth_model 377.1436324119568
+
+Predicting ground_truth 0.08564114570617676
+
+Generating recommender_model 960.005678653717
+
+Initializing 9 recommenders 77.32457947731018
+
+Performing experiment 5.1...mv als 0.5437626838684082
+ground_truth_model
+{"ALGORITHM": "als", "METRIC": "ndcg"}
+recommender_model
+{"ALGORITHM": "als", "METRIC": "ndcg", "normalize": true}
+-------------------END---------------------
