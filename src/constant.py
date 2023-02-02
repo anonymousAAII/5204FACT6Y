@@ -7,11 +7,11 @@
 DEBUG = True
 DUMMY_DATA_SET_CHOICE = "all"
 DUMMY_MODEL_CHOICE = {"fm": 
-                        {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, 
-                        "recommender": {"ALGORITHM": "als", "METRIC": "ndcg", "normalize": False}},
+                        {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, 
+                        "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": False}},
                 "mv": 
-                        {"ground_truth": {"ALGORITHM": "als", "METRIC": "ndcg"}, 
-                        "recommender": {"ALGORITHM": "als", "METRIC": "ndcg", "normalize": False}}
+                        {"ground_truth": {"ALGORITHM": "als", "METRIC": "precision"}, 
+                        "recommender": {"ALGORITHM": "als", "METRIC": "precision", "normalize": False}}
                 }
 
 DUMMY_EXPERIMENT_CHOICE = "5.1"

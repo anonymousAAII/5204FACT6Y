@@ -31,13 +31,19 @@ class Audit(object):
         # Utilities of OPT
         u_OPT = self.recommender.u_OPT
 
-        # Only keep <u_OPT> that involve policies other than those of the user
-        mask = np.full(u_OPT.shape, 1)
-        np.fill_diagonal(mask, 0)
-        u_n = mask * u_OPT
-        delta_u = (u_n.flatten() - u_m.flatten())
-        envy = delta_u.clip(min=0)
-        
+        x, y = u_OPT.shape
+
+        # Create mask to only keep <u_OPT> that involve policies other than those of the user
+        mask_diagonal = np.full(u_OPT.shape, 1)
+        np.fill_diagonal(mask_diagonal, 0)
+        u_n = mask_diagonal * u_OPT
+
+        # Calculate the max envy experienced by users
+        select = (u_n > 0)
+        delta_u = u_n - select * np.tile(u_m.diagonal(), x).reshape((x, y))
+
+        envy = delta_u.flatten()
+
         # Envy for each user
         return envy
 

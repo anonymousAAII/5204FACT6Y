@@ -32,8 +32,8 @@ class Recommender(object):
         self.set_expec_rewards()
         
         self.set_u()
-        self.set_u_OPT()
         self.set_u_m()
+        self.set_u_OPT()
 
     def set_preferences(self):
         print("Initializing preferences...")
@@ -64,51 +64,7 @@ class Recommender(object):
         
         # Compute the softmax transformation along the second axis (i.e., the rows)
         self.policies = scipy.special.softmax(policies, axis=1)
-
-    # This whole section belows makes use of the properties of lineair algebra to compute sources of envy
-    def set_u(self):
-        # According to definition utility = policy * expectation rewards
-        utilities = self.policies @ self.expec_rewards.T
-        self.u = utilities
-
-    def set_u_OPT(self):
-        """
-            Finds the utilies of unconstrainted optimal policies
-        """    
-        # Contains the OPT utilities per user in the matrix form 
-        # Non zero elements contain the OPT per user -> coordinate = <policy_index>, <user_index>
-        # so each column has exactly one none zero element
-        self.u_OPT = self.u * (self.u >= np.sort(self.u, axis=0)[[-1],:]).astype(int)
-
-    def set_u_m(self):
-        """
-            Find utilities u_m for policy m (so the utility for each user of its own policy) 
-        """
-        self.u_m = np.zeros(self.u.shape)
-        np.fill_diagonal(self.u_m, self.u.diagonal())
-
-    def set_u_EUU(self):
-        """
-            Find the Equal User Utility using the Frank-Wolfe algorithm
-        """
-        # Use the policies as the initial guess of the Frank-Wolfe algorithm
-        p_init = self.policies
-
-    def set_recommendations(self):
-        print("Generating recommendations...")
-
-        # According to a given policy i.e. a probability distribution 
-        # select an item by drawing from this distribution -> is the recommendation
-        def select_policy(distribution, indices):
-            i_drawn_policy = np.random.choice(indices, 1, p=distribution)
-            recommendation = np.zeros(len(indices))
-            recommendation[i_drawn_policy] = 1
-            return recommendation
-
-        # Since stationary policies pick a recommendation for an user only once
-        indices = np.arange(len(self.policies[0]))
-        self.recommendations = np.apply_along_axis(select_policy, 1, self.policies, indices)
-        
+    
     def set_rewards(self):
         print("Generating binary rewards...")
 
@@ -132,6 +88,53 @@ class Recommender(object):
             scaler = MinMaxScaler()
             model = scaler.fit(self.ground_truth)
             self.expec_rewards = model.transform(self.ground_truth)
+
+    # This whole section belows makes use of the properties of lineair algebra to compute sources of envy
+    def set_u(self):
+        # According to definition utility = policy * expectation rewards
+        utilities = self.policies @ self.expec_rewards.T
+        self.u = utilities
+    
+    def set_u_m(self):
+        """
+            Find utilities u_m for policy m (so the utility for each user of its own policy) 
+        """
+        self.u_m = np.zeros(self.u.shape)
+        np.fill_diagonal(self.u_m, self.u.diagonal())
+
+    def set_u_OPT(self):
+        """
+            Finds the utilies of unconstrainted optimal policies
+        """    
+        # Contains the OPT utilities per user in the matrix form 
+        # Non zero elements contain the OPT per user -> coordinate = <policy_index>, <user_index>
+        # so each column has exactly one none zero element
+        self.u_OPT = self.u * (self.u >= np.sort(self.u, axis=0)[[-1],:]).astype(int)
+
+    def set_u_EUU(self):
+        """
+            Find the Equal User Utility using the Frank-Wolfe algorithm
+        """
+        # Use the policies as the initial guess of the Frank-Wolfe algorithm
+        p_init = self.policies
+
+        # Define objective function
+        
+    def set_recommendations(self):
+        print("Generating recommendations...")
+
+        # According to a given policy i.e. a probability distribution 
+        # select an item by drawing from this distribution -> is the recommendation
+        def select_policy(distribution, indices):
+            i_drawn_policy = np.random.choice(indices, 1, p=distribution)
+            recommendation = np.zeros(len(indices))
+            recommendation[i_drawn_policy] = 1
+            return recommendation
+
+        # Since stationary policies pick a recommendation for an user only once
+        indices = np.arange(len(self.policies[0]))
+        self.recommendations = np.apply_along_axis(select_policy, 1, self.policies, indices)
+        
 
         
  
