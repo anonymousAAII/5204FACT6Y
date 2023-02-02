@@ -233,8 +233,9 @@ if __name__ == "__main__":
         # Get the recommender models with best performances
         best_recommender_models = rec_generator.get_best_recommender_models(recommender_model, selection_mode="latent")
 
-        # Only populate with recommender models once
-        if len(os.listdir(constant.MODELS_FOLDER + data_set["var_folder"])) == 0:
+        # Only populate with recommender models when experiment 5.1 requested 
+        # if len(os.listdir(constant.MODELS_FOLDER + data_set["var_folder"])) == 0:
+        if experiment_choice == "5.1":
             start = time.time()
             # Create Recommender system objects in parallel
             with mp.Pool(mp.cpu_count()) as pool:

@@ -138,7 +138,11 @@ if __name__ == "__main__":
 
     # Read in data files as data frames
     for var_name, file_name in DATA_SET["data"].items():
-         my_globals[var_name] = pd.read_csv(DATA_SET["data_src"] + file_name, sep="::", header=None, names=header[var_name], encoding="latin-1", engine="python")
+        if file_name.endswith('.csv'):
+            my_globals[var_name] = pd.read_csv(DATA_SET["data_src"] + file_name)
+            my_globals[var_name].columns = header[var_name]
+        else:
+            my_globals[var_name] = pd.read_csv(DATA_SET["data_src"] + file_name, sep="::", header=None, names=header[var_name], encoding="latin-1", engine="python")
 
     # Get the number of ratings per movie (movie rating count)
     user_movies["rating_count"] = np.full(len(user_movies), 1)    

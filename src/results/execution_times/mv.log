@@ -36,3 +36,29 @@ Predicting ground_truth 0.05886220932006836
 Generating recommender_model 1149.5669522285461
 
 01/02/2023_21:14:10
+02/02/2023_01:05:59
+Generating ground_truth_model 442.2850706577301
+
+Predicting ground_truth 0.054467201232910156
+
+Generating recommender_model 1051.1320085525513
+
+Initializing 9 recommenders 73.63126873970032
+
+Performing experiment 5.1...mv als 7.324796438217163
+ground_truth_model
+{"ALGORITHM": "als", "METRIC": "ndcg"}
+recommender_model
+{"ALGORITHM": "als", "METRIC": "ndcg", "normalize": true}
+-------------------END---------------------
+02/02/2023_01:58:17
+02/02/2023_01:59:08
+Initializing 9 recommenders 84.17497658729553
+
+Performing experiment 5.1...mv als 0.4031808376312256
+-------------------END---------------------
+02/02/2023_02:04:29
+Initializing 9 recommenders 87.65524530410767
+
+Performing experiment 5.1...mv als 0.7680716514587402
+-------------------END---------------------

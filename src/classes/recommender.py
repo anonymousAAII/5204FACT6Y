@@ -24,10 +24,16 @@ class Recommender(object):
         
         self.set_preferences()
         self.temperature = temperature
+
         self.set_policies()
         self.set_recommendations()
+
         self.set_rewards()
         self.set_expec_rewards()
+        
+        self.set_u()
+        self.set_u_OPT()
+        self.set_u_m()
 
     def set_preferences(self):
         print("Initializing preferences...")
@@ -58,6 +64,28 @@ class Recommender(object):
         
         # Compute the softmax transformation along the second axis (i.e., the rows)
         self.policies = scipy.special.softmax(policies, axis=1)
+
+    # This whole section belows makes use of the properties of lineair algebra to compute sources of envy
+    def set_u(self):
+        # According to definition utility = policy * expectation rewards
+        utilities = self.policies @ self.expec_rewards.T
+        self.u = utilities
+
+    def set_u_OPT(self):
+        """
+            Finds the utilies of unconstrainted optimal policies
+        """    
+        # Contains the OPT utilities per user in the matrix form 
+        # Non zero elements contain the OPT per user -> coordinate = <policy_index>, <user_index>
+        # so each column has exactly one none zero element
+        self.u_OPT = self.u * (self.u >= np.sort(self.u, axis=0)[[-1],:]).astype(int)
+
+    def set_u_m(self):
+        """
+            Find utilities u_m for policy m (so the utility for each user of its own policy) 
+        """
+        self.u_m = np.zeros(self.u.shape)
+        np.fill_diagonal(self.u_m, self.u.diagonal())
 
     def set_recommendations(self):
         print("Generating recommendations...")

@@ -26,29 +26,19 @@ class Audit(object):
 
     # Basic definition of envy-freeness in a system (see 3.1 paper)
     def __envy_free_basic(self):
-        policies = self.recommender.policies
-        expec_rewards = self.recommender.expec_rewards
-        users, _ = policies.shape
+        # Utilities of own policies
+        u_m = self.recommender.u_m
+        # Utilities of OPT
+        u_OPT = self.recommender.u_OPT
 
-        # # RELAXATION CONDITIONS: such that we do not have to try ALL users and ALL policies
-        # # Threshold of when an user is considered envious
-        # envious_user_threshold = int(gamma * users)
-        # # Threshold of users that should not be envious
-        # envy_free_users_threshold = users * (1 - lamb)
-
-        # This whole section belows makes use of the properties of lineair algebra to compute sources of envy
-        # According to definition utility = policy * expectation rewards
-        utilities = policies @ expec_rewards.T
-
-        # Column index = index of user policy, row index = index of user to which the policy was applied
-        delta_utilities = utilities - np.repeat([utilities.diagonal()], users, axis=0)
-        
-        # Get maximum envy experienced by users (i.e. for each user)
-        max_delta_utilities = delta_utilities.max(axis=0, keepdims=True)
-        delta_envy = np.maximum(max_delta_utilities, np.zeros(users))
+        # Only keep <u_OPT> that involve policies other than those of the user
+        mask = np.full(u_OPT.shape, 1)
+        np.fill_diagonal(mask, 0)
+        u_n = mask * u_OPT
+        envy = (np.flatten(u_n) - np.flatten(u_m)).clip(min=0)
 
         # Envy for each user
-        return delta_envy.flatten()
+        return envy
 
     def audit_envy(self, audit_mode="basic"):
         """
