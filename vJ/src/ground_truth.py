@@ -86,6 +86,7 @@ def get_ground_truths(df):
     reg = [0.01, 0.1, 1., 10.]
     conf_weights = [0.1, 1., 10., 100.]
     seeds = [0, 42, 123]
+    seeds = [42]
     best_model = None
     best_score = 0
     for seed in seeds:
@@ -97,7 +98,7 @@ def get_ground_truths(df):
         # Test hyperparameters
         _, rec = grid_search(train_matrix, val_matrix, factors, reg,
                              conf_weights, seed=seed)
-        test_score = precision_at_k(rec.model, train_matrix, val_matrix,
+        test_score = precision_at_k(rec.model, train_matrix, val_matrix, K=10,
                                     show_progress=False)
         if test_score > best_score:
             best_model = rec

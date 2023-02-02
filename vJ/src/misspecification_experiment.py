@@ -79,7 +79,7 @@ def do_experiment(ground_truths, factors, seed=None):
         total_util_list.append(total_util)
         avg_envy_list.append(avg_envy)
         prop_envious_list.append(prop_envious)
-    return rec, total_util_list, avg_envy_list, prop_envious_list
+    return total_util_list, avg_envy_list, prop_envious_list
 
 def main(dataset_name, factors):
     print(f"Experiment with {dataset_name} data started")
@@ -100,17 +100,17 @@ if __name__ == '__main__':
     datasets = ['lastfm', 'movielens']
     factors = [1, 2, 4, 8, 16, 32, 64, 128, 256]
     for dataset in datasets:
-        avg_envy[dataset], prop_envious[dataset] = main(dataset, factors)
+        avg_envy[dataset], prop_envious[dataset] = main(dataset, factors[:-1])
     
     for dataset in datasets:
-        plt.plot(factors, avg_envy[dataset], label=dataset)
+        plt.plot(factors[:-1], avg_envy[dataset], label=dataset)
     plt.xlabel("number of factors")
     plt.ylabel("average envy")
     plt.legend()
     plt.show()
 
     for dataset in datasets:
-        plt.plot(factors, prop_envious[dataset], label=dataset)
+        plt.plot(factors[:-1], prop_envious[dataset], label=dataset)
     plt.xlabel("number of factors")
     plt.ylabel("prop of 0.05-envious users")
     plt.legend()
