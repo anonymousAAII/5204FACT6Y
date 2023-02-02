@@ -35,8 +35,9 @@ class Audit(object):
         mask = np.full(u_OPT.shape, 1)
         np.fill_diagonal(mask, 0)
         u_n = mask * u_OPT
-        envy = (np.flatten(u_n) - np.flatten(u_m)).clip(min=0)
-
+        delta_u = (u_n.flatten() - u_m.flatten())
+        envy = delta_u.clip(min=0)
+        
         # Envy for each user
         return envy
 

@@ -22,10 +22,10 @@ MODELS_CHOSEN = None
 # Data sets on which the experiments can be performed
 DATA_SETS = {"movie": {"label": "mv",
                 "filename": "user_movie.py",
-                "data": {"user_movies": "ratings.csv"},
-                "data_src": "../data/ml-1m",
-                # "data": {"user_movies": "ratings.dat"},
-                # "data_src": "../data/ml-1m/",
+                # "data": {"user_movies": "ratings.csv"},
+                # "data_src": "../data/ml-25m/",
+                "data": {"user_movies": "ratings.dat"},
+                "data_src": "../data/ml-1m/",
                 # Extension of variable name
                 "var_ext": "_mv",
                 "var_folder": "mv/",

@@ -87,6 +87,13 @@ class Recommender(object):
         self.u_m = np.zeros(self.u.shape)
         np.fill_diagonal(self.u_m, self.u.diagonal())
 
+    def set_u_EUU(self):
+        """
+            Find the Equal User Utility using the Frank-Wolfe algorithm
+        """
+        # Use the policies as the initial guess of the Frank-Wolfe algorithm
+        p_init = self.policies
+
     def set_recommendations(self):
         print("Generating recommendations...")
 

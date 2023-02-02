@@ -62,3 +62,32 @@ Initializing 9 recommenders 85.63294458389282
 
 Performing experiment 5.1...fm als 0.37235164642333984
 -------------------END---------------------
+02/02/2023_03:19:03
+Generating ground_truth_model 168.06621503829956
+
+Predicting ground_truth 0.052611351013183594
+
+Generating recommender_model 732.0031402111053
+
+Initializing 9 recommenders 80.82070922851562
+
+02/02/2023_03:40:01
+Initializing 9 recommenders 77.67213225364685
+
+02/02/2023_03:43:52
+Initializing 9 recommenders 84.76726722717285
+
+02/02/2023_03:55:05
+Initializing 9 recommenders 92.57294917106628
+
+02/02/2023_04:05:50
+Initializing 9 recommenders 89.00657916069031
+
+02/02/2023_04:14:53
+Initializing 9 recommenders 74.9043447971344
+
+02/02/2023_04:20:18
+Initializing 9 recommenders 77.87398362159729
+
+Performing experiment 5.1...fm als 0.8896658420562744
+-------------------END---------------------
