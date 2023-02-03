@@ -5,7 +5,7 @@
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
 This requires for the code to generate a recommender system with its recommendation policies for users.
-To achieve this a pipeline is build that completes sparse read in user data to synthesize true user preferences which we use to generate a recommender system. Based on this ground truth we can then audit the recommender system for fairness using the definition of envy-freeness as given by the original paper[^1]. The experiments we implemented can reproduce the *sources of envy: misspecification* experiment and the *bandit experiment*. The framework can also be extend to reproduce the experiments the from the basis of the novel formal analysis of envy-free recommender systems provided by the authors.  
+To achieve this a pipeline is build that completes sparse read in user data to synthesize true user preferences which we use to generate a recommender system. Based on this ground truth we can then audit the recommender system for fairness using the definition of envy-freeness as given by the original paper[^1]. The experiments we implemented can reproduce the *sources of envy: misspecification* experiment and the *bandit experiment*. The framework can also be extended to reproduce the experiments that form the basis of the novel formal analysis of envy-free recommender systems provided by the authors.  
 
 The pipeline is build in a rather modular manner to save computation time.
 For each step in the pipeline intermediate states are stored such that they only have to be created once and can effortlessly be retrieved. The pipeline modular objects are stored as:
