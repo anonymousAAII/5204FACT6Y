@@ -67,8 +67,6 @@ In these files the chosen models are also logged as:
 ```
 Note however that this only involves when the models are constructed not when they are loaded in.
 
-#### ! Please run the code on Linux to prevent portability issues regarding code libaries !
-
 Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
 ```
