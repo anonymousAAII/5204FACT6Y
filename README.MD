@@ -67,8 +67,6 @@ In these files the chosen models are also logged as:
 ```
 Note however that this only involves when the models are constructed not when they are loaded in.
 
-#### ! Please run the code on Linux to prevent portability issues regarding code libaries !
-
 Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
 ```
@@ -88,7 +86,8 @@ DUMMY_EXPERIMENT_CHOICE = "5.1"
 #### Experiments legenda
 | Experiment       | Description                          | Corresponding fig. in *original* paper[^5] | 
 | :-               |    :----:                            |                                       ---: |
-| 5.1              | **Sources of envy**: average envy / number of factors & prop.of envious users / number of factors | Figure 2                                   |
+| 5.1              | **Sources of envy**: misspecification experiment | Figure 2                                   |
+| 5.2              | **OCEF**: bandit experiment | Figure 3                                   |
 
 #### Implemented possible models per pipe line stage
 |  Data set    | Ground truth model | Recommender model | 
@@ -100,7 +99,7 @@ Since all models are saved as objects in a file these models can be reused at an
 
 ### Running bandit experiment
 
-For running the bandit experiment, navigate to the ```src/``` folder in the terminal and run the following command:
+Since the bandit experiment uses toy data, for running the bandit experiment you can also navigate to the ```src/``` folder in the terminal and run the following command:
 
 ```
 python bandit_experiment.py
