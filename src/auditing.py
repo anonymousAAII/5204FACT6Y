@@ -49,7 +49,7 @@ def conservative_estimate(index_selection, Ns, mus, betas, alpha, delta, sigma,
     return ksi
     
 
-def OCEF(policies, reward_func, delta, alpha, epsilon, sigma=0.5, omega=0.01):
+def OCEF(policies, reward_func, delta, alpha, epsilon, sigma=0.4, omega=0.01):
     """
     Implements the OCEF algorithm to audit whether a target user is envious of
     other users.

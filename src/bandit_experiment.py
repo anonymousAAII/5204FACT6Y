@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from auditing import OCEF
 
-def bandit_experiment(arms, N, delta, alpha, epsilon, sigma=0.5, omega=0.01):
+def bandit_experiment(arms, N, delta, alpha, epsilon, sigma=0.4, omega=0.01):
     """
     Performs bandit experiments by running OCEF on the provided arms.
     Inputs:
@@ -39,8 +39,8 @@ def bandit_experiment(arms, N, delta, alpha, epsilon, sigma=0.5, omega=0.01):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--sigma', default=0.5, type=float,
-                        help='Value for sigma, default 0.5')
+    parser.add_argument('--sigma', default=0.4, type=float,
+                        help='Value for sigma, default 0.4')
     parser.add_argument('--omega', default=0.01, type=float,
                         help='Value for omega, default 0.01')
     parser.add_argument('--delta', default=0.05, type=float,
