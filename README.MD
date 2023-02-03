@@ -1,5 +1,5 @@
 # Reproduced paper framework 
-### Online Certification of Preference-Based Fairness for Personalized Recommender Systems
+### Reproducibility of: Online Certification of Preference-Based Fairness for Personalized Recommender Systems
 *Auditing for envy in recommender systems*. This framework is build based on reproducing the paper: "Online Certification of Preference-Based Fairness for Personalized Recommender Systems."[^1][^5]. With this framework we aimed to construct a reasonable environment in which the paper could be reproduced in a controlled and structured experimental setting. For this we took into consideration runtime performance, reusability and scalibilty. For now the framework has only been applied to the two data sets Last.fm[^2] or MovieLens[^3], for a set of 3 models (ALS[^8], LMF[^7], Funky SVD[^6]) and a selection of performance metrics (precision@k, ndcg@k, dcg@k), however, it can be easily be extended to run for other data sets on which we wish to perform to reproduce the claims of the original paper.  
 
 #### How this code works?
