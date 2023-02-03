@@ -67,6 +67,8 @@ In these files the chosen models are also logged as:
 ```
 Note however that this only involves when the models are constructed not when they are loaded in.
 
+#### ! Please run the code on Linux to prevent portability issues regarding code libaries !
+
 Please run the code through the terminal by going to the ```src/``` folder and running the following command:
 
 ```
@@ -95,6 +97,24 @@ DUMMY_EXPERIMENT_CHOICE = "5.1"
 | MovieLens     |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
 
 Since all models are saved as objects in a file these models can be reused at any later time. Data storage design however is not optimal and is open to improvement.
+
+### Running bandit experiment
+
+For running the bandit experiment, navigate to the ```src/``` folder in the terminal and run the following command:
+
+```
+python bandit_experiment.py
+```
+
+This will run the experiment with the default settings. The following options for setting hyperparameters are available:
+
+- ```--sigma``` (float, default is 0.5)
+- ```--omega``` (float, default is 0.01)
+- ```--delta``` (float, default is 0.05)
+- ```--epsilon``` (float, default is 0.05)
+- ```--N``` (int, default is 100)
+
+The names refer to the symbols used in the original paper[^1].
 
 ### Credits
 Meta AI:
