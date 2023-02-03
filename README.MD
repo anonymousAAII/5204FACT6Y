@@ -5,7 +5,7 @@
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
 This requires for the code to generate a recommender system with its recommendation policies for users.
-To achieve this a pipeline is build that completes sparse read in user data to synthesize true user preferences which we use to generate a recommender system. Based on this ground truth we can then audit the recommender system for fairness using the definition of envy-freeness as given by the original paper[^1]. The experiments implemented can provide a novel formal analysis of envy-free recommender systems.  
+To achieve this a pipeline is build that completes sparse read in user data to synthesize true user preferences which we use to generate a recommender system. Based on this ground truth we can then audit the recommender system for fairness using the definition of envy-freeness as given by the original paper[^1]. The experiments implemented can reproduce the *sources of envy: misspecification* experiment and the *bandit experiment*. The framework can also be extend to reproduce the experiments the from the basis of the novel formal analysis of envy-free recommender systems provided by the authors.  
 
 The pipeline is build in a rather modular manner to save computation time.
 For each step in the pipeline intermediate states are stored such that they only have to be created once and can effortlessly be retrieved. The pipeline modular objects are stored as:
@@ -114,6 +114,14 @@ This will run the experiment with the default settings. The following options fo
 - ```--N``` (int, default is 100)
 
 The names refer to the symbols used in the original paper[^1].
+
+### Extension for further research on reproducibility of this paper 
+
+<ol>
+  <li>Implement running the bandit experiment on real data instead of toy data to verify whether their main claim about OCEF and performance still holds.</li>
+  <li>Constructing the pipeline for a broader set of model permutations and see if their sources of envy claim still holds. E.g. making Funky SVD work.</li>
+  <li>Trying more data sets of/that simulate personalized recommender systems and see of the main claims of the authors still hold.</li>
+</ol>
 
 ### Credits
 Meta AI:
