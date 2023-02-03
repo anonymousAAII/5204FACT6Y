@@ -27,7 +27,7 @@ class Experiment(object):
         for i in tqdm(range(len(self.recommenders))):
             recommender = self.recommenders[i]
             audit = Audit(recommender)
-            envy_per_user = audit.audit_envy(audit_mode="basic")
+            envy_per_user = audit.get_envy()
 
             # Average envy per user 
             latent_factor = recommender.params["latent_factor"]

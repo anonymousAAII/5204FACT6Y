@@ -57,22 +57,29 @@ if __name__ == "__main__":
     # Available data sets
     data_sets = constant.DATA_SETS
     
-    print("**Continue with a DUMMY DEMO <d>? Or manual <m>?**")
-    constant.DEBUG = True if pyip.inputMenu(["d", "m"]) == "d" else False
-    print("\n")
-    
     # For now leave out the "all" option to run experiments
     all_options = list(constant.EXPERIMENT_RUN_OPTIONS.keys())
     all_options.pop(0)
+
+    # Select experiments
+    print("\n**EXPERIMENTS: Please specify which experiments to run**")
+    experiment_choice = pyip.inputMenu(list(all_options))
+    print("\n")
+
+    if experiment_choice == "5.1":
+        print("**Continue with a DUMMY DEMO for experiment 5.1 <d>? Or hybride manual for 5.1 <m>?**")
+        
+    else:
+        # Since CLI interface is and further options & code is for now only build for experiment 5.1 just execute exp. 5.2 when chosen and execute
+        file_name = constant.EXPERIMENT_RUN_OPTIONS[experiment_choice]
+        exec(compile(open(file_name, "rb").read(), file_name, "exec"))
+        exit(0)
+
+    constant.DEBUG = True if pyip.inputMenu(["d", "m"]) == "d" else False
+    print("\n")
     
     # When debug mode is on skip this section and take dummy input
     if not constant.DEBUG:
-
-        # Select experiments
-        print("**EXPERIMENTS: Please specify which experiments to run**")
-        experiment_choice = pyip.inputMenu(list(all_options))
-        print("\n")
-        
         experiments_chosen = all_options if experiment_choice == "all" else [experiment_choice]
 
         # Select data set(s)

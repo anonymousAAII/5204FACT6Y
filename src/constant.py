@@ -65,8 +65,8 @@ FILE_NAMES = {"gt_model": "ground_truth_model",
 
 # Specifies which experiments can be ran and the location their results are stored
 EXPERIMENT_RUN_OPTIONS = {"all": None,
-                        "5.1": {},
-                        "IN PROGRESS": {}}
+                        "5.1": None,
+                        "5.2": "bandit_experiment.py"}
 
 # Algorithm options for the ground truth model
 ALGORITHM_GROUND_TRUTH = ["als", "lmf"]

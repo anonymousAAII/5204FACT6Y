@@ -25,7 +25,7 @@ class Audit(object):
             }
 
     # Basic definition of envy-freeness in a system (see 3.1 paper)
-    def __envy_free_basic(self):
+    def get_envy(self):
         # Utilities of own policies
         u_m = self.recommender.u_m
         # Utilities of OPT
@@ -47,9 +47,3 @@ class Audit(object):
         # Envy for each user
         return envy
 
-    def audit_envy(self, audit_mode="basic"):
-        """
-        Audit function
-        """
-        if audit_mode=="basic":
-            return self.__envy_free_basic()
