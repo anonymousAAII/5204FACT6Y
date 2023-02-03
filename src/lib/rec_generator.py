@@ -172,9 +172,9 @@ def create_recommender_model(ground_truth, hyperparameter_configurations, algori
         df = pd.DataFrame({"u_id": u_id, "i_id": i_id, "rating": values})
  
         # Create data splits
-        train = df.sample(frac=split["train"])
+        train = df.sample(frac=split["train"], random_state=1)
         validation_size = split["validation"] / (1 - split["train"])
-        validation = df.drop(train.index.tolist()).sample(frac=validation_size)
+        validation = df.drop(train.index.tolist()).sample(frac=validation_size, random_state=1)
         test = df.drop(train.index.tolist()).drop(validation.index.tolist())
 
         # Multiprocessing: assign a batch of models to a processor

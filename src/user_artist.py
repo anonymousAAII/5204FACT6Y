@@ -46,8 +46,8 @@ def train_model(R_coo, configurations, seed, metric, model_type):
         model_type              - selected algorithm of model
     """
     # Create 70%/10%/20% train/validation/test data split 
-    train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7)
-    validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3)
+    train, validation_test = implicit.evaluation.train_test_split(R_coo, train_percentage=0.7, random_state=seed)
+    validation, test = implicit.evaluation.train_test_split(scipy.sparse.coo_matrix(validation_test), train_percentage=1/3, random_state=seed)
 
     # Logistic Matrix Factorization    
     if model_type == "lmf":

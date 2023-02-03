@@ -1,0 +1,11 @@
+MV
+ground_truth_model
+{"ALGORITHM": "als", "METRIC": "precision"}
+recommender_model
+{"ALGORITHM": "als", "METRIC": "precision", "normalize": false}
+
+FM
+ground_truth_model
+{"ALGORITHM": "als", "METRIC": "precision"}
+recommender_model
+{"ALGORITHM": "als", "METRIC": "precision", "normalize": false}
