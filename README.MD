@@ -1,6 +1,6 @@
 # Reproduced paper framework 
 ### Reproducibility of: Online Certification of Preference-Based Fairness for Personalized Recommender Systems
-*Auditing for envy in recommender systems*. This framework is build based on reproducing the paper: "Online Certification of Preference-Based Fairness for Personalized Recommender Systems."[^1][^5]. With this framework we aimed to construct a reasonable environment in which the paper could be reproduced in a controlled and structured experimental setting. For this we took into consideration runtime performance, reusability and scalibilty. For now the framework has only been applied to the two data sets Last.fm[^2] or MovieLens[^3], for a set of 3 models (ALS[^8], LMF[^7], Funky SVD[^6]) and a selection of performance metrics (precision@k, ndcg@k, dcg@k), however, it can be easily be extended to run for other data sets on which we wish to perform to reproduce the claims of the original paper.  
+*Auditing for envy in recommender systems*. This framework is build based on reproducing the paper: "Online Certification of Preference-Based Fairness for Personalized Recommender Systems."[^1][^5]. With this framework we aimed to construct a reasonable environment in which the paper could be reproduced in a *controlled and structured experimental setting* making some reproducibility options e.g. model choice dynamic such that reproducibility could be more easily tested for different models. For this we took into consideration runtime performance (multi-processing), reusability (softcoding: CLI options) and extendability (code structure design). For now the framework has only been applied to the two data sets Last.fm[^2] or MovieLens[^3], for a set of 3 models (ALS[^8], LMF[^7], Funky SVD[^6]) and a selection of performance metrics (precision@k, ndcg@k, dcg@k), however, it can be easily be extended to run for other data sets on which we wish to perform to reproduce the claims of the original paper. So besides focusing on reproducibility we also spend effort in sustainability and usuability for further extension of our work.
 
 #### How this code works?
 For this project experiments can be ran to audit for envy(-freeness) in recommender systems.
@@ -95,7 +95,7 @@ DUMMY_EXPERIMENT_CHOICE = "5.1"
 | LastFM        |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
 | MovieLens     |  (ALS) <br> (LMF)  | (ALS) <br> Funky SVD |
 
-Since all models are saved as objects in a file these models can be reused at any later time. Data storage design however is not optimal and is open to improvement.
+Since all models are saved as objects in a file these models can be reused at any later time. Data storage design however is not optimal and is open to improvement since as it is now it poses limitations to scalability. 
 
 ### Running bandit experiment
 
