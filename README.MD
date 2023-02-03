@@ -22,7 +22,7 @@ src/variables/fm/ground_truth/als/ground_truth_model
 
 When one likes to redo running a stage of the pipeline that's possible by **manually deleting** the created intermediate object file. 
 Note however that some computations determine the computations of the subsequent stages. 
-For changes in the deleted component to work through all the way through the pipeline **subsequent objects files ought to also be deleted**. 
+For changes in the deleted component to work through all the way through the pipeline **subsequent objects files ought to also be deleted**. Deleting the folders **models** or **variables** or a subfolder is also possible since the code automatically initializes the framework with a correct folder structure upon running the code 
 To make carefull decisions which object files to delete taking computation time into consideration the following info is included:
 
 The intermediate stages object files are stored in the ```/src/variables/...``` path.
